@@ -6,6 +6,7 @@
 .env
 .env.local
 .env.production
+.env.render
 
 # Python
 __pycache__/
@@ -44,7 +45,8 @@ venv.bak/
 local_settings.py
 db.sqlite3
 db.sqlite3-journal
-# /media  - keep media files for deployment
+# Media files - served via Cloudinary in production
+/media
 /staticfiles
 /static
 celerybeat-schedule
