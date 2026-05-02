@@ -1361,6 +1361,17 @@ img {
                                     </div>
                                 </div>
 
+                                {% if record.fine_amount > 0 %}
+                                <div class="fine-info" style="margin-top:10px;padding:10px 12px;border-radius:8px;background:{% if record.fine_paid %}rgba(34,197,94,0.1){% else %}rgba(239,68,68,0.1){% endif %};">
+                                    <div class="fine-amount" style="color:{% if record.fine_paid %}var(--success){% else %}var(--error){% endif %};">
+                                        Fine: ETB {{ record.fine_amount }}
+                                    </div>
+                                    <div class="fine-status {% if record.fine_paid %}paid{% else %}unpaid{% endif %}">
+                                        {% if record.fine_paid %}✅ Paid{% else %}⚠️ Unpaid{% endif %}
+                                    </div>
+                                </div>
+                                {% endif %}
+
                                 {% if record.book.user_rating %}
                                 <div class="rating-display">
                                     <div class="rating-stars">
@@ -1389,6 +1400,16 @@ img {
                                     </svg>
                                     View Details
                                 </a>
+                                {% if record.fine_amount > 0 and not record.fine_paid %}
+                                <a href="{% url 'payments:select_method' record.pk %}" class="btn btn-sm" style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <path d="M12 18V6"></path>
+                                    </svg>
+                                    Pay Fine ETB {{ record.fine_amount }}
+                                </a>
+                                {% endif %}
                                 {% if not record.book.user_rating %}
                                 <a href="{% url 'books:detail' record.book.pk %}#reviews" class="btn btn-primary btn-sm">
                                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
