@@ -160,19 +160,18 @@
                     </div>
                 </div>
                 <div class="card-body">
-                    <p class="backup-desc">Create a backup of the database and media files (PDFs, covers, etc.). Backups are stored as ZIP files in the backups directory and can be used to restore the complete system including all book files.</p>
+                    <p class="backup-desc">Download a backup of the database as a JSON file. Save it to your computer — backups are not stored on the server. To restore, upload the JSON file using the "Restore from Backup" button.</p>
                     
                     <!-- Action Buttons Row -->
                     <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.25rem;">
                         <a href="{% url 'dashboard:create_backup' %}"
-                           class="btn btn-success"
-                           onclick="event.preventDefault(); handleAsyncConfirm('Create a new database backup now?', () => window.location.href = this.href);">
+                           class="btn btn-success">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                                 <polyline points="7 10 12 15 17 10"></polyline>
                                 <line x1="12" y1="15" x2="12" y2="3"></line>
                             </svg>
-                            Create Backup
+                            Download Backup
                         </a>
                         
                         <button type="button" class="btn btn-outline" onclick="document.getElementById('uploadBackupInput').click();">
@@ -181,14 +180,14 @@
                                 <polyline points="17 8 12 3 7 8"></polyline>
                                 <line x1="12" y1="3" x2="12" y2="15"></line>
                             </svg>
-                            Upload Backup
+                            Restore from Backup
                         </button>
                     </div>
                     
                     <!-- Hidden Upload Form -->
                     <form id="uploadBackupForm" method="post" action="{% url 'dashboard:upload_backup' %}" enctype="multipart/form-data" style="display: none;">
                         {% csrf_token %}
-                        <input type="file" id="uploadBackupInput" name="backup_file" accept=".sqlite3" onchange="handleBackupUpload(this)">
+                        <input type="file" id="uploadBackupInput" name="backup_file" accept=".json,.sql" onchange="handleBackupUpload(this)">
                     </form>
 
                     {% if backups %}
@@ -256,7 +255,7 @@
                             <circle cx="12" cy="12" r="10"></circle>
                             <path d="M12 16v-4m0-4h.01"></path>
                         </svg>
-                        No backups found. Create your first backup!
+                        No backups found. Click "Download Backup" to download a backup to your computer. Backups are not stored on the server.
                     </div>
                     {% endif %}
                 </div>
