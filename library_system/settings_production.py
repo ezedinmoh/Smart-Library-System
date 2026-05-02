@@ -292,7 +292,7 @@ CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
 
 # Allauth social login state tolerance
-SOCIALACCOUNT_LOGIN_ON_GET = False
+SOCIALACCOUNT_LOGIN_ON_GET = False  # Show confirmation page before OAuth login
 # Allow state to survive across cold starts by storing in DB session
 SOCIALACCOUNT_STORE_TOKENS = True
 
