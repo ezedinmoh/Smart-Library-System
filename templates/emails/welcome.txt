@@ -21,11 +21,11 @@ WHAT YOU CAN DO NOW:
 
 GETTING STARTED:
 ----------------
-1. Login to your account
+1. Login to your account at {{ site_url }}
 2. Browse available books in the catalog
 3. Request books you want to read
 4. Wait for librarian approval
-5. Start reading!
+5. Start reading online!
 
 BORROWING LIMITS:
 -----------------
@@ -35,17 +35,14 @@ BORROWING LIMITS:
 
 IMPORTANT REMINDERS:
 --------------------
-- Return books on time to avoid fines
+- Return books on time via the website to avoid fines
 - Check your email regularly for notifications
 - You'll receive reminders when books are due
-- Contact the library if you need help
+- Pay fines online using Stripe or Chapa
 
 NEED HELP?
 ----------
-If you have any questions or need assistance, feel free to:
-- Visit the library during opening hours
-- Contact our support team
-- Check the help section on our website
+If you have any questions, visit us at {{ site_url }} or contact our support team.
 
 We're excited to have you as part of our reading community!
 
@@ -54,6 +51,3 @@ Happy reading! 📚
 Best regards,
 {{ site_name }} Team
 {{ site_url }}
-
----
-This email was sent because you successfully verified your account at {{ site_name }}.

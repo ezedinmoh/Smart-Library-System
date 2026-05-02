@@ -17,20 +17,16 @@ Your book is due in 2 days. Please plan to return it soon.
 Your book is due in {{ days_remaining }} days. Please plan to return it on time.
 {% endif %}
 
-Return Options:
-- Visit the library during opening hours
-- Use the online return feature (if available)
+HOW TO RETURN ONLINE:
+- Go to: {{ site_url }}/borrow/my-books/
+- Click "Return Book" on the book
 
 Need More Time?
-If you need to keep the book longer, please contact the library to request an extension (subject to availability).
+If you need to keep the book longer, contact us at {{ site_url }} to request an extension (subject to availability).
 
 Important:
-- Late returns may incur fines
+- Late returns incur a fine of ETB 2 per day
 - Overdue books affect your borrowing privileges
-
-Questions? Contact us at {{ site_name }}
-
-Thank you for using our library!
 
 Best regards,
 {{ site_name }} Team

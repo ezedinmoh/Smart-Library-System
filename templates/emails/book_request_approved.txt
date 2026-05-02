@@ -16,13 +16,12 @@ DUE DATE: {{ due_date|date:'F d, Y' }}
 
 You can now:
 - Read the book online through your dashboard
-- Visit the library to collect the physical copy
 - Access the book from "My Books" section
 
 IMPORTANT REMINDERS:
 - Please return the book by {{ due_date|date:'F d, Y' }}
 - Late returns incur a fine of ETB 2 per day
-- You can renew the book if needed (contact library)
+- Return the book online via the "My Books" section
 
 View your borrowed books: {{ site_url }}/borrow/my-books/
 

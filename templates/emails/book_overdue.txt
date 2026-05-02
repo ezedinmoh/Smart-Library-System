@@ -26,9 +26,9 @@ Your book is significantly overdue ({{ days_overdue }} days). Please return it u
 
 IMMEDIATE ACTION REQUIRED:
 --------------------------
-1. Return the book to the library immediately
-2. Pay the outstanding fine of ETB {{ fine_amount }}
-3. Contact the library if you have any issues
+1. Return the book via the website (My Books section)
+2. Pay the outstanding fine of ETB {{ fine_amount }} online
+3. Contact us at {{ site_url }} if you have any issues
 
 CONSEQUENCES OF LATE RETURN:
 -----------------------------
@@ -37,13 +37,13 @@ CONSEQUENCES OF LATE RETURN:
 - You cannot borrow new books until this is resolved
 - Outstanding fines must be paid before future borrowing
 
-Return Options:
-- Visit the library during opening hours
-- Use the library return desk
-- Contact us for special arrangements
+HOW TO RETURN & PAY ONLINE:
+- Go to: {{ site_url }}/borrow/my-books/
+- Click "Return Book" then "Pay Fine"
+- Pay securely with Stripe or Chapa
 
 Need Help?
-If you've already returned the book or have questions, please contact the library immediately at {{ site_name }}.
+If you've already returned the book or have questions, contact us at {{ site_url }}
 
 IMPORTANT: Please resolve this matter as soon as possible to avoid further penalties.
 

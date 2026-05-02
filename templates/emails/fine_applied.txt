@@ -2,7 +2,7 @@ Hi {{ user.get_full_name|default:user.username }},
 
 💰 FINE APPLIED NOTICE
 
-A fine has been applied to your library account for an overdue book.
+A fine has been applied to your account for an overdue book.
 
 Book Details:
 -------------
@@ -23,12 +23,13 @@ PAYMENT REQUIRED:
 Your fine of ETB {{ fine_amount }} must be paid before you can:
 - Borrow new books
 - Renew existing books
-- Access certain library services
+- Access certain services
 
-How to Pay:
-1. Visit the library during opening hours
-2. Pay at the circulation desk
-3. Keep your payment receipt
+HOW TO PAY ONLINE:
+1. Go to My Books: {{ site_url }}/borrow/my-books/
+2. Find the overdue book and click "Pay Fine"
+3. Choose Stripe (card) or Chapa (mobile money)
+4. Complete the payment online
 
 IMPORTANT: Fines continue to accumulate until the book is returned!
 {% else %}
@@ -40,27 +41,23 @@ Please remember to return books on time to avoid future fines.
 {% endif %}
 
 Current Status:
-- Book: {% if days_overdue > 0 %}Still overdue - please return immediately{% else %}Returned{% endif %}
-- Fine: {% if fine_paid %}Paid{% else %}Unpaid - payment required{% endif %}
+- Book: {% if days_overdue > 0 %}Still overdue - please return it online{% else %}Returned{% endif %}
+- Fine: {% if fine_paid %}Paid{% else %}Unpaid - pay online{% endif %}
 
 {% if not fine_paid %}
 Next Steps:
-1. Return the book immediately (if not already returned)
-2. Pay the fine at the library
+1. Return the book via the website (My Books section)
+2. Pay the fine online using Stripe or Chapa
 3. Resume normal borrowing privileges
 {% endif %}
 
 Tips to Avoid Future Fines:
 - Set reminders for due dates
-- Return books on time
-- Request extensions before the due date
+- Return books on time via the website
 - Check your email regularly for notifications
 
 Questions or Issues?
-If you believe this fine was applied in error, or if you've already returned the book, please contact the library immediately.
-
-Contact Us:
-Visit {{ site_name }} or come to the library during opening hours.
+If you believe this fine was applied in error, contact us at {{ site_url }}/contact or reply to this email.
 
 Best regards,
 {{ site_name }} Team

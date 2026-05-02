@@ -15,11 +15,9 @@ REJECTION REASON:
 {{ reason|default:'No specific reason provided.' }}
 
 WHAT YOU CAN DO:
-- Browse other available books in our catalog
-- Contact the library for more information
+- Browse other available books: {{ site_url }}/books/
 - Submit a new request for a different book
-
-If you have any questions, please contact the library staff.
+- Contact us at {{ site_url }} for more information
 
 Browse books: {{ site_url }}/books/
 

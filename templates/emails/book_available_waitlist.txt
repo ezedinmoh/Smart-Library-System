@@ -28,7 +28,7 @@ WHAT HAPPENS NEXT:
 ------------------
 1. A librarian will review your request
 2. You'll receive an approval notification via email
-3. You can then read the book online or pick up the physical copy
+3. You can then read the book online through your dashboard
 
 Your request is currently pending approval and will be processed soon based on your position in the queue.
 
@@ -36,16 +36,12 @@ IMPORTANT NOTES:
 ----------------
 - Requests are approved in order (first come, first served)
 - You'll receive another email when your request is approved
-- The book will be reserved for you once approved
 - Make sure to check your email regularly
 
 Need to Cancel?
-If you no longer need this book, you can cancel your request from the "My Books" page to free up your borrowing slot.
+If you no longer need this book, cancel your request from "My Books" at {{ site_url }}/borrow/my-books/
 
-Questions?
-Contact the library if you have any questions about your request.
-
-Thank you for using {{ site_name }}!
+Questions? Contact us at {{ site_url }}
 
 Best regards,
 {{ site_name }} Team

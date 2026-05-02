@@ -70,9 +70,9 @@
         <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 16px; border-radius: 8px; margin: 24px 0;">
             <h4 style="color: #991b1b; margin-top: 0; font-size: 14px;">⚡ IMMEDIATE ACTION REQUIRED:</h4>
             <ol style="color: #991b1b; font-size: 14px; padding-left: 20px; margin: 8px 0 0 0;">
-                <li style="margin-bottom: 6px;">Return the book to the library immediately</li>
-                <li style="margin-bottom: 6px;">Pay the outstanding fine of <strong>ETB {{ fine_amount }}</strong></li>
-                <li style="margin-bottom: 6px;">Contact the library if you have any issues</li>
+                <li style="margin-bottom: 6px;">Return the book via the website (My Books section)</li>
+                <li style="margin-bottom: 6px;">Pay the outstanding fine of <strong>ETB {{ fine_amount }}</strong> online</li>
+                <li style="margin-bottom: 6px;">Contact us at <a href="{{ site_url }}" style="color:#991b1b;">{{ site_url }}</a> if you have issues</li>
             </ol>
         </div>
         
@@ -87,14 +87,14 @@
             </ul>
         </div>
         
-        <!-- Return Options -->
+        <!-- How to Return & Pay Online -->
         <div style="background: #e0e7ff; border-left: 4px solid #6366f1; padding: 16px; border-radius: 8px; margin: 24px 0;">
-            <h4 style="color: #3730a3; margin-top: 0; font-size: 14px;">📦 Return Options:</h4>
-            <ul style="color: #3730a3; font-size: 14px; padding-left: 20px; margin: 8px 0 0 0;">
-                <li style="margin-bottom: 6px;">Visit the library during opening hours</li>
-                <li style="margin-bottom: 6px;">Use the library return desk</li>
-                <li style="margin-bottom: 6px;">Contact us for special arrangements</li>
-            </ul>
+            <h4 style="color: #3730a3; margin-top: 0; font-size: 14px;">💻 How to Return &amp; Pay Online:</h4>
+            <ol style="color: #3730a3; font-size: 14px; padding-left: 20px; margin: 8px 0 0 0;">
+                <li style="margin-bottom: 6px;">Go to <strong>My Books</strong> on the website</li>
+                <li style="margin-bottom: 6px;">Click <strong>"Return Book"</strong> then <strong>"Pay Fine"</strong></li>
+                <li style="margin-bottom: 6px;">Pay securely with <strong>Stripe</strong> or <strong>Chapa</strong></li>
+            </ol>
         </div>
         
         <!-- Action Button -->
@@ -109,10 +109,9 @@
         <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
         
         <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-            Need help? Contact us immediately.<br><br>
+            Questions? Contact us at <a href="{{ site_url }}" style="color: #3b82f6;">{{ site_url }}</a><br><br>
             Best regards,<br>
-            {{ site_name }} Team<br>
-            <a href="{{ site_url }}" style="color: #3b82f6; text-decoration: none;">{{ site_url }}</a>
+            {{ site_name }} Team
         </p>
     </div>
 </body>
