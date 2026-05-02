@@ -3,7 +3,7 @@ services:
     name: smart-library
     env: python
     buildCommand: "./build.sh"
-    startCommand: "gunicorn library_system.wsgi:application --bind 0.0.0.0:$PORT"
+    startCommand: "gunicorn library_system.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120"
     envVars:
       - key: RENDER
         value: true
@@ -11,3 +11,47 @@ services:
         value: library_system.settings_production
       - key: PYTHON_VERSION
         value: 3.11.0
+
+  # Daily at midnight - mark overdue books
+  - type: cron
+    name: update-overdue-books
+    env: python
+    schedule: "0 0 * * *"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python manage.py update_overdue_books --settings=library_system.settings_production"
+    envVars:
+      - key: RENDER
+        value: true
+
+  # Daily at 9 AM - send due soon reminders
+  - type: cron
+    name: send-due-reminders
+    env: python
+    schedule: "0 9 * * *"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python manage.py send_due_soon_notifications --settings=library_system.settings_production"
+    envVars:
+      - key: RENDER
+        value: true
+
+  # Daily at 10 AM - send overdue reminders
+  - type: cron
+    name: send-overdue-reminders
+    env: python
+    schedule: "0 10 * * *"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python manage.py send_overdue_reminders --settings=library_system.settings_production"
+    envVars:
+      - key: RENDER
+        value: true
+
+  # Daily at 11 PM - calculate fines
+  - type: cron
+    name: calculate-fines
+    env: python
+    schedule: "0 23 * * *"
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "python manage.py calculate_fines --settings=library_system.settings_production"
+    envVars:
+      - key: RENDER
+        value: true

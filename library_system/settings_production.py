@@ -111,12 +111,13 @@ else:
 MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
 
 # Static files compression and caching (Django 6 compatible)
+# Cloudinary handles media; WhiteNoise handles static files
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
     "default": {
-        "BACKEND": "django.core.files.storage.FileSystemStorage",
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
     },
 }
 
@@ -268,6 +269,24 @@ CHAPA_WEBHOOK_SECRET = config('CHAPA_WEBHOOK_SECRET', default='')
 
 SITE_NAME = config('SITE_NAME', default='Smart Library Management System')
 SITE_URL = config('SITE_URL', default='https://smartlibrary.onrender.com')
+
+# ============================================================================
+# CLOUDINARY - Media Storage
+# ============================================================================
+CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='')
+CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY', default='')
+CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default='')
+
+if CLOUDINARY_CLOUD_NAME:
+    import cloudinary
+    cloudinary.config(
+        cloud_name=CLOUDINARY_CLOUD_NAME,
+        api_key=CLOUDINARY_API_KEY,
+        api_secret=CLOUDINARY_API_SECRET,
+        secure=True
+    )
+    if 'cloudinary_storage' not in INSTALLED_APPS:
+        INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
 
 # ============================================================================
 # ADMIN CONFIGURATION
