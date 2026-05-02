@@ -334,12 +334,12 @@
                     {% if messages %}
                     <div class="messages-container">
                         {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }}">
+                        <div class="alert alert-{{ message.tags }}" {% if 'persistent' in message.tags %}data-persistent="true"{% endif %}>
                             <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 {% if message.tags == 'success' %}
                                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                {% elif 'error' in message.tags or 'danger' in message.tags %}
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="15" y1="9" x2="9" y2="15"></line>
                                 <line x1="9" y1="9" x2="15" y2="15"></line>
@@ -492,31 +492,34 @@
             }
         }
         
-        // Auto-dismiss messages after 5 seconds and only show the most recent
+        // Auto-dismiss non-persistent messages after 5 seconds
         const messagesContainer = document.querySelector('.messages-container');
         if (messagesContainer) {
-            const alerts = messagesContainer.querySelectorAll('.alert');
-            
-            // If there are multiple messages, only show the last one
-            if (alerts.length > 1) {
-                alerts.forEach((alert, index) => {
-                    if (index < alerts.length - 1) {
+            const allAlerts = messagesContainer.querySelectorAll('.alert');
+            // Separate persistent (stay forever) from dismissible
+            const dismissible = Array.from(allAlerts).filter(a => !a.dataset.persistent);
+            const persistent  = Array.from(allAlerts).filter(a =>  a.dataset.persistent);
+
+            // If multiple dismissible messages, only show the last one
+            if (dismissible.length > 1) {
+                dismissible.forEach((alert, index) => {
+                    if (index < dismissible.length - 1) {
                         alert.style.display = 'none';
                     }
                 });
             }
-            
-            // Auto-dismiss after 5 seconds
-            setTimeout(() => {
-                alerts.forEach(alert => {
-                    alert.style.opacity = '0';
-                    alert.style.transform = 'translateY(-20px)';
-                    alert.style.transition = 'all 0.3s ease';
-                });
+
+            // Auto-dismiss non-persistent alerts after 5 seconds
+            if (dismissible.length > 0) {
                 setTimeout(() => {
-                    messagesContainer.style.display = 'none';
-                }, 300);
-            }, 5000);
+                    dismissible.forEach(alert => {
+                        alert.style.opacity = '0';
+                        alert.style.transform = 'translateY(-20px)';
+                        alert.style.transition = 'all 0.3s ease';
+                        setTimeout(() => { alert.style.display = 'none'; }, 300);
+                    });
+                }, 5000);
+            }
         }
     </script>
 </body>

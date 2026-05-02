@@ -165,7 +165,7 @@ def login_view(request):
                     request, 
                     f'Please verify your email address before logging in. '
                     f'<a href="{resend_url}" style="color: #10b981; text-decoration: underline; font-weight: 600;">Resend verification email</a>',
-                    extra_tags='safe'
+                    extra_tags='safe persistent'
                 )
                 return render(request, 'users/login.html', {'show_resend_link': True, 'user_email': user_check.email})
         except User.DoesNotExist:
