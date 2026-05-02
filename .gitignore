@@ -110,3 +110,39 @@ Thumbs.db
 # Uploads
 /uploads/
 /downloads/
+
+# ============================================================
+# LOCAL-ONLY FILES — never push to GitHub/Render
+# ============================================================
+
+# Local environment (Render uses its own env vars set in dashboard)
+.env
+.env.local
+.env.render
+
+# Local database files
+db.sqlite3
+db.sqlite3-journal
+*.db
+
+# Local media uploads (Render uses Cloudinary)
+/media/
+
+# Local static files collected (Render runs collectstatic on deploy)
+/staticfiles/
+
+# Local migration scripts
+migrate_sqlite_to_pg.py
+create_test_accounts.py
+sqlite_export*.json
+
+# Local backup files
+/backups/
+*.sql
+*.dump
+*.sqlite3
+
+# Celery local files
+celerybeat-schedule
+celerybeat.pid
+celery_results.sqlite
