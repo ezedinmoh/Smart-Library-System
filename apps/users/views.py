@@ -1279,64 +1279,50 @@ def confirm_email(request, key):
             messages.info(request, 'This email has already been verified.')
             return redirect('users:login')
         
-        # Show confirmation page on GET
-        if request.method == 'GET':
-            return render(request, 'account/email_confirm.html', {
-                'confirmation': confirmation
-            })
-        
-        # Confirm email on POST
-        if request.method == 'POST':
-            from django.db import transaction
+        # Confirm email immediately on GET (one-click verification)
+        from django.db import transaction
 
-            email_address = confirmation.email_address
-            user = email_address.user
+        email_address = confirmation.email_address
+        user = email_address.user
 
-            try:
-                with transaction.atomic():
-                    # Remove any OTHER verified email records for this email address
-                    # that belong to different users (duplicate from data import)
-                    EmailAddress.objects.filter(
-                        email=email_address.email,
-                        verified=True
-                    ).exclude(pk=email_address.pk).delete()
+        try:
+            with transaction.atomic():
+                EmailAddress.objects.filter(
+                    email=email_address.email,
+                    verified=True
+                ).exclude(pk=email_address.pk).delete()
 
-                    # Mark this email as verified and primary
-                    email_address.verified = True
-                    email_address.primary = True
-                    email_address.save()
+                email_address.verified = True
+                email_address.primary = True
+                email_address.save()
 
-                    # Activate user account
-                    user.is_active = True
-                    user.save()
-
-            except Exception as e:
-                logger.error(f"Error during email confirmation for {user.username}: {e}")
-                # Even if something goes wrong with email records, activate the user
                 user.is_active = True
                 user.save()
-                # Mark email verified directly via queryset to avoid constraint issues
-                EmailAddress.objects.filter(pk=email_address.pk).update(verified=True, primary=True)
 
-            # Send welcome email
-            try:
-                from .notifications import send_welcome_email
-                send_welcome_email(user)
-            except Exception:
-                pass
+        except Exception as e:
+            logger.error(f"Error during email confirmation for {user.username}: {e}")
+            user.is_active = True
+            user.save()
+            EmailAddress.objects.filter(pk=email_address.pk).update(verified=True, primary=True)
 
-            # Delete the confirmation
-            try:
-                confirmation.delete()
-            except Exception:
-                pass
+        # Send welcome email
+        try:
+            from .notifications import send_welcome_email
+            send_welcome_email(user)
+        except Exception:
+            pass
 
-            logger.info(f"Successfully verified email for user: {user.username}")
+        # Delete the confirmation
+        try:
+            confirmation.delete()
+        except Exception:
+            pass
 
-            # Show success page with user info
-            return render(request, 'account/email_confirmed.html', {
-                'verified_user': user
-            })
+        logger.info(f"Successfully verified email for user: {user.username}")
+
+        return render(request, 'account/email_confirmed.html', {
+            'verified_user': user
+        })
     
     except EmailConfirmation.DoesNotExist:
         logger.error(f"EmailConfirmation not found for key: {key}")
@@ -1401,71 +1387,27 @@ def resend_verification_email(request):
             # Send email
             from django.core.mail import EmailMultiAlternatives
             from django.conf import settings
-            
+            from django.template.loader import render_to_string
+
             subject = f'Verify your email for {settings.SITE_NAME}'
-            plain_message = f"""
-================================================================================
-EMAIL VERIFICATION - {settings.SITE_NAME}
-================================================================================
+            ctx = {
+                'username': user.username,
+                'activate_url': activate_url,
+                'site_name': settings.SITE_NAME,
+                'site_url': settings.SITE_URL,
+                'admin_created': False,
+            }
+            plain_message = render_to_string('emails/email_verification.txt', ctx)
+            html_message  = render_to_string('emails/email_verification.html', ctx)
 
-Hello {user.username},
-
-Here's your new verification link!
-
-VERIFICATION LINK (copy and paste this entire URL):
-{activate_url}
-
-This link will expire in 3 days.
-
-If you didn't request this, please ignore this email.
-
-Best regards,
-{settings.SITE_NAME} Team
-
-================================================================================
-"""
-            
-            html_message = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-        <h1 style="color: white; margin: 0; font-size: 24px;">Email Verification</h1>
-    </div>
-    
-    <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-        <h2 style="color: #1f2937; margin-top: 0;">Hello {user.username},</h2>
-        
-        <p style="color: #4b5563; font-size: 16px;">Here's your new verification link!</p>
-        
-        <div style="text-align: center; margin: 40px 0;">
-            <a href="{activate_url}" style="background: #10b981; color: white; padding: 14px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Verify Email Address</a>
-        </div>
-        
-        <p style="color: #6b7280; font-size: 14px; margin-top: 30px;"><strong>Note:</strong> This link will expire in 3 days.</p>
-        
-        <p style="color: #6b7280; font-size: 14px;">If you didn't request this, please ignore this email.</p>
-        
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #d1d5db;">
-        
-        <p style="color: #9ca3af; font-size: 12px; text-align: center;">Best regards,<br>{settings.SITE_NAME} Team</p>
-    </div>
-</body>
-</html>
-"""
-            
-            email = EmailMultiAlternatives(
+            email_msg = EmailMultiAlternatives(
                 subject=subject,
                 body=plain_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 to=[user.email]
             )
-            email.attach_alternative(html_message, "text/html")
-            email.send(fail_silently=False)
+            email_msg.attach_alternative(html_message, "text/html")
+            email_msg.send(fail_silently=False)
             
             messages.success(request, f'Verification email has been resent to {email}. Please check your inbox.')
             return redirect('users:login')
