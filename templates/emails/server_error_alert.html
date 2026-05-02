@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="UTF-8"></head>
+<body style="font-family:Arial,sans-serif;max-width:700px;margin:0 auto;padding:20px;color:#333;">
+    <div style="background:#dc2626;padding:20px;border-radius:10px 10px 0 0;text-align:center;">
+        <h1 style="color:white;margin:0;font-size:22px;">🚨 Server Error Alert</h1>
+        <p style="color:#fecaca;margin:5px 0 0 0;">Smart Library Management System</p>
+    </div>
+    <div style="background:#fef2f2;border:1px solid #fecaca;padding:25px;border-radius:0 0 10px 10px;">
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">
+            <tr style="background:#fee2e2;">
+                <td style="padding:10px;font-weight:bold;width:120px;border:1px solid #fecaca;">Time</td>
+                <td style="padding:10px;border:1px solid #fecaca;">{{ error_time }}</td>
+            </tr>
+            <tr>
+                <td style="padding:10px;font-weight:bold;border:1px solid #fecaca;">URL</td>
+                <td style="padding:10px;border:1px solid #fecaca;word-break:break-all;">{{ request_url }}</td>
+            </tr>
+            <tr style="background:#fee2e2;">
+                <td style="padding:10px;font-weight:bold;border:1px solid #fecaca;">Method</td>
+                <td style="padding:10px;border:1px solid #fecaca;">{{ request_method }}</td>
+            </tr>
+            <tr>
+                <td style="padding:10px;font-weight:bold;border:1px solid #fecaca;">User</td>
+                <td style="padding:10px;border:1px solid #fecaca;">{{ user_info }}</td>
+            </tr>
+            <tr style="background:#fee2e2;">
+                <td style="padding:10px;font-weight:bold;border:1px solid #fecaca;">Error Type</td>
+                <td style="padding:10px;border:1px solid #fecaca;color:#dc2626;font-weight:bold;">{{ error_type }}</td>
+            </tr>
+            <tr>
+                <td style="padding:10px;font-weight:bold;border:1px solid #fecaca;">Message</td>
+                <td style="padding:10px;border:1px solid #fecaca;">{{ error_message }}</td>
+            </tr>
+        </table>
+
+        <div style="background:#1f2937;border-radius:8px;padding:15px;margin-top:15px;">
+            <p style="color:#9ca3af;font-size:12px;margin:0 0 8px 0;font-weight:bold;">TRACEBACK:</p>
+            <pre style="color:#f9fafb;font-size:11px;margin:0;white-space:pre-wrap;word-break:break-all;">{{ error_traceback }}</pre>
+        </div>
+
+        <p style="color:#6b7280;font-size:12px;margin-top:20px;text-align:center;">
+            This is an automated alert from Smart Library Management System.<br>
+            Please investigate and fix the issue as soon as possible.
+        </p>
+    </div>
+</body>
+</html>

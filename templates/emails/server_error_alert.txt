@@ -1,0 +1,12 @@
+SMART LIBRARY - SERVER ERROR ALERT
+====================================
+Time:    {{ error_time }}
+URL:     {{ request_url }}
+Method:  {{ request_method }}
+User:    {{ user_info }}
+Error:   {{ error_type }}: {{ error_message }}
+
+TRACEBACK:
+{{ error_traceback }}
+====================================
+Smart Library System
