@@ -41,11 +41,19 @@ def return_book(request, record_pk):
     record.refresh_from_db()
     
     messages.success(request, f'Book "{record.book.title}" has been returned by {record.user.username}.')
-    
+
     # Show fine information if applicable
     if record.fine_amount > 0:
         messages.warning(request, f'Fine amount: ETB {record.fine_amount}. Please collect the fine.')
-    
+
+    # Show waitlist notification info
+    from apps.borrow.models import BookRequest
+    waitlist_count = BookRequest.objects.filter(
+        book=record.book, status='pending'
+    ).count()
+    if waitlist_count > 0:
+        messages.info(request, f'Waitlist notification sent to {waitlist_count} user(s) waiting for "{record.book.title}".')
+
     return redirect('borrow:issue_return')
 
 
@@ -637,6 +645,7 @@ def approve_request(request, request_pk):
             )
         
         messages.success(request, f'Book "{book_request.book.title}" has been issued to {book_request.user.username}.')
+        messages.info(request, f'Approval email sent to {book_request.user.email}.')
     except ValidationError as e:
         messages.error(request, f'Cannot issue book: {", ".join(e.messages)}')
     
@@ -673,6 +682,7 @@ def reject_request(request, request_pk):
             )
         
         messages.success(request, f'Request for "{book_request.book.title}" has been rejected.')
+        messages.info(request, f'Rejection email sent to {book_request.user.email}.')
         return redirect('borrow:pending_requests')
     
     return render(request, 'borrow/reject_request.html', {'book_request': book_request})
