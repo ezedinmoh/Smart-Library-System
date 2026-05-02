@@ -384,17 +384,14 @@
                     {% for book in hero_books %}
                     <div class="book-card book-{{ forloop.counter }}">
                         <div class="book-cover gradient-{{ forloop.counter }}">
-                            {% if book.cover_image %}
-                                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-image">
-                            {% else %}
-                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 16px; text-align: center;">
-                                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 48px; height: 48px; margin-bottom: 8px; opacity: 0.9;">
-                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                                    </svg>
-                                    <span style="color: white; font-weight: 700; font-size: 0.875rem; line-height: 1.3;">{{ book.title|truncatewords:3 }}</span>
-                                </div>
-                            {% endif %}
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:16px;text-align:center;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width:48px;height:48px;margin-bottom:10px;opacity:0.9;">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                                <span style="color:white;font-weight:700;font-size:0.875rem;line-height:1.4;">{{ book.title|truncatewords:4 }}</span>
+                                <span style="color:rgba(255,255,255,0.75);font-size:0.75rem;margin-top:6px;">{{ book.author|truncatewords:3 }}</span>
+                            </div>
                         </div>
                         <div class="book-info">
                             <h4>{{ book.title|truncatewords:4 }}</h4>
@@ -402,20 +399,19 @@
                         </div>
                     </div>
                     {% empty %}
-                    <!-- Fallback if no books in database -->
                     <div class="book-card book-1">
                         <div class="book-cover gradient-1">
-                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 16px; text-align: center;">
-                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 48px; height: 48px; margin-bottom: 8px; opacity: 0.9;">
+                            <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;padding:16px;text-align:center;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width:48px;height:48px;margin-bottom:10px;opacity:0.9;">
                                     <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
                                     <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                                 </svg>
-                                <span style="color: white; font-weight: 700; font-size: 0.875rem; line-height: 1.3;">Sample Book</span>
+                                <span style="color:white;font-weight:700;font-size:0.875rem;">Smart Library</span>
                             </div>
                         </div>
                         <div class="book-info">
-                            <h4>Sample Book</h4>
-                            <p>Author Name</p>
+                            <h4>Smart Library</h4>
+                            <p>Digital Reading</p>
                         </div>
                     </div>
                     {% endfor %}
