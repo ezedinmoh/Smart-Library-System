@@ -1,0 +1,1303 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - Smart Library Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Include Enhanced Navigation Styles -->
+    {% include 'includes/enhanced_nav_styles.html' %}
+    
+    <style>
+        /* CSS Variables for Profile Page */
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #34d399;
+            --secondary: #0ea5e9;
+            --accent: #f59e0b;
+            --background: #ffffff;
+            --surface: #f8fafc;
+            --surface-hover: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --gradient-start: #10b981;
+            --gradient-end: #0ea5e9;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+        }
+        
+        [data-theme="dark"] {
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --border-light: #1e293b;
+        }
+        
+        /* Profile Page Specific Styles */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            margin: 0;
+            padding: 0;
+        }
+        
+        .container {
+            max-width: 1280px;
+            margin: 0 auto;
+            padding: 0 24px;
+        }
+        
+        .profile-page {
+            background: var(--surface);
+        }
+        
+        .profile-main {
+            padding-top: 72px;
+            min-height: calc(100vh - 60px);
+        }
+        
+        .profile-header-section {
+            position: relative;
+            margin-bottom: 32px;
+        }
+        
+        .profile-cover {
+            height: 200px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        
+        .profile-cover-gradient {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.9), rgba(14, 165, 233, 0.9));
+        }
+        
+        .profile-header-content {
+            display: flex;
+            align-items: flex-end;
+            gap: 24px;
+            margin-top: -60px;
+            padding: 0 32px;
+        }
+        
+        .profile-avatar-large {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            border-radius: var(--radius-lg);
+            background: var(--background);
+            border: 4px solid var(--background);
+            box-shadow: var(--shadow-lg);
+            overflow: hidden;
+        }
+        
+        .profile-avatar-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .profile-avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        
+        .profile-avatar-placeholder svg {
+            width: 48px;
+            height: 48px;
+            color: white;
+        }
+        
+        .avatar-upload-btn {
+            position: absolute;
+            bottom: 8px;
+            right: 8px;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .avatar-upload-btn svg {
+            width: 16px;
+            height: 16px;
+            color: var(--text-secondary);
+        }
+        
+        .avatar-upload-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+        
+        .avatar-upload-btn:hover svg {
+            color: white;
+        }
+        
+        .profile-header-info {
+            flex: 1;
+            padding-bottom: 12px;
+        }
+        
+        .profile-header-info h1 {
+            font-size: 1.75rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .profile-role-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: var(--radius-full);
+            font-size: 0.813rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+        
+        .profile-role-badge svg {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .profile-role-badge.admin {
+            background: rgba(139, 92, 246, 0.1);
+            color: #8b5cf6;
+        }
+        
+        .profile-role-badge.librarian {
+            background: rgba(14, 165, 233, 0.1);
+            color: var(--secondary);
+        }
+        
+        .profile-role-badge.student {
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+        }
+        
+        .profile-member-since {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        .profile-member-since svg {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .profile-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+        
+        .profile-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+        }
+        
+        .profile-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+        
+        .profile-card-header h2 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+        }
+        
+        .profile-card-header h2 svg {
+            width: 18px;
+            height: 18px;
+            color: var(--primary);
+        }
+        
+        .edit-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.813rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .edit-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .edit-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+        
+        .profile-card-content {
+            padding: 20px;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .info-label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .info-value {
+            font-size: 0.938rem;
+            color: var(--text-primary);
+        }
+        
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: var(--radius-full);
+            font-size: 0.813rem;
+            font-weight: 500;
+        }
+        
+        .status-badge.active {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--radius-full);
+            background: currentColor;
+        }
+        
+        .id-card {
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .id-card-front {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: var(--radius-lg);
+            padding: 20px;
+            color: white;
+            box-shadow: var(--shadow-xl);
+        }
+        
+        .id-card-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        
+        .id-card-logo svg {
+            width: 32px;
+            height: 32px;
+        }
+        
+        .id-card-title {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .id-card-org {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+        
+        .id-card-type {
+            font-size: 0.75rem;
+            opacity: 0.9;
+        }
+        
+        .id-card-body {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        
+        .id-card-photo {
+            width: 80px;
+            height: 100px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .id-photo-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            display: block;
+        }
+        
+        .id-photo-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .id-photo-placeholder svg {
+            width: 32px;
+            height: 32px;
+            opacity: 0.7;
+        }
+        
+        .id-card-details {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .id-detail {
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .id-label {
+            font-size: 0.688rem;
+            opacity: 0.8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .id-value {
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .id-card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-top: 16px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .id-barcode {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+        
+        .barcode-lines {
+            display: flex;
+            gap: 2px;
+            height: 32px;
+        }
+        
+        .barcode-lines span {
+            width: 2px;
+            background: white;
+            border-radius: 1px;
+        }
+        
+        .barcode-lines span:nth-child(odd) {
+            height: 100%;
+        }
+        
+        .barcode-lines span:nth-child(even) {
+            height: 80%;
+        }
+        
+        .barcode-lines span:nth-child(3n) {
+            width: 3px;
+        }
+        
+        .barcode-number {
+            font-size: 0.688rem;
+            font-family: monospace;
+            letter-spacing: 0.1em;
+        }
+        
+        .qr-code {
+            width: 48px;
+            height: 48px;
+            background: white;
+            border-radius: 4px;
+            padding: 4px;
+        }
+        
+        .qr-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 2px;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .qr-grid span {
+            background: var(--text-primary);
+            border-radius: 1px;
+        }
+        
+        .qr-grid span:nth-child(2n) {
+            background: transparent;
+        }
+        
+        .qr-grid span:nth-child(3n) {
+            background: var(--text-primary);
+        }
+        
+        .id-card-info {
+            margin-top: 16px;
+            padding: 12px 16px;
+            background: var(--surface);
+            border-radius: var(--radius);
+        }
+        
+        .id-card-info p {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 0.75rem;
+            color: var(--text-muted);
+        }
+        
+        .id-card-info svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .security-section {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .security-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px;
+            background: var(--surface);
+            border-radius: var(--radius);
+        }
+        
+        .security-icon {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(16, 185, 129, 0.1);
+            border-radius: var(--radius);
+        }
+        
+        .security-icon svg {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+        }
+        
+        .security-info {
+            flex: 1;
+        }
+        
+        .security-info h4 {
+            font-size: 0.938rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 2px;
+        }
+        
+        .security-info p {
+            font-size: 0.813rem;
+            color: var(--text-muted);
+        }
+        
+        /* Form Styles for Inline Editing */
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .form-group.full-width {
+            grid-column: span 2;
+        }
+        
+        .form-group label {
+            font-size: 0.813rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+        
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            padding: 10px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            transition: all 0.2s ease;
+        }
+        
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
+        .form-group textarea {
+            resize: vertical;
+            min-height: 60px;
+        }
+        
+        .form-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 12px;
+            margin-top: 20px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .password-input-wrapper {
+            position: relative;
+        }
+        
+        .password-input-wrapper input {
+            width: 100%;
+            padding-right: 44px;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+        }
+        
+        .password-toggle svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .password-form {
+            padding-top: 16px;
+        }
+        
+        .password-form h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 16px;
+        }
+        
+        .profile-footer {
+            padding: 24px 0;
+            text-align: center;
+            border-top: 1px solid var(--border);
+            background: var(--background);
+        }
+        
+        .profile-footer p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        @media (max-width: 768px) {
+            .profile-header-content {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                padding: 0 16px;
+            }
+            
+            .profile-avatar-large {
+                margin-top: -60px;
+            }
+            
+            .profile-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .container {
+                padding: 0 16px;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 16px;
+            }
+            
+            .id-card-body {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+            
+            .id-card-details {
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body class="profile-page">
+    <!-- Include Enhanced Navigation -->
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+    
+    <!-- Main Content -->
+    <main class="profile-main">
+        <div class="container">
+            <!-- Profile Header -->
+            <div class="profile-header-section">
+                <div class="profile-cover">
+                    <div class="profile-cover-gradient"></div>
+                </div>
+                <div class="profile-header-content">
+                    <div class="profile-avatar-large">
+                        {% if profile.profile_picture %}
+                            <img src="{{ profile.profile_picture.url }}" alt="{{ user.username }}" class="profile-avatar-img" id="profileAvatarImage">
+                        {% else %}
+                            <div class="profile-avatar-placeholder" id="profileAvatarPlaceholder">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="12" cy="7" r="4"></circle>
+                                </svg>
+                            </div>
+                        {% endif %}
+                        <label class="avatar-upload-btn" for="avatarUpload" title="Upload profile picture">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path>
+                                <circle cx="12" cy="13" r="4"></circle>
+                            </svg>
+                        </label>
+                        <input type="file" id="avatarUpload" accept="image/*" hidden>
+                    </div>
+                    <div class="profile-header-info">
+                        <h1>{{ user.get_full_name|default:user.username }}</h1>
+                        <div class="profile-role-badge {% if user.is_admin %}admin{% elif user.is_librarian %}librarian{% else %}student{% endif %}">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                            <span>{{ user.get_role_display }}</span>
+                        </div>
+                        <p class="profile-member-since">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                            Member since <span>{{ user.created_at|date:"F Y" }}</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+            <!-- Profile Content Grid -->
+            <div class="profile-grid">
+                <!-- Personal Information -->
+                <div class="profile-card personal-info">
+                    <div class="profile-card-header">
+                        <h2>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
+                            Personal Information
+                        </h2>
+                        <button class="edit-btn" onclick="toggleEditProfile()">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            Edit
+                        </button>
+                    </div>
+                    <div class="profile-card-content">
+                        <!-- View Mode -->
+                        <div class="info-view" id="infoView">
+                            <div class="info-grid">
+                                <div class="info-item">
+                                    <span class="info-label">Full Name</span>
+                                    <span class="info-value" id="viewFullName">{{ user.get_full_name|default:"Not provided" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Email Address</span>
+                                    <span class="info-value" id="viewEmail">{{ user.email }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Phone Number</span>
+                                    <span class="info-value" id="viewPhone">{{ user.phone_number|default:"Not provided" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Username</span>
+                                    <span class="info-value" id="viewUsername">{{ user.username }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Address</span>
+                                    <span class="info-value" id="viewAddress">{{ user.address|default:"Not provided" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Role</span>
+                                    <span class="info-value">{{ user.get_role_display }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Member Since</span>
+                                    <span class="info-value">{{ user.created_at|date:"F d, Y" }}</span>
+                                </div>
+                                <div class="info-item">
+                                    <span class="info-label">Account Status</span>
+                                    <span class="info-value status-badge active">
+                                        <span class="status-dot"></span>
+                                        Active
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Edit Mode -->
+                        <form class="info-edit hidden" id="infoEdit" onsubmit="saveProfile(event)">
+                            <div class="form-grid">
+                                <div class="form-group">
+                                    <label for="editFirstName">First Name</label>
+                                    <input type="text" id="editFirstName" value="{{ user.first_name }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editLastName">Last Name</label>
+                                    <input type="text" id="editLastName" value="{{ user.last_name }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editEmail">Email Address</label>
+                                    <input type="email" id="editEmail" value="{{ user.email }}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label for="editPhone">Phone Number</label>
+                                    <input type="tel" id="editPhone" value="{{ user.phone_number }}">
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="editAddress">Address</label>
+                                    <textarea id="editAddress" rows="2">{{ user.address }}</textarea>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="toggleEditProfile()">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Save Changes</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Library ID Card -->
+                <div class="profile-card library-card-section">
+                    <div class="profile-card-header">
+                        <h2>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+                                <line x1="2" y1="10" x2="22" y2="10"></line>
+                            </svg>
+                            Library ID Card
+                        </h2>
+                        <a href="{% url 'dashboard:library_card' user.id %}{% if profile.profile_picture %}?t={{ profile.profile_picture.url }}{% endif %}" class="btn btn-sm btn-secondary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="7 10 12 15 17 10"></polyline>
+                                <line x1="12" y1="15" x2="12" y2="3"></line>
+                            </svg>
+                            Download
+                        </a>
+                    </div>
+                    <div class="profile-card-content">
+                        <div class="id-card">
+                            <div class="id-card-front">
+                                <div class="id-card-header">
+                                    <div class="id-card-logo">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="id-card-title">
+                                        <span class="id-card-org">SmartLibrary</span>
+                                        <span class="id-card-type">Library Membership Card</span>
+                                    </div>
+                                </div>
+                                <div class="id-card-body">
+                                    <div class="id-card-photo">
+                                        {% if profile.profile_picture %}
+                                            <img src="{{ profile.profile_picture.url }}" alt="{{ user.username }}" class="id-photo-img">
+                                        {% else %}
+                                            <div class="id-photo-placeholder">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                    <circle cx="12" cy="7" r="4"></circle>
+                                                </svg>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="id-card-details">
+                                        <div class="id-detail">
+                                            <span class="id-label">Name</span>
+                                            <span class="id-value">{{ user.get_full_name|default:user.username }}</span>
+                                        </div>
+                                        <div class="id-detail">
+                                            <span class="id-label">ID Number</span>
+                                            <span class="id-value">LIB-{{ user.id|stringformat:"04d" }}</span>
+                                        </div>
+                                        <div class="id-detail">
+                                            <span class="id-label">Role</span>
+                                            <span class="id-value">{{ user.get_role_display }}</span>
+                                        </div>
+                                        <div class="id-detail">
+                                            <span class="id-label">Valid Until</span>
+                                            <span class="id-value">{{ valid_until|date:"F Y" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="id-card-footer">
+                                    <div class="id-barcode">
+                                        <div class="barcode-lines">
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                        </div>
+                                        <span class="barcode-number">LIB{{ user.id|stringformat:"04d" }}</span>
+                                    </div>
+                                    <div class="id-qr">
+                                        <div class="qr-code">
+                                            <div class="qr-grid">
+                                                <span></span><span></span><span></span><span></span><span></span>
+                                                <span></span><span></span><span></span><span></span><span></span>
+                                                <span></span><span></span><span></span><span></span><span></span>
+                                                <span></span><span></span><span></span><span></span><span></span>
+                                                <span></span><span></span><span></span><span></span><span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="id-card-info">
+                            <p>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                                Present this card at the library desk for borrowing services. Keep your card secure and report if lost.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Account Security -->
+                <div class="profile-card account-security">
+                    <div class="profile-card-header">
+                        <h2>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Account Security
+                        </h2>
+                    </div>
+                    <div class="profile-card-content">
+                        <div class="security-section">
+                            <div class="security-item">
+                                <div class="security-icon">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                </div>
+                                <div class="security-info">
+                                    <h4>Password</h4>
+                                    <p>Last changed {{ user.updated_at|timesince }} ago</p>
+                                </div>
+                                <button class="btn btn-sm btn-outline" onclick="togglePasswordChange()">Change</button>
+                            </div>
+                        </div>
+                        
+                        <!-- Password Change Form (Hidden by default) -->
+                        <form class="password-form hidden" id="passwordForm" onsubmit="changePassword(event)">
+                            <h3>Change Password</h3>
+                            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.5rem;">
+                                Enter your current password and choose a new one. If you don't remember your current password, please <a href="{% url 'users:logout' %}" style="color: var(--primary); text-decoration: underline;">logout</a> and use the "Forgot Password" option on the login page.
+                            </p>
+                            <div class="form-grid">
+                                <div class="form-group full-width">
+                                    <label for="currentPassword">Current Password</label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="currentPassword" required>
+                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('currentPassword')">
+                                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="newPassword">New Password</label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="newPassword" required>
+                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('newPassword')">
+                                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group full-width">
+                                    <label for="confirmPassword">Confirm New Password</label>
+                                    <div class="password-input-wrapper">
+                                        <input type="password" id="confirmPassword" required>
+                                        <button type="button" class="password-toggle" onclick="togglePasswordVisibility('confirmPassword')">
+                                            <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                                <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary" onclick="togglePasswordChange()">Cancel</button>
+                                <button type="submit" class="btn btn-primary">Update Password</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Profile Footer -->
+    <footer class="profile-footer">
+        <div class="container">
+            <p>&copy; 2024 SmartLibrary. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Include Enhanced Navigation Scripts -->
+    {% include 'includes/enhanced_nav_scripts.html' %}
+    
+    <!-- Profile Avatar Upload Script -->
+    <script>
+        // Toggle Profile Edit Mode
+        function toggleEditProfile() {
+            const infoView = document.getElementById('infoView');
+            const infoEdit = document.getElementById('infoEdit');
+            
+            if (infoView && infoEdit) {
+                infoView.classList.toggle('hidden');
+                infoEdit.classList.toggle('hidden');
+            }
+        }
+        
+        // Save Profile Information
+        function saveProfile(event) {
+            event.preventDefault();
+            
+            const formData = new FormData();
+            formData.append('first_name', document.getElementById('editFirstName').value);
+            formData.append('last_name', document.getElementById('editLastName').value);
+            formData.append('email', document.getElementById('editEmail').value);
+            formData.append('phone_number', document.getElementById('editPhone').value);
+            formData.append('address', document.getElementById('editAddress').value);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            fetch('{% url "users:update_profile" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update view mode with new values
+                    const fullName = data.first_name + ' ' + data.last_name;
+                    document.getElementById('viewFullName').textContent = fullName || 'Not provided';
+                    document.getElementById('viewEmail').textContent = data.email;
+                    document.getElementById('viewPhone').textContent = data.phone_number || 'Not provided';
+                    document.getElementById('viewAddress').textContent = data.address || 'Not provided';
+                    
+                    // Update header name
+                    document.querySelector('.profile-header-info h1').textContent = fullName;
+                    
+                    // Toggle back to view mode
+                    toggleEditProfile();
+                    alert('Profile updated successfully!');
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to update profile'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while updating profile');
+            });
+        }
+        
+        // Toggle Password Change Form
+        function togglePasswordChange() {
+            const securitySection = document.querySelector('.security-section');
+            const passwordForm = document.getElementById('passwordForm');
+            
+            if (securitySection && passwordForm) {
+                securitySection.classList.toggle('hidden');
+                passwordForm.classList.toggle('hidden');
+                
+                // Clear form if hiding
+                if (passwordForm.classList.contains('hidden')) {
+                    passwordForm.reset();
+                }
+            }
+        }
+        
+        // Toggle Password Visibility
+        function togglePasswordVisibility(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) {
+                input.type = input.type === 'password' ? 'text' : 'password';
+            }
+        }
+        
+        // Change Password
+        function changePassword(event) {
+            event.preventDefault();
+            
+            const currentPassword = document.getElementById('currentPassword').value;
+            const newPassword = document.getElementById('newPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            // Validate passwords match
+            if (newPassword !== confirmPassword) {
+                alert('New passwords do not match');
+                return;
+            }
+            
+            // Validate password strength
+            if (newPassword.length < 8) {
+                alert('Password must be at least 8 characters long');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('current_password', currentPassword);
+            formData.append('new_password', newPassword);
+            formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+            
+            fetch('{% url "users:change_password_ajax" %}', {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    togglePasswordChange();
+                    alert('Password changed successfully!');
+                } else {
+                    alert('Error: ' + (data.error || 'Failed to change password'));
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while changing password');
+            });
+        }
+        
+        // Avatar Upload
+        document.addEventListener('DOMContentLoaded', function() {
+            const avatarUpload = document.getElementById('avatarUpload');
+            const profileAvatarImage = document.getElementById('profileAvatarImage');
+            const profileAvatarPlaceholder = document.getElementById('profileAvatarPlaceholder');
+            
+            if (avatarUpload) {
+                avatarUpload.addEventListener('change', function(e) {
+                    const file = e.target.files[0];
+                    if (file) {
+                        // Validate file type
+                        if (!file.type.startsWith('image/')) {
+                            alert('Please select an image file');
+                            return;
+                        }
+                        
+                        // Validate file size (max 5MB)
+                        if (file.size > 5 * 1024 * 1024) {
+                            alert('Image size should be less than 5MB');
+                            return;
+                        }
+                        
+                        // Upload the image
+                        const formData = new FormData();
+                        formData.append('profile_picture', file);
+                        formData.append('csrfmiddlewaretoken', '{{ csrf_token }}');
+                        
+                        // Show loading state
+                        const avatarContainer = document.querySelector('.profile-avatar-large');
+                        avatarContainer.style.opacity = '0.6';
+                        
+                        fetch('{% url "users:upload_avatar" %}', {
+                            method: 'POST',
+                            body: formData,
+                            headers: {
+                                'X-Requested-With': 'XMLHttpRequest'
+                            }
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.success) {
+                                // Update the avatar image
+                                if (profileAvatarImage) {
+                                    profileAvatarImage.src = data.avatar_url;
+                                } else {
+                                    // Replace placeholder with image
+                                    const avatarContainer = document.querySelector('.profile-avatar-large');
+                                    if (profileAvatarPlaceholder) {
+                                        profileAvatarPlaceholder.remove();
+                                    }
+                                    const img = document.createElement('img');
+                                    img.src = data.avatar_url;
+                                    img.alt = '{{ user.username }}';
+                                    img.className = 'profile-avatar-img';
+                                    img.id = 'profileAvatarImage';
+                                    avatarContainer.insertBefore(img, avatarContainer.firstChild);
+                                }
+                                
+                                // Also update ID card photo if exists
+                                const idCardPhoto = document.querySelector('.id-card-photo img');
+                                if (idCardPhoto) {
+                                    idCardPhoto.src = data.avatar_url;
+                                } else {
+                                    const idPhotoPlaceholder = document.querySelector('.id-photo-placeholder');
+                                    if (idPhotoPlaceholder) {
+                                        const idPhotoContainer = idPhotoPlaceholder.parentElement;
+                                        idPhotoPlaceholder.remove();
+                                        const img = document.createElement('img');
+                                        img.src = data.avatar_url;
+                                        img.alt = '{{ user.username }}';
+                                        img.className = 'id-photo-img';
+                                        idPhotoContainer.appendChild(img);
+                                    }
+                                }
+                                
+                                avatarContainer.style.opacity = '1';
+                                alert('Profile picture updated successfully!');
+                            } else {
+                                avatarContainer.style.opacity = '1';
+                                alert('Error: ' + (data.error || 'Failed to upload image'));
+                            }
+                        })
+                        .catch(error => {
+                            avatarContainer.style.opacity = '1';
+                            console.error('Error:', error);
+                            alert('An error occurred while uploading the image');
+                        });
+                    }
+                });
+            }
+        });
+    </script>
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

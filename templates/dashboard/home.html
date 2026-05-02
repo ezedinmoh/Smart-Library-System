@@ -1,0 +1,1063 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home - Smart Library</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/enhanced.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        /* Request Form Styles */
+        .field-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Inter', sans-serif;
+            transition: all 0.3s ease;
+            background: var(--background);
+            color: var(--text);
+            margin-top: 8px;
+        }
+        
+        .field-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+        
+        .field-input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        textarea.field-input {
+            resize: vertical;
+            min-height: 80px;
+        }
+        
+        .form-preview-field {
+            margin-bottom: 16px;
+        }
+        
+        .form-preview-field label {
+            display: block;
+            font-weight: 500;
+            color: var(--text);
+            margin-bottom: 4px;
+        }
+        
+        .form-preview-btn {
+            width: 100%;
+            padding: 14px 24px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 8px;
+        }
+        
+        .form-preview-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99, 102, 241, 0.3);
+        }
+        
+        .form-preview-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        /* Book Cover Image Styles */
+        .book-cover-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            border-radius: 12px;
+            background: var(--surface, #f8fafc);
+        }
+        
+        /* Navigation button overrides */
+        .nav-actions .btn {
+            padding: 6px 12px !important;
+            font-size: 0.875rem !important;
+            gap: 4px !important;
+            min-height: 36px !important;
+        }
+        
+        .nav-actions .btn svg {
+            width: 16px !important;
+            height: 16px !important;
+        }
+        
+        /* Theme toggle button */
+        .theme-toggle {
+            min-width: 40px !important;
+            min-height: 40px !important;
+            width: 40px !important;
+            height: 40px !important;
+            padding: 0 !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+        
+        .theme-toggle svg {
+            width: 18px !important;
+            height: 18px !important;
+        }
+        
+        /* Mobile menu backdrop */
+        .mobile-menu-backdrop {
+            position: fixed;
+            top: var(--nav-height, 56px);
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+            z-index: 900;
+            backdrop-filter: blur(2px);
+            pointer-events: none;
+        }
+        
+        .mobile-menu-backdrop.active {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
+        
+        /* Mobile Menu Styles - Override enhanced.css */
+        .mobile-menu {
+            display: block !important; /* Override display: none */
+            position: fixed !important;
+            top: var(--nav-height, 56px) !important;
+            right: 0 !important;
+            left: auto !important; /* Override left: 0 */
+            bottom: 0 !important;
+            width: 85% !important;
+            max-width: 320px !important;
+            background: var(--background, #ffffff) !important;
+            transform: translateX(100%) !important;
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+            overflow-y: auto !important;
+            z-index: 950 !important;
+            padding: 1rem !important;
+            box-shadow: -4px 0 20px rgba(0, 0, 0, 0.15) !important;
+            flex-direction: column !important;
+            border: none !important;
+            gap: 0 !important;
+        }
+        
+        .mobile-menu.active {
+            transform: translateX(0) !important;
+        }
+        
+        .mobile-menu.open {
+            transform: translateX(0) !important; /* Support both .active and .open */
+        }
+        
+        .mobile-link {
+            display: flex !important;
+            align-items: center !important;
+            justify-content: space-between !important;
+            min-height: 44px !important;
+            padding: 10px 14px !important;
+            color: var(--text, #1f2937) !important;
+            text-decoration: none !important;
+            font-weight: 500 !important;
+            font-size: 15px !important;
+            border-radius: 0.5rem !important;
+            transition: all 0.2s ease !important;
+            margin-bottom: 0.25rem !important;
+            width: 100% !important;
+            box-sizing: border-box !important;
+        }
+        
+        .mobile-link:hover,
+        .mobile-link.active {
+            background: var(--surface, #f9fafb) !important;
+            color: var(--primary, #10b981) !important;
+        }
+        
+        .mobile-link.primary {
+            background: var(--primary, #10b981) !important;
+            color: white !important;
+            margin-top: 1rem !important;
+        }
+        
+        .mobile-link.primary:hover {
+            background: var(--primary-dark, #059669) !important;
+        }
+        
+        /* Hide auth buttons on mobile - they'll be in hamburger menu */
+        @media (max-width: 767px) {
+            .nav-actions .btn {
+                display: none !important;
+            }
+            
+            .theme-toggle {
+                display: flex !important;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+    
+    <!-- Django Messages for Toast -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="django-message-data" data-message="{{ message }}" data-tags="{{ message.tags }}" style="display: none;"></div>
+        {% endfor %}
+    {% endif %}
+    
+    <!-- Navigation -->
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="{% url 'dashboard:home' %}" class="logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+                <span>SmartLibrary</span>
+            </a>
+
+            <div class="nav-links" id="navLinks">
+                <a href="#features" class="nav-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    Features
+                </a>
+                <a href="#categories" class="nav-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="3" y1="9" x2="21" y2="9"></line>
+                        <line x1="9" y1="21" x2="9" y2="9"></line>
+                    </svg>
+                    Categories
+                </a>
+                <a href="#books" class="nav-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                    Books
+                </a>
+                <a href="#request" class="nav-link">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Request Book
+                </a>
+            </div>
+
+            <div class="nav-actions">
+                {% if user.is_authenticated %}
+                <a href="{% url 'borrow:my_books' %}" class="btn btn-secondary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                    </svg>
+                    My Books
+                </a>
+                <a href="{% url 'users:logout' %}" class="btn btn-outline">Logout</a>
+                {% else %}
+                <a href="{% url 'users:login' %}" class="btn btn-secondary">Login</a>
+                <a href="{% url 'users:register' %}" class="btn btn-primary">Get Started</a>
+                {% endif %}
+
+                <button class="theme-toggle" id="themeToggle">
+                    <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+
+                <button class="mobile-menu-btn" id="mobileMenuBtn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Menu Backdrop -->
+    <div class="mobile-menu-backdrop" id="mobileMenuBackdrop"></div>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#features" class="mobile-link">Features</a>
+        <a href="#categories" class="mobile-link">Categories</a>
+        <a href="#books" class="mobile-link">Books</a>
+        <a href="#request" class="mobile-link">Request Book</a>
+        {% if user.is_authenticated %}
+        <a href="{% url 'borrow:my_books' %}" class="mobile-link">My Books</a>
+        <a href="{% url 'users:logout' %}" class="mobile-link">Logout</a>
+        {% else %}
+        <a href="{% url 'users:login' %}" class="mobile-link">Login</a>
+        <a href="{% url 'users:register' %}" class="mobile-link primary">Get Started</a>
+        {% endif %}
+    </div>
+
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="hero-container">
+            <div class="hero-content">
+                <span class="hero-badge">Welcome to the Future of Libraries</span>
+                <h1>Discover Your Next <span class="gradient-text">Great Read</span></h1>
+                <p>Access thousands of books, manage your reading journey, and connect with a community of passionate readers. Your personal library, reimagined.</p>
+                <div class="hero-buttons">
+                    {% if user.is_authenticated %}
+                        <a href="{% url 'books:list' %}" class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
+                            Browse Books
+                        </a>
+                        <a href="{% url 'borrow:my_books' %}" class="btn btn-secondary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path>
+                            </svg>
+                            My Books
+                        </a>
+                    {% else %}
+                        <a href="{% url 'users:register' %}" class="btn btn-primary">
+                            Get Started Free
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M5 12h14M12 5l7 7-7 7"></path>
+                            </svg>
+                        </a>
+                        <a href="{% url 'books:list' %}" class="btn btn-secondary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polygon points="10 8 16 12 10 16 10 8"></polygon>
+                            </svg>
+                            Explore Library
+                        </a>
+                    {% endif %}
+                </div>
+                <div class="hero-stats">
+                    <div class="stat">
+                        <span class="stat-number">{{ total_books|default:"0" }}+</span>
+                        <span class="stat-label">Books</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-number">{{ total_users|default:"0" }}+</span>
+                        <span class="stat-label">Members</span>
+                    </div>
+                    <div class="stat-divider"></div>
+                    <div class="stat">
+                        <span class="stat-number">{{ daily_borrows|default:"0" }}+</span>
+                        <span class="stat-label">Daily Borrows</span>
+                    </div>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="floating-books">
+                    {% for book in hero_books %}
+                    <div class="book-card book-{{ forloop.counter }}">
+                        <div class="book-cover gradient-{{ forloop.counter }}">
+                            {% if book.cover_image %}
+                                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-image">
+                            {% else %}
+                                <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 16px; text-align: center;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 48px; height: 48px; margin-bottom: 8px; opacity: 0.9;">
+                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                    </svg>
+                                    <span style="color: white; font-weight: 700; font-size: 0.875rem; line-height: 1.3;">{{ book.title|truncatewords:3 }}</span>
+                                </div>
+                            {% endif %}
+                        </div>
+                        <div class="book-info">
+                            <h4>{{ book.title|truncatewords:4 }}</h4>
+                            <p>{{ book.author|truncatewords:3 }}</p>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <!-- Fallback if no books in database -->
+                    <div class="book-card book-1">
+                        <div class="book-cover gradient-1">
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 16px; text-align: center;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 48px; height: 48px; margin-bottom: 8px; opacity: 0.9;">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                                <span style="color: white; font-weight: 700; font-size: 0.875rem; line-height: 1.3;">Sample Book</span>
+                            </div>
+                        </div>
+                        <div class="book-info">
+                            <h4>Sample Book</h4>
+                            <p>Author Name</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Features Section -->
+    <section class="features" id="features">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Features</span>
+                <h2>Everything You Need for a <span class="gradient-text">Smart Library</span></h2>
+                <p>Powerful tools designed to enhance your reading experience and library management</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <div class="feature-icon gradient-bg-1">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </div>
+                    <h3>Vast Collection</h3>
+                    <p>Access over 50,000 books across various genres, from classic literature to modern bestsellers.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon gradient-bg-2">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <h3>24/7 Access</h3>
+                    <p>Browse and borrow books anytime, anywhere. Your library never closes.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon gradient-bg-3">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                    </div>
+                    <h3>Secure System</h3>
+                    <p>Role-based access control ensures secure management for admins, librarians, and students.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon gradient-bg-4">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                    </div>
+                    <h3>Community</h3>
+                    <p>Connect with fellow readers, share reviews, and discover new favorites.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon gradient-bg-5">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                        </svg>
+                    </div>
+                    <h3>Smart Recommendations</h3>
+                    <p>Get personalized book suggestions based on your reading history and preferences.</p>
+                </div>
+                <div class="feature-card">
+                    <div class="feature-icon gradient-bg-6">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="20" x2="18" y2="10"></line>
+                            <line x1="12" y1="20" x2="12" y2="4"></line>
+                            <line x1="6" y1="20" x2="6" y2="14"></line>
+                        </svg>
+                    </div>
+                    <h3>Progress Tracking</h3>
+                    <p>Track your reading progress, set goals, and celebrate your achievements.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Categories Section -->
+    <section class="categories" id="categories">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Categories</span>
+                <h2>Browse by <span class="gradient-text">Category</span></h2>
+                <p>Find your next read from our carefully curated collections</p>
+            </div>
+            <div class="categories-grid">
+                {% for category in categories_stats %}
+                <div class="category-card">
+                    <div class="category-icon">
+                        {% if category.name == "Technology" or category.name == "Computer Science" %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                            <rect x="9" y="9" width="6" height="6"></rect>
+                            <line x1="9" y1="1" x2="9" y2="4"></line>
+                            <line x1="15" y1="1" x2="15" y2="4"></line>
+                            <line x1="9" y1="20" x2="9" y2="23"></line>
+                            <line x1="15" y1="20" x2="15" y2="23"></line>
+                            <line x1="20" y1="9" x2="23" y2="9"></line>
+                            <line x1="20" y1="14" x2="23" y2="14"></line>
+                            <line x1="1" y1="9" x2="4" y2="9"></line>
+                            <line x1="1" y1="14" x2="4" y2="14"></line>
+                        </svg>
+                        {% elif category.name == "Science" %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
+                        </svg>
+                        {% elif category.name == "Literature" or category.name == "Fiction" %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 20h9"></path>
+                            <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                        </svg>
+                        {% elif category.name == "History" %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                        </svg>
+                        {% elif category.name == "Business" or category.name == "Economics" %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="12" y1="1" x2="12" y2="23"></line>
+                            <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                        </svg>
+                        {% elif category.name == "Psychology" %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                        </svg>
+                        {% else %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        {% endif %}
+                    </div>
+                    <h3>{{ category.name }}</h3>
+                    <p>{{ category.book_count }} Book{{ category.book_count|pluralize }}</p>
+                </div>
+                {% empty %}
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                    <p style="color: var(--text-muted);">No categories available.</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    {% if user.is_authenticated and borrowed_books %}
+    <!-- User's Borrowed Books Section -->
+    <section class="my-books">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Your Library</span>
+                <h2>Currently <span class="gradient-text">Borrowed Books</span></h2>
+                <p>Welcome back, {{ user.first_name|default:user.username }}! You have {{ borrowed_books.count }} borrowed book{{ borrowed_books|pluralize }}.</p>
+            </div>
+            <div class="books-grid">
+                {% for record in borrowed_books %}
+                <div class="book-item">
+                    <div class="book-cover-large {% cycle 'gradient-1' 'gradient-2' 'gradient-3' 'gradient-4' 'gradient-5' 'gradient-6' %}">
+                        {% if record.book.cover_image %}
+                            <img src="{{ record.book.cover_image.url }}" alt="{{ record.book.title }}" class="book-cover-image">
+                        {% else %}
+                            <!-- Fallback: Show book icon and title if no cover image -->
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 64px; height: 64px; margin-bottom: 12px; opacity: 0.9;">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                                <span style="color: white; font-weight: 600; font-size: 0.875rem; line-height: 1.4;">{{ record.book.title|truncatewords:4 }}</span>
+                            </div>
+                        {% endif %}
+                        <span class="book-badge {% if record.status == 'overdue' %}borrowed{% else %}available{% endif %}">
+                            {% if record.status == 'overdue' %}Overdue{% else %}Due {{ record.due_date|date:"M d" }}{% endif %}
+                        </span>
+                    </div>
+                    <div class="book-details">
+                        <h3>{{ record.book.title|truncatewords:4 }}</h3>
+                        <p class="author">{{ record.book.author|truncatewords:3 }}</p>
+                        <div class="book-meta">
+                            <div class="rating">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <span>{{ record.book.rating|floatformat:1|default:"N/A" }}</span>
+                            </div>
+                            <span class="genre">{{ record.book.category.name|default:"General" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- Featured Books Section -->
+    <section class="books" id="books">
+        <div class="container">
+            <div class="section-header">
+                <span class="section-badge">Featured</span>
+                <h2>Popular <span class="gradient-text">Books</span></h2>
+                <p>Discover the most borrowed and highly rated books in our collection</p>
+            </div>
+            <div class="books-grid">
+                {% for book in featured_books %}
+                <div class="book-item">
+                    <div class="book-cover-large {% cycle 'gradient-1' 'gradient-2' 'gradient-3' 'gradient-4' 'gradient-5' 'gradient-6' %}">
+                        {% if book.cover_image %}
+                            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-image">
+                        {% else %}
+                            <!-- Fallback: Show book icon and title if no cover image -->
+                            <div style="display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 20px; text-align: center;">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 64px; height: 64px; margin-bottom: 12px; opacity: 0.9;">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                                <span style="color: white; font-weight: 600; font-size: 0.875rem; line-height: 1.4;">{{ book.title|truncatewords:4 }}</span>
+                            </div>
+                        {% endif %}
+                        <span class="book-badge {% if book.is_available %}available{% else %}borrowed{% endif %}">
+                            {% if book.is_available %}Available{% else %}Borrowed{% endif %}
+                        </span>
+                    </div>
+                    <div class="book-details">
+                        <h3>{{ book.title|truncatewords:4 }}</h3>
+                        <p class="author">{{ book.author|truncatewords:3 }}</p>
+                        <div class="book-meta">
+                            <div class="rating">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+                                <span>{{ book.rating|floatformat:1|default:"N/A" }}</span>
+                            </div>
+                            <span class="genre">{{ book.category.name|default:"General" }}</span>
+                        </div>
+                    </div>
+                </div>
+                {% empty %}
+                <div style="grid-column: 1 / -1; text-align: center; padding: 40px;">
+                    <p style="color: var(--text-muted);">No books available at the moment.</p>
+                </div>
+                {% endfor %}
+            </div>
+            <div class="view-all">
+                <a href="{% url 'books:list' %}" class="btn btn-outline">View All Books</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- My Books Section -->
+    <section class="my-books" id="mybooks">
+        <div class="container">
+            <div class="my-books-content">
+                <div class="my-books-text">
+                    <span class="section-badge">My Books</span>
+                    <h2>Track Your <span class="gradient-text">Reading Journey</span></h2>
+                    <p>Sign in to access your personal library dashboard where you can manage borrowed books, track due dates, and discover your reading patterns.</p>
+                    <ul class="feature-list">
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            View currently borrowed books
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Track reading history
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Set reading goals
+                        </li>
+                        <li>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Get due date reminders
+                        </li>
+                    </ul>
+                    <a href="{% url 'users:login' %}" class="btn btn-primary">Sign In to Access</a>
+                </div>
+                <div class="my-books-visual">
+                    <div class="dashboard-preview">
+                        <div class="dashboard-header">
+                            <div class="dashboard-dots">
+                                <span></span><span></span><span></span>
+                            </div>
+                            <span>My Dashboard</span>
+                        </div>
+                        <div class="dashboard-content">
+                            <div class="dashboard-stat">
+                                <span class="number">5</span>
+                                <span class="label">Currently Borrowed</span>
+                            </div>
+                            <div class="dashboard-stat">
+                                <span class="number">23</span>
+                                <span class="label">Books Read</span>
+                            </div>
+                            <div class="dashboard-stat">
+                                <span class="number">3</span>
+                                <span class="label">Due Soon</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Request Book Section -->
+    <section class="request-book" id="request">
+        <div class="container">
+            <div class="request-content">
+                <div class="request-visual">
+                    {% if user.is_authenticated %}
+                    <div class="request-form-preview">
+                        <h4>Request a Book</h4>
+                        <form id="bookRequestForm">
+                            <div class="form-preview-field">
+                                <label class="field-label" for="book_title">Book Title *</label>
+                                <input type="text" id="book_title" name="title" class="field-input" placeholder="Enter book title..." required>
+                            </div>
+                            <div class="form-preview-field">
+                                <label class="field-label" for="book_author">Author *</label>
+                                <input type="text" id="book_author" name="author" class="field-input" placeholder="Enter author name..." required>
+                            </div>
+                            <div class="form-preview-field">
+                                <label class="field-label" for="book_isbn">ISBN (Optional)</label>
+                                <input type="text" id="book_isbn" name="isbn" class="field-input" placeholder="Enter ISBN...">
+                            </div>
+                            <div class="form-preview-field">
+                                <label class="field-label" for="book_notes">Additional Notes (Optional)</label>
+                                <textarea id="book_notes" name="notes" class="field-input" placeholder="Any additional information..." rows="3"></textarea>
+                            </div>
+                            <button type="submit" class="form-preview-btn">Submit Request</button>
+                        </form>
+                        <div id="requestMessage" style="display: none; margin-top: 15px; padding: 12px; border-radius: 8px; text-align: center;"></div>
+                    </div>
+                    {% else %}
+                    <div class="request-form-preview">
+                        <h4>Request a Book</h4>
+                        <div class="form-preview-field">
+                            <span class="field-label">Book Title</span>
+                            <span class="field-value">Enter book title...</span>
+                        </div>
+                        <div class="form-preview-field">
+                            <span class="field-label">Author</span>
+                            <span class="field-value">Enter author name...</span>
+                        </div>
+                        <div class="form-preview-field">
+                            <span class="field-label">ISBN (Optional)</span>
+                            <span class="field-value">Enter ISBN...</span>
+                        </div>
+                        <div class="form-preview-btn" style="opacity: 0.6; cursor: not-allowed;">Submit Request</div>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="request-text">
+                    <span class="section-badge">Request Book</span>
+                    <h2>Cannot Find a <span class="gradient-text">Book?</span></h2>
+                    <p>If you cannot find the book you are looking for in our collection, you can request it and our librarians will work to add it to our library.</p>
+                    <div class="request-steps">
+                        <div class="step">
+                            <div class="step-number">1</div>
+                            <div class="step-text">
+                                <h4>Submit Request</h4>
+                                <p>Fill in the book details</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">2</div>
+                            <div class="step-text">
+                                <h4>Review</h4>
+                                <p>Librarian reviews your request</p>
+                            </div>
+                        </div>
+                        <div class="step">
+                            <div class="step-number">3</div>
+                            <div class="step-text">
+                                <h4>Notification</h4>
+                                <p>Get notified when available</p>
+                            </div>
+                        </div>
+                    </div>
+                    {% if not user.is_authenticated %}
+                    <a href="{% url 'users:login' %}" class="btn btn-primary">Sign In to Request</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CTA Section -->
+    <section class="cta">
+        <div class="container">
+            <div class="cta-content">
+                <h2>Ready to Start Your Reading Journey?</h2>
+                <p>Join thousands of readers and get access to our extensive library collection today.</p>
+                <div class="cta-buttons">
+                    <a href="{% url 'users:register' %}" class="btn btn-white">Create Free Account</a>
+                    <a href="#books" class="btn btn-ghost">Browse Books</a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-brand">
+                    <a href="{% url 'dashboard:home' %}" class="logo">
+                        <div class="logo-icon">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                            </svg>
+                        </div>
+                        <span>SmartLibrary</span>
+                    </a>
+                    <p>Your digital gateway to thousands of books. Read, learn, and grow with our comprehensive library management system.</p>
+                </div>
+                <div class="footer-links">
+                    <h4>Quick Links</h4>
+                    <a href="#features">Features</a>
+                    <a href="#categories">Categories</a>
+                    <a href="#books">Browse Books</a>
+                    <a href="#request">Request Book</a>
+                </div>
+                <div class="footer-links">
+                    <h4>Resources</h4>
+                    <a href="#">Help Center</a>
+                    <a href="#">FAQs</a>
+                    <a href="#">Terms of Service</a>
+                    <a href="#">Privacy Policy</a>
+                </div>
+                <div class="footer-contact">
+                    <h4>Contact Us</h4>
+                    <p>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                        info@smartlibrary.com
+                    </p>
+                    <p>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        +1 (555) 123-4567
+                    </p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; 2024 SmartLibrary. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Theme Toggle Functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Load saved theme from localStorage
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+        }
+        
+        // Mobile Menu & Backdrop Toggle
+        const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+        const mobileMenu = document.getElementById('mobileMenu');
+        const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
+        
+        function toggleMobileMenu() {
+            const isActive = mobileMenu.classList.contains('active');
+            
+            if (isActive) {
+                // Close menu
+                mobileMenu.classList.remove('active');
+                mobileMenuBackdrop.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                // Reset hamburger icon
+                const svg = mobileMenuBtn.querySelector('svg');
+                if (svg) {
+                    svg.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+                }
+            } else {
+                // Open menu
+                mobileMenu.classList.add('active');
+                mobileMenuBackdrop.classList.add('active');
+                document.body.style.overflow = 'hidden';
+                
+                // Change to X icon
+                const svg = mobileMenuBtn.querySelector('svg');
+                if (svg) {
+                    svg.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+                }
+            }
+        }
+        
+        if (mobileMenuBtn && mobileMenu && mobileMenuBackdrop) {
+            // Toggle menu on button click
+            mobileMenuBtn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleMobileMenu();
+            });
+
+            // Close menu when clicking backdrop
+            mobileMenuBackdrop.addEventListener('click', function() {
+                toggleMobileMenu();
+            });
+
+            // Close mobile menu when clicking a link
+            const mobileLinks = mobileMenu.querySelectorAll('.mobile-link');
+            mobileLinks.forEach(link => {
+                link.addEventListener('click', function() {
+                    toggleMobileMenu();
+                });
+            });
+        }
+        
+        // Close mobile menu on window resize to desktop
+        window.addEventListener('resize', function() {
+            if (window.innerWidth > 767 && mobileMenu && mobileMenu.classList.contains('active')) {
+                mobileMenu.classList.remove('active');
+                mobileMenuBackdrop.classList.remove('active');
+                document.body.style.overflow = '';
+                
+                const svg = mobileMenuBtn.querySelector('svg');
+                if (svg) {
+                    svg.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+                }
+            }
+        });
+        
+        // Navbar scroll effect
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.style.boxShadow = '0 4px 20px rgba(0, 0, 0, 0.1)';
+            } else {
+                navbar.style.boxShadow = 'none';
+            }
+        });
+
+        // Smooth scrolling for anchor links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                const href = this.getAttribute('href');
+                if (href !== '#' && href.length > 1) {
+                    e.preventDefault();
+                    const target = document.querySelector(href);
+                    if (target) {
+                        const navbarHeight = document.getElementById('navbar').offsetHeight;
+                        const offsetTop = target.offsetTop - navbarHeight - 20; // Account for fixed navbar + padding
+                        console.log(`Scrolling to ${href}, offset: ${offsetTop}`);
+                        window.scrollTo({
+                            top: offsetTop,
+                            behavior: 'smooth'
+                        });
+                    } else {
+                        console.error(`Target not found: ${href}`);
+                    }
+                }
+            });
+        });
+
+        // Active nav link on scroll
+        const sections = document.querySelectorAll('section[id]');
+        const navLinks = document.querySelectorAll('.nav-link');
+        
+        window.addEventListener('scroll', () => {
+            let current = '';
+            const navbarHeight = document.getElementById('navbar').offsetHeight;
+            
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop - navbarHeight - 50;
+                const sectionBottom = sectionTop + section.offsetHeight;
+                
+                if (window.pageYOffset >= sectionTop && window.pageYOffset < sectionBottom) {
+                    current = section.getAttribute('id');
+                }
+            });
+            
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === '#' + current) {
+                    link.classList.add('active');
+                }
+            });
+        });
+
+        // Book Request Form Handler
+        const bookRequestForm = document.getElementById('bookRequestForm');
+        if (bookRequestForm) {
+            bookRequestForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const submitBtn = this.querySelector('button[type="submit"]');
+                const messageDiv = document.getElementById('requestMessage');
+                const title = document.getElementById('book_title').value;
+                const author = document.getElementById('book_author').value;
+                
+                // Disable submit button
+                submitBtn.disabled = true;
+                submitBtn.textContent = 'Submitting...';
+                
+                // Simulate submission (you can replace this with actual AJAX call)
+                setTimeout(() => {
+                    // Show success message
+                    messageDiv.style.display = 'block';
+                    messageDiv.style.background = '#d4edda';
+                    messageDiv.style.color = '#155724';
+                    messageDiv.style.border = '1px solid #c3e6cb';
+                    messageDiv.innerHTML = `
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; display: inline-block; vertical-align: middle; margin-right: 8px;">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                        <strong>Request Received!</strong> Your request for "${title}" by ${author} has been submitted. Our librarians will review it and add the book to our collection if approved.
+                    `;
+                    
+                    // Reset form
+                    bookRequestForm.reset();
+                    
+                    // Re-enable submit button
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = 'Submit Request';
+                    
+                    // Scroll to message
+                    messageDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                    
+                    // Hide message after 8 seconds
+                    setTimeout(() => {
+                        messageDiv.style.display = 'none';
+                    }, 8000);
+                }, 1000);
+            });
+        }
+    </script>
+</body>
+</html>
+

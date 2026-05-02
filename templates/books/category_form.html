@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ action }} Category - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {% include 'includes/enhanced_nav_styles.html' %}
+    <style>
+        :root {
+            --primary-green: #10b981; --primary-blue: #0ea5e9;
+            --text-primary: #1f2937; --text-secondary: #6b7280; --text-muted: #9ca3af;
+            --bg-white: #ffffff; --bg-gray: #f9fafb; --bg-light: #f3f4f6; --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem;
+        }
+        [data-theme="dark"] {
+            --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #9ca3af;
+            --bg-white: #1f2937; --bg-gray: #111827; --bg-light: #374151; --border-color: #374151;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gray); color: var(--text-primary); min-height: 100vh; }
+        .main-container { max-width: 680px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        .page-header { margin-bottom: 2rem; }
+        .breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--primary-green); }
+        .breadcrumb svg { width: 16px; height: 16px; }
+        .page-title { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.375rem; }
+        .page-title svg { width: 28px; height: 28px; color: var(--primary-green); }
+        .page-title h1 {
+            font-size: 1.875rem; font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;
+        }
+        .page-subtitle { color: var(--text-secondary); font-size: 0.9375rem; }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.875rem 1.75rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .btn svg { width: 18px; height: 18px; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); color: white; box-shadow: var(--shadow-sm); }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-secondary { background: var(--bg-light); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .btn-secondary:hover { background: var(--border-color); color: var(--text-primary); }
+
+        .form-card { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); overflow: hidden; }
+        .form-body { padding: 2rem; }
+
+        .form-group { margin-bottom: 1.75rem; }
+        .form-label { display: block; font-weight: 600; font-size: 0.9375rem; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .required { color: #ef4444; margin-left: 0.25rem; }
+
+        .form-input, .form-textarea {
+            width: 100%; padding: 0.875rem 1rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem;
+            color: var(--text-primary); background: var(--bg-gray); border: 2px solid var(--border-color);
+            border-radius: var(--radius-md); transition: all 0.2s;
+        }
+        .form-input:focus, .form-textarea:focus {
+            outline: none; border-color: var(--primary-green);
+            background: var(--bg-white); box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+        }
+        .form-textarea { min-height: 130px; resize: vertical; }
+        .form-input::placeholder, .form-textarea::placeholder { color: var(--text-muted); }
+
+        .char-counter { text-align: right; font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.375rem; }
+
+        .form-help { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .form-help svg { width: 15px; height: 15px; flex-shrink: 0; }
+
+        .form-error { display: flex; align-items: center; gap: 0.5rem; margin-top: 0.5rem; padding: 0.625rem 0.875rem; font-size: 0.875rem; color: #ef4444; background: rgba(239,68,68,0.08); border-radius: var(--radius-md); }
+        .form-error svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+        .alert-danger { padding: 1rem 1.25rem; background: rgba(239,68,68,0.08); color: #ef4444; border: 1px solid rgba(239,68,68,0.2); border-radius: var(--radius-md); margin-bottom: 1.5rem; font-size: 0.9375rem; }
+
+        /* Preview card */
+        .preview-card {
+            background: linear-gradient(135deg, rgba(16,185,129,0.05), rgba(14,165,233,0.05));
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem;
+            margin-bottom: 1.75rem;
+        }
+        .preview-label { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.875rem; }
+        .preview-content { display: flex; align-items: center; gap: 1rem; }
+        .preview-icon { width: 48px; height: 48px; border-radius: var(--radius-md); background: linear-gradient(135deg, rgba(16,185,129,0.15), rgba(14,165,233,0.15)); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .preview-icon svg { width: 24px; height: 24px; color: var(--primary-green); }
+        .preview-name { font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+        .preview-desc { font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+        .form-footer { display: flex; gap: 0.875rem; padding: 1.5rem 2rem; background: var(--bg-light); border-top: 1px solid var(--border-color); }
+        .form-footer .btn { flex: 1; }
+
+        @media (max-width: 640px) {
+            .main-container { padding: 1.5rem 1rem; }
+            .form-body { padding: 1.5rem; }
+            .form-footer { padding: 1.25rem 1.5rem; flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+
+    <div class="main-container">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div class="breadcrumb">
+                <a href="{% url 'books:list' %}">Books</a>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                <a href="{% url 'books:categories' %}">Categories</a>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                <span>{{ action }} Category</span>
+            </div>
+            <div class="page-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    {% if action == 'Add' %}
+                    <path d="M12 5v14m-7-7h14"></path>
+                    {% else %}
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    {% endif %}
+                </svg>
+                <h1>{{ action }} Category</h1>
+            </div>
+            <p class="page-subtitle">
+                {% if action == 'Add' %}Create a new category to organize books{% else %}Update the category details{% endif %}
+            </p>
+        </div>
+
+        <!-- Form Card -->
+        <div class="form-card">
+            <form method="post" id="categoryForm">
+                {% csrf_token %}
+
+                <div class="form-body">
+
+                    {% if form.non_field_errors %}
+                    <div class="alert-danger">{{ form.non_field_errors.0 }}</div>
+                    {% endif %}
+
+                    <!-- Live Preview -->
+                    <div class="preview-card">
+                        <div class="preview-label">Live Preview</div>
+                        <div class="preview-content">
+                            <div class="preview-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <div class="preview-name" id="previewName">
+                                    {{ form.name.value|default:"Category Name" }}
+                                </div>
+                                <div class="preview-desc" id="previewDesc">
+                                    {{ form.description.value|default:"Category description will appear here..." }}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Name -->
+                    <div class="form-group">
+                        <label for="id_name" class="form-label">
+                            Category Name<span class="required">*</span>
+                        </label>
+                        <input type="text" name="name" id="id_name" class="form-input"
+                               value="{{ form.name.value|default:'' }}"
+                               placeholder="e.g. Science Fiction, History, Technology..."
+                               pattern="[a-zA-Z0-9\s&amp;\'\-]+" 
+                               title="Category name can only contain letters, numbers, spaces, ampersands, hyphens, and apostrophes" 
+                               minlength="2" 
+                               maxlength="100" required>
+                        {% if form.name.errors %}
+                        <div class="form-error">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <span>{{ form.name.errors.0 }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="id_description" class="form-label">Description</label>
+                        <textarea name="description" id="id_description" class="form-textarea"
+                                  placeholder="Briefly describe what kinds of books belong in this category..."
+                                  maxlength="500">{{ form.description.value|default:'' }}</textarea>
+                        <div class="char-counter"><span id="descCount">0</span> / 500</div>
+                        <div class="form-help">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M12 16v-4m0-4h.01"></path>
+                            </svg>
+                            <span>Optional " helps users understand what books belong here</span>
+                        </div>
+                        {% if form.description.errors %}
+                        <div class="form-error">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            <span>{{ form.description.errors.0 }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+
+                </div>
+
+                <div class="form-footer">
+                    <button type="submit" class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        {{ action }} Category
+                    </button>
+                    <a href="{% url 'books:categories' %}" class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+
+    </div>
+
+    {% include 'includes/enhanced_nav_scripts.html' %}
+
+    <script>
+        const nameInput   = document.getElementById('id_name');
+        const descInput   = document.getElementById('id_description');
+        const previewName = document.getElementById('previewName');
+        const previewDesc = document.getElementById('previewDesc');
+        const descCount   = document.getElementById('descCount');
+
+        // Init counter
+        descCount.textContent = descInput.value.length;
+
+        nameInput.addEventListener('input', function () {
+            previewName.textContent = this.value.trim() || 'Category Name';
+        });
+
+        descInput.addEventListener('input', function () {
+            previewDesc.textContent = this.value.trim() || 'Category description will appear here...';
+            descCount.textContent   = this.value.length;
+        });
+    </script>
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

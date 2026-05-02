@@ -1,0 +1,34 @@
+﻿================================================================================
+BOOK REQUEST APPROVED - {{ site_name }}
+================================================================================
+
+Hello {{ user.get_full_name|default:user.username }},
+
+Great news! Your book request has been approved!
+
+BOOK DETAILS:
+Title: {{ book.title }}
+Author: {{ book.author }}
+Category: {{ book.category.name|default:'N/A' }}
+ISBN: {{ book.isbn }}
+
+DUE DATE: {{ due_date|date:'F d, Y' }}
+
+You can now:
+- Read the book online through your dashboard
+- Visit the library to collect the physical copy
+- Access the book from "My Books" section
+
+IMPORTANT REMINDERS:
+- Please return the book by {{ due_date|date:'F d, Y' }}
+- Late returns incur a fine of ETB 2 per day
+- You can renew the book if needed (contact library)
+
+View your borrowed books: {{ site_url }}/borrow/my-books/
+
+Happy reading!
+
+Best regards,
+{{ site_name }} Team
+
+================================================================================

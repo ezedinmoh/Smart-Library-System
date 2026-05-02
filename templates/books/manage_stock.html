@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Stock - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    {% include 'includes/enhanced_nav_styles.html' %}
+    {% include 'includes/responsive_tables_styles.html' %}
+
+    <style>
+        :root {
+            --primary-green: #10b981;
+            --primary-blue: #0ea5e9;
+            --primary-purple: #8b5cf6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --bg-white: #ffffff;
+            --bg-gray: #f9fafb;
+            --bg-light: #f3f4f6;
+            --border-color: #e5e7eb;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
+        [data-theme="dark"] {
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-muted: #9ca3af;
+            --bg-white: #1f2937;
+            --bg-gray: #111827;
+            --bg-light: #374151;
+            --border-color: #374151;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-gray);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; transition: color 0.2s; }
+        .breadcrumb a:hover { color: var(--primary-green); }
+        .breadcrumb svg { width: 16px; height: 16px; }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 0.375rem;
+        }
+
+        .page-title svg { width: 28px; height: 28px; color: var(--primary-green); }
+
+        .page-title h1 {
+            font-size: 1.875rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle { color: var(--text-secondary); font-size: 0.9375rem; }
+
+        /* Buttons */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn svg { width: 18px; height: 18px; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+            background: rgba(16,185,129,0.05);
+        }
+
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+            transition: all 0.2s;
+        }
+
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+
+        .stat-icon {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .stat-icon svg { width: 24px; height: 24px; }
+
+        .stat-icon.blue { background: rgba(14,165,233,0.1); color: var(--primary-blue); }
+        .stat-icon.green { background: rgba(16,185,129,0.1); color: var(--primary-green); }
+        .stat-icon.orange { background: rgba(245,158,11,0.1); color: var(--warning); }
+        .stat-icon.red { background: rgba(239,68,68,0.1); color: var(--error); }
+
+        .stat-info { flex: 1; }
+
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stat-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: 9999px;
+            margin-top: 0.375rem;
+        }
+
+        .stat-badge.warning { background: rgba(245,158,11,0.1); color: var(--warning); }
+
+        /* Filter Bar */
+        .filter-bar {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem 1.5rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .search-wrapper {
+            position: relative;
+            flex: 1;
+            min-width: 220px;
+        }
+
+        .search-wrapper svg {
+            position: absolute;
+            left: 0.875rem;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 0.75rem 1rem 0.75rem 2.75rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            background: var(--bg-gray);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            background: var(--bg-white);
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+        }
+
+        .filter-select {
+            padding: 0.75rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            background: var(--bg-gray);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            min-width: 180px;
+        }
+
+        .filter-select:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+        }
+
+        .visible-count {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+        /* Stock Table */
+        .table-container {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .stock-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .stock-table thead {
+            background: var(--bg-light);
+            border-bottom: 2px solid var(--border-color);
+        }
+
+        .stock-table th {
+            padding: 1rem 1.25rem;
+            font-size: 0.8125rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-secondary);
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        .stock-table th.center { text-align: center; }
+
+        .stock-table tbody tr {
+            border-bottom: 1px solid var(--border-color);
+            transition: background 0.15s;
+        }
+
+        .stock-table tbody tr:last-child { border-bottom: none; }
+        .stock-table tbody tr:hover { background: var(--bg-gray); }
+
+        .stock-table td {
+            padding: 1rem 1.25rem;
+            font-size: 0.9375rem;
+            vertical-align: middle;
+        }
+
+        .stock-table td.center { text-align: center; }
+
+        /* Book Cell */
+        .book-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.875rem;
+        }
+
+        .book-thumb {
+            width: 40px;
+            height: 56px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            box-shadow: var(--shadow-sm);
+            flex-shrink: 0;
+        }
+
+        .book-thumb-placeholder {
+            width: 40px;
+            height: 56px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+
+        .book-cell-info { flex: 1; min-width: 0; }
+
+        .book-cell-title {
+            font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 220px;
+        }
+
+        .book-cell-author {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-top: 0.125rem;
+        }
+
+        .book-cell-category {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.125rem;
+        }
+
+        /* Stock Numbers */
+        .stock-number {
+            font-size: 1.125rem;
+            font-weight: 700;
+        }
+
+        .stock-number.green { color: var(--success); }
+        .stock-number.orange { color: var(--warning); }
+        .stock-number.red { color: var(--error); }
+        .stock-number.blue { color: var(--primary-blue); }
+
+        /* Progress Bar */
+        .stock-progress {
+            width: 80px;
+            height: 6px;
+            background: var(--border-color);
+            border-radius: 9999px;
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        .stock-progress-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.3s ease;
+        }
+
+        /* Status Badge */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            border-radius: 9999px;
+        }
+
+        .status-badge svg { width: 12px; height: 12px; }
+
+        .status-badge.in-stock { background: rgba(16,185,129,0.1); color: var(--success); }
+        .status-badge.low-stock { background: rgba(245,158,11,0.1); color: var(--warning); }
+        .status-badge.out-of-stock { background: rgba(239,68,68,0.1); color: var(--error); }
+
+        /* Adjust Button */
+        .btn-adjust {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--primary-green);
+            background: rgba(16,185,129,0.08);
+            border: 1.5px solid rgba(16,185,129,0.3);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-adjust:hover {
+            background: var(--primary-green);
+            color: white;
+            border-color: var(--primary-green);
+            transform: translateY(-1px);
+        }
+
+        .btn-adjust svg { width: 16px; height: 16px; }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            color: var(--text-muted);
+        }
+
+        .empty-state svg { width: 64px; height: 64px; margin-bottom: 1rem; opacity: 0.4; }
+        .empty-state h4 { font-size: 1.125rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .empty-state p { font-size: 0.9375rem; }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.65);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+
+        .modal-overlay.active { display: flex; }
+
+        .modal-box {
+            background: var(--bg-white);
+            border-radius: var(--radius-xl);
+            padding: 2rem;
+            width: 100%;
+            max-width: 520px;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.3);
+            animation: modalIn 0.25s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(-10px); }
+            to   { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .modal-title svg { width: 24px; height: 24px; color: var(--primary-green); }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-light);
+            border: none;
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .modal-close:hover { background: var(--border-color); color: var(--text-primary); }
+        .modal-close svg { width: 18px; height: 18px; }
+
+        .modal-book-name {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--primary-green);
+            margin-bottom: 1.25rem;
+            padding: 0.75rem 1rem;
+            background: rgba(16,185,129,0.08);
+            border-radius: var(--radius-md);
+            border-left: 3px solid var(--primary-green);
+        }
+
+        /* Modal Stats */
+        .modal-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .modal-stat {
+            text-align: center;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+        }
+
+        .modal-stat.blue { background: rgba(14,165,233,0.08); }
+        .modal-stat.orange { background: rgba(245,158,11,0.08); }
+        .modal-stat.green { background: rgba(16,185,129,0.08); }
+
+        .modal-stat-value {
+            font-size: 1.75rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+        }
+
+        .modal-stat.blue .modal-stat-value { color: var(--primary-blue); }
+        .modal-stat.orange .modal-stat-value { color: var(--warning); }
+        .modal-stat.green .modal-stat-value { color: var(--success); }
+
+        .modal-stat-label { font-size: 0.8125rem; color: var(--text-secondary); font-weight: 500; }
+
+        /* Action Tabs */
+        .action-tabs {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 0.5rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .action-tab {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.75rem 0.5rem;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            background: var(--bg-gray);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-tab svg { width: 20px; height: 20px; }
+
+        .action-tab:hover { border-color: var(--primary-green); color: var(--primary-green); }
+
+        .action-tab.active.add { border-color: var(--success); color: var(--success); background: rgba(16,185,129,0.08); }
+        .action-tab.active.remove { border-color: var(--error); color: var(--error); background: rgba(239,68,68,0.08); }
+        .action-tab.active.set { border-color: var(--primary-blue); color: var(--primary-blue); background: rgba(14,165,233,0.08); }
+
+        .action-desc {
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-md);
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .action-desc.add { background: rgba(16,185,129,0.08); color: #065f46; border-left: 3px solid var(--success); }
+        .action-desc.remove { background: rgba(239,68,68,0.08); color: #991b1b; border-left: 3px solid var(--error); }
+        .action-desc.set { background: rgba(14,165,233,0.08); color: #0c4a6e; border-left: 3px solid var(--primary-blue); }
+
+        [data-theme="dark"] .action-desc.add { color: #6ee7b7; }
+        [data-theme="dark"] .action-desc.remove { color: #fca5a5; }
+        [data-theme="dark"] .action-desc.set { color: #7dd3fc; }
+
+        .amount-label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .amount-input {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 1.25rem;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-primary);
+            background: var(--bg-gray);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+            margin-bottom: 1.5rem;
+        }
+
+        .amount-input:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            background: var(--bg-white);
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.1);
+        }
+
+        .modal-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        .modal-actions .btn { flex: 1; }
+
+        .btn-cancel {
+            background: var(--bg-light);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-cancel:hover { background: var(--border-color); color: var(--text-primary); }
+
+        .btn-apply-add { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-apply-remove { background: linear-gradient(135deg, #ef4444, #dc2626); color: white; }
+        .btn-apply-set { background: linear-gradient(135deg, #0ea5e9, #0284c7); color: white; }
+
+        /* Messages */
+        .messages-container { margin-bottom: 1.5rem; }
+
+        .message {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 1rem 1.25rem;
+            border-radius: var(--radius-md);
+            font-size: 0.9375rem;
+            font-weight: 500;
+            margin-bottom: 0.75rem;
+        }
+
+        .message svg { width: 20px; height: 20px; flex-shrink: 0; }
+        .message.success { background: rgba(16,185,129,0.1); color: #065f46; border: 1px solid rgba(16,185,129,0.2); }
+        .message.error { background: rgba(239,68,68,0.1); color: #991b1b; border: 1px solid rgba(239,68,68,0.2); }
+        .message.warning { background: rgba(245,158,11,0.1); color: #92400e; border: 1px solid rgba(245,158,11,0.2); }
+
+        [data-theme="dark"] .message.success { color: #6ee7b7; }
+        [data-theme="dark"] .message.error { color: #fca5a5; }
+        [data-theme="dark"] .message.warning { color: #fcd34d; }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+
+        @media (max-width: 768px) {
+            .main-container { padding: 1.5rem 1rem; }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .page-header { flex-direction: column; }
+            .stock-table { font-size: 0.875rem; }
+            .book-cell-title { max-width: 140px; }
+            .stock-progress { display: none; }
+        }
+
+        @media (max-width: 480px) {
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .action-tabs { grid-template-columns: 1fr; }
+            .modal-stats { grid-template-columns: repeat(3, 1fr); }
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+    
+    <div class="main-container">
+
+        <!-- Messages -->
+        {% if messages %}
+        <div class="messages-container">
+            {% for message in messages %}
+            <div class="message {{ message.tags }}">
+                {% if 'success' in message.tags %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                {% else %}
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                {% endif %}
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        <!-- Page Header -->
+        <div class="page-header">
+            <div>
+                <div class="breadcrumb">
+                    <a href="{% url 'dashboard:home' %}">Dashboard</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"></path>
+                    </svg>
+                    <a href="{% url 'books:list' %}">Books</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"></path>
+                    </svg>
+                    <span>Manage Stock</span>
+                </div>
+                <div class="page-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    </svg>
+                    <h1>Manage Book Stock</h1>
+                </div>
+                <p class="page-subtitle">Adjust total and available copies for each book in the library</p>
+            </div>
+            <a href="{% url 'books:list' %}" class="btn btn-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5m7-7l-7 7 7 7"></path>
+                </svg>
+                Back to Books
+            </a>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" style="color: var(--primary-blue);">{{ total_books }}</div>
+                    <div class="stat-label">Total Titles</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" style="color: var(--primary-green);">{{ total_available }}</div>
+                    <div class="stat-label">Available Copies</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" style="color: var(--warning);">{{ total_borrowed }}</div>
+                    <div class="stat-label">Currently Borrowed</div>
+                </div>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                </div>
+                <div class="stat-info">
+                    <div class="stat-value" style="color: var(--error);">{{ out_of_stock }}</div>
+                    <div class="stat-label">Out of Stock</div>
+                    {% if low_stock > 0 %}
+                    <div class="stat-badge warning">⚠ {{ low_stock }} low stock</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <div class="search-wrapper">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" class="search-input" id="stockSearch" placeholder="Search by title or author...">
+            </div>
+            <select class="filter-select" id="stockFilter">
+                <option value="all">All Books</option>
+                <option value="out">Out of Stock</option>
+                <option value="low">Low Stock (1"2)</option>
+                <option value="ok">In Stock (3+)</option>
+            </select>
+            <span class="visible-count" id="visibleCount">Showing {{ books|length }} books</span>
+        </div>
+
+        <!-- Stock Table -->
+        <div class="table-container">
+            <table class="stock-table" id="stockTable">
+                <thead>
+                    <tr>
+                        <th>Book</th>
+                        <th class="center">Total</th>
+                        <th class="center">Borrowed</th>
+                        <th class="center">Available</th>
+                        <th class="center">Progress</th>
+                        <th class="center">Status</th>
+                        <th class="center">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for book in books %}
+                    <tr class="stock-row"
+                        data-title="{{ book.title|lower }}"
+                        data-author="{{ book.author|lower }}"
+                        data-available="{{ book.available_copies }}">
+
+                        <!-- Book Info -->
+                        <td data-label="Book">
+                            <div class="book-cell">
+                                {% if book.cover_image %}
+                                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-thumb">
+                                {% else %}
+                                <div class="book-thumb-placeholder">{{ book.title|slice:":1" }}</div>
+                                {% endif %}
+                                <div class="book-cell-info">
+                                    <div class="book-cell-title" title="{{ book.title }}">{{ book.title }}</div>
+                                    <div class="book-cell-author">{{ book.author }}</div>
+                                    <div class="book-cell-category">{{ book.category.name|default:"Uncategorized" }}</div>
+                                </div>
+                            </div>
+                        </td>
+
+                        <!-- Total -->
+                        <td data-label="Total" class="center">
+                            <span class="stock-number blue">{{ book.total_copies }}</span>
+                        </td>
+
+                        <!-- Borrowed -->
+                        <td data-label="Borrowed" class="center">
+                            <span class="stock-number orange">{{ book.borrowed_copies }}</span>
+                        </td>
+
+                        <!-- Available -->
+                        <td data-label="Available" class="center">
+                            <span class="stock-number {% if book.available_copies == 0 %}red{% elif book.available_copies <= 2 %}orange{% else %}green{% endif %}">
+                                {{ book.available_copies }}
+                            </span>
+                        </td>
+
+                        <!-- Progress Bar -->
+                        <td data-label="Progress" class="center">
+                            {% if book.total_copies > 0 %}
+                            {% widthratio book.available_copies book.total_copies 100 as pct %}
+                            <div class="stock-progress">
+                                <div class="stock-progress-fill" style="width: {{ pct }}%; background: {% if book.available_copies == 0 %}#ef4444{% elif book.available_copies <= 2 %}#f59e0b{% else %}#10b981{% endif %};"></div>
+                            </div>
+                            <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 4px;">{{ pct }}%</div>
+                            {% endif %}
+                        </td>
+
+                        <!-- Status -->
+                        <td data-label="Status" class="center">
+                            {% if book.available_copies == 0 %}
+                            <span class="status-badge out-of-stock">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+                                Out of Stock
+                            </span>
+                            {% elif book.available_copies <= 2 %}
+                            <span class="status-badge low-stock">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+                                Low Stock
+                            </span>
+                            {% else %}
+                            <span class="status-badge in-stock">
+                                <svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>
+                                In Stock
+                            </span>
+                            {% endif %}
+                        </td>
+
+                        <!-- Action -->
+                        <td data-label="Action" class="center">
+                            <button class="btn-adjust"
+                                onclick="openStockModal({{ book.pk }}, '{{ book.title|escapejs }}', {{ book.total_copies }}, {{ book.available_copies }})">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                </svg>
+                                Adjust
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                </svg>
+                                <h4>No books found</h4>
+                                <p>Add books to the library to manage their stock.</p>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Adjust Stock Modal -->
+    <div class="modal-overlay" id="stockModal">
+        <div class="modal-box">
+            <div class="modal-header">
+                <div class="modal-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                    </svg>
+                    Adjust Stock
+                </div>
+                <button class="modal-close" onclick="closeStockModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="modal-book-name" id="modalBookTitle">"</div>
+
+            <!-- Current Stock Stats -->
+            <div class="modal-stats">
+                <div class="modal-stat blue">
+                    <div class="modal-stat-value" id="modalTotal">"</div>
+                    <div class="modal-stat-label">Total</div>
+                </div>
+                <div class="modal-stat orange">
+                    <div class="modal-stat-value" id="modalBorrowed">"</div>
+                    <div class="modal-stat-label">Borrowed</div>
+                </div>
+                <div class="modal-stat green">
+                    <div class="modal-stat-value" id="modalAvailable">"</div>
+                    <div class="modal-stat-label">Available</div>
+                </div>
+            </div>
+
+            <!-- Action Tabs -->
+            <div class="action-tabs">
+                <button class="action-tab add active" onclick="setAction('add_copies', this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="16"></line>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Add Copies
+                </button>
+                <button class="action-tab remove" onclick="setAction('remove_copies', this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Remove Copies
+                </button>
+                <button class="action-tab set" onclick="setAction('set_available', this)">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Set Available
+                </button>
+            </div>
+
+            <!-- Action Description -->
+            <div class="action-desc add" id="actionDesc">
+                Add new physical copies to the library collection. Both total and available will increase.
+            </div>
+
+            <!-- Form -->
+            <form method="POST" id="stockForm">
+                {% csrf_token %}
+                <input type="hidden" name="book_id" id="modalBookId">
+                <input type="hidden" name="action" id="modalAction" value="add_copies">
+
+                <label class="amount-label" id="amountLabel">Number of copies to add</label>
+                <input type="number" class="amount-input" name="amount" id="modalAmount" min="1" value="1">
+
+                <div class="modal-actions">
+                    <button type="button" class="btn btn-cancel" onclick="closeStockModal()">Cancel</button>
+                    <button type="submit" class="btn btn-apply-add" id="modalSubmitBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        Apply Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% include 'includes/enhanced_nav_scripts.html' %}
+
+    <script>
+        // "" Modal """"""""""""""""""""""""""""""""""""""""""""""
+        function openStockModal(bookId, bookTitle, total, available) {
+            document.getElementById('modalBookId').value   = bookId;
+            document.getElementById('modalBookTitle').textContent = bookTitle;
+            document.getElementById('modalTotal').textContent     = total;
+            document.getElementById('modalBorrowed').textContent  = total - available;
+            document.getElementById('modalAvailable').textContent = available;
+            document.getElementById('modalAmount').value  = 1;
+
+            // Reset to Add tab
+            document.querySelectorAll('.action-tab').forEach(t => t.classList.remove('active'));
+            document.querySelector('.action-tab.add').classList.add('active');
+            setAction('add_copies', document.querySelector('.action-tab.add'));
+
+            document.getElementById('stockModal').classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeStockModal() {
+            document.getElementById('stockModal').classList.remove('active');
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close on backdrop click
+        document.getElementById('stockModal').addEventListener('click', function(e) {
+            if (e.target === this) closeStockModal();
+        });
+
+        // Close on Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') closeStockModal();
+        });
+
+        // "" Action Tabs """"""""""""""""""""""""""""""""""""""""
+        const actionMeta = {
+            add_copies: {
+                desc:    'Add new physical copies to the library collection. Both total and available will increase.',
+                label:   'Number of copies to add',
+                min:     1,
+                default: 1,
+                btnClass: 'btn-apply-add',
+                btnText: 'Add Copies',
+                descClass: 'add'
+            },
+            remove_copies: {
+                desc:    'Remove copies from the collection (e.g. lost or damaged). Only available copies can be removed.',
+                label:   'Number of copies to remove',
+                min:     1,
+                default: 1,
+                btnClass: 'btn-apply-remove',
+                btnText: 'Remove Copies',
+                descClass: 'remove'
+            },
+            set_available: {
+                desc:    'Manually set the number of available copies (e.g. after a stock audit). Cannot exceed total minus borrowed.',
+                label:   'Set available copies to',
+                min:     0,
+                default: null,
+                btnClass: 'btn-apply-set',
+                btnText: 'Set Available',
+                descClass: 'set'
+            }
+        };
+
+        function setAction(action, btn) {
+            const meta = actionMeta[action];
+
+            // Update hidden input
+            document.getElementById('modalAction').value = action;
+
+            // Update description
+            const desc = document.getElementById('actionDesc');
+            desc.textContent  = meta.desc;
+            desc.className    = `action-desc ${meta.descClass}`;
+
+            // Update label & input
+            document.getElementById('amountLabel').textContent = meta.label;
+            const amountInput = document.getElementById('modalAmount');
+            amountInput.min   = meta.min;
+            amountInput.value = meta.default !== null
+                ? meta.default
+                : parseInt(document.getElementById('modalAvailable').textContent) || 0;
+
+            // Update submit button
+            const submitBtn = document.getElementById('modalSubmitBtn');
+            submitBtn.className = `btn ${meta.btnClass}`;
+            submitBtn.innerHTML = `
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;">
+                    <polyline points="20 6 9 17 4 12"></polyline>
+                </svg>
+                ${meta.btnText}`;
+
+            // Update active tab
+            document.querySelectorAll('.action-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+        }
+
+        // "" Search & Filter """"""""""""""""""""""""""""""""""""
+        const searchInput  = document.getElementById('stockSearch');
+        const filterSelect = document.getElementById('stockFilter');
+        const visibleCount = document.getElementById('visibleCount');
+
+        function applyFilters() {
+            const term   = searchInput.value.toLowerCase().trim();
+            const filter = filterSelect.value;
+            const rows   = document.querySelectorAll('.stock-row');
+            let visible  = 0;
+
+            rows.forEach(row => {
+                const title  = row.dataset.title;
+                const author = row.dataset.author;
+                const avail  = parseInt(row.dataset.available);
+
+                const matchSearch = !term || title.includes(term) || author.includes(term);
+                const matchFilter =
+                    filter === 'all' ||
+                    (filter === 'out' && avail === 0) ||
+                    (filter === 'low' && avail >= 1 && avail <= 2) ||
+                    (filter === 'ok'  && avail >= 3);
+
+                const show = matchSearch && matchFilter;
+                row.style.display = show ? '' : 'none';
+                if (show) visible++;
+            });
+
+            visibleCount.textContent = `Showing ${visible} of {{ books|length }} books`;
+        }
+
+        searchInput.addEventListener('input', applyFilters);
+        filterSelect.addEventListener('change', applyFilters);
+
+        // "" Auto-dismiss messages """"""""""""""""""""""""""""""
+        setTimeout(() => {
+            document.querySelectorAll('.message').forEach(m => {
+                m.style.transition = 'opacity 0.5s ease';
+                m.style.opacity = '0';
+                setTimeout(() => m.remove(), 500);
+            });
+        }, 4000);
+    </script>
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

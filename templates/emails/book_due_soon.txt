@@ -1,0 +1,37 @@
+Hi {{ user.get_full_name|default:user.username }},
+
+This is a friendly reminder that your borrowed book is due soon!
+
+Book Details:
+-------------
+Title: {{ book.title }}
+Author: {{ book.author }}
+Due Date: {{ due_date|date:"F d, Y" }}
+Days Remaining: {{ days_remaining }} day{{ days_remaining|pluralize }}
+
+{% if days_remaining == 1 %}
+⚠️ Your book is due tomorrow! Please return it on time to avoid late fees.
+{% elif days_remaining == 2 %}
+Your book is due in 2 days. Please plan to return it soon.
+{% else %}
+Your book is due in {{ days_remaining }} days. Please plan to return it on time.
+{% endif %}
+
+Return Options:
+- Visit the library during opening hours
+- Use the online return feature (if available)
+
+Need More Time?
+If you need to keep the book longer, please contact the library to request an extension (subject to availability).
+
+Important:
+- Late returns may incur fines
+- Overdue books affect your borrowing privileges
+
+Questions? Contact us at {{ site_name }}
+
+Thank you for using our library!
+
+Best regards,
+{{ site_name }} Team
+{{ site_url }}

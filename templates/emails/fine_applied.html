@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+    <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">💰 Fine Applied</h1>
+    </div>
+    
+    <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2 style="color: #1f2937; margin-top: 0;">Hello {{ user.get_full_name|default:user.username }},</h2>
+        
+        <p style="color: #4b5563; font-size: 16px;">A fine has been applied to your library account for an overdue book.</p>
+        
+        <!-- Book Details Card -->
+        <div style="background: #f3f4f6; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 24px 0;">
+            <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">📚 Book Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Title:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.title }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Author:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.author }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Category:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.category.name|default:'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Due Date:</td>
+                    <td style="padding: 8px 0; color: #dc2626; font-weight: 600;">{{ due_date|date:'F d, Y' }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Days Overdue:</td>
+                    <td style="padding: 8px 0; color: #dc2626; font-weight: 600;">{{ days_overdue }} day{{ days_overdue|pluralize }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Fine Details -->
+        <div style="background: {% if fine_paid %}#d1fae5{% else %}#fef3c7{% endif %}; border-left: 4px solid {% if fine_paid %}#10b981{% else %}#f59e0b{% endif %}; padding: 20px; border-radius: 8px; margin: 24px 0;">
+            <h3 style="color: {% if fine_paid %}#065f46{% else %}#92400e{% endif %}; margin-top: 0; font-size: 18px;">💰 Fine Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: {% if fine_paid %}#065f46{% else %}#92400e{% endif %}; font-weight: 600;">Fine Amount:</td>
+                    <td style="padding: 8px 0; color: {% if fine_paid %}#065f46{% else %}#92400e{% endif %}; font-size: 20px; font-weight: 700;">ETB {{ fine_amount }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: {% if fine_paid %}#065f46{% else %}#92400e{% endif %}; font-weight: 600;">Fine Rate:</td>
+                    <td style="padding: 8px 0; color: {% if fine_paid %}#065f46{% else %}#92400e{% endif %};">ETB 2 per day</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: {% if fine_paid %}#065f46{% else %}#92400e{% endif %}; font-weight: 600;">Status:</td>
+                    <td style="padding: 8px 0; color: {% if fine_paid %}#065f46{% else %}#92400e{% endif %}; font-weight: 700;">
+                        {% if fine_paid %}
+                        ✅ PAID
+                        {% else %}
+                        ⚠️ UNPAID
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+        </div>
+        
+        {% if not fine_paid %}
+        <!-- Payment Required -->
+        <div style="background: #fee2e2; border-left: 4px solid #dc2626; padding: 16px; border-radius: 8px; margin: 24px 0;">
+            <h4 style="color: #991b1b; margin-top: 0; font-size: 14px;">💳 PAYMENT REQUIRED</h4>
+            <p style="color: #991b1b; font-size: 14px; margin: 8px 0;">
+                Your fine of <strong>ETB {{ fine_amount }}</strong> must be paid before you can:
+            </p>
+            <ul style="color: #991b1b; font-size: 14px; padding-left: 20px; margin: 8px 0 0 0;">
+                <li style="margin-bottom: 6px;">Borrow new books</li>
+                <li style="margin-bottom: 6px;">Renew existing books</li>
+                <li style="margin-bottom: 6px;">Access certain library services</li>
+            </ul>
+        </div>
+        
+        <!-- How to Pay -->
+        <div style="margin: 24px 0;">
+            <h3 style="color: #1f2937; font-size: 16px;">💵 How to Pay:</h3>
+            <ol style="color: #4b5563; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Visit the library during opening hours</li>
+                <li style="margin-bottom: 8px;">Pay at the circulation desk</li>
+                <li style="margin-bottom: 8px;">Keep your payment receipt</li>
+            </ol>
+        </div>
+        
+        <!-- Warning -->
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 24px 0;">
+            <p style="color: #92400e; font-size: 14px; margin: 0; font-weight: 600;">
+                ⚠️ IMPORTANT: Fines continue to accumulate until the book is returned!
+            </p>
+        </div>
+        
+        <!-- Next Steps -->
+        <div style="background: #e0e7ff; border-left: 4px solid #6366f1; padding: 16px; border-radius: 8px; margin: 24px 0;">
+            <h4 style="color: #3730a3; margin-top: 0; font-size: 14px;">📋 Next Steps:</h4>
+            <ol style="color: #3730a3; font-size: 14px; padding-left: 20px; margin: 8px 0 0 0;">
+                <li style="margin-bottom: 6px;">Return the book immediately (if not already returned)</li>
+                <li style="margin-bottom: 6px;">Pay the fine at the library</li>
+                <li style="margin-bottom: 6px;">Resume normal borrowing privileges</li>
+            </ol>
+        </div>
+        
+        {% else %}
+        <!-- Payment Received -->
+        <div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin: 24px 0; text-align: center;">
+            <h3 style="color: #065f46; margin-top: 0; font-size: 18px;">✅ Payment Received</h3>
+            <p style="color: #065f46; font-size: 16px; margin: 8px 0;">
+                Thank you! Your fine of <strong>ETB {{ fine_amount }}</strong> has been paid.
+            </p>
+            <p style="color: #065f46; font-size: 14px; margin: 8px 0 0 0;">
+                Please remember to return books on time to avoid future fines.
+            </p>
+        </div>
+        {% endif %}
+        
+        <!-- Tips -->
+        <div style="margin: 24px 0;">
+            <h3 style="color: #1f2937; font-size: 16px;">💡 Tips to Avoid Future Fines:</h3>
+            <ul style="color: #4b5563; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Set reminders for due dates</li>
+                <li style="margin-bottom: 8px;">Return books on time</li>
+                <li style="margin-bottom: 8px;">Request extensions before the due date</li>
+                <li style="margin-bottom: 8px;">Check your email regularly for notifications</li>
+            </ul>
+        </div>
+        
+        <!-- Action Button -->
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="{{ site_url }}/borrow/my-books/" style="background: #f59e0b; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">View My Books & Fines</a>
+        </div>
+        
+        <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 24px;">
+            Questions or issues? Contact the library immediately.
+        </p>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        
+        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+            Best regards,<br>
+            {{ site_name }} Team<br>
+            <a href="{{ site_url }}" style="color: #3b82f6; text-decoration: none;">{{ site_url }}</a>
+        </p>
+    </div>
+</body>
+</html>

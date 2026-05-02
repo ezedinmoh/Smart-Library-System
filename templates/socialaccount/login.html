@@ -1,0 +1,471 @@
+{% load socialaccount %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign in with {{ provider.name }} - Smart Library</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/enhanced.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body.auth-page {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            transition: background 0.3s ease;
+        }
+        
+        [data-theme="dark"] body.auth-page {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+        
+        .auth-container {
+            max-width: 1200px;
+            width: 100%;
+            min-height: auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 45% 55%;
+        }
+        
+        .auth-left {
+            padding: 60px 48px;
+            min-height: 600px;
+        }
+        
+        .auth-right {
+            padding: 60px 48px;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .back-to-home {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 1000;
+            display: flex;
+            gap: 12px;
+        }
+        
+        .back-to-home a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #10b981;
+            font-weight: 600;
+            font-size: 0.938rem;
+            border-radius: 12px;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .back-to-home a:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
+        }
+        
+        .back-to-home a svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .theme-toggle-auth {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        
+        .theme-toggle-auth:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
+        }
+        
+        .theme-toggle-auth svg {
+            width: 20px;
+            height: 20px;
+            color: #10b981;
+        }
+        
+        .sun-icon { display: block; }
+        .moon-icon { display: none; }
+        [data-theme="dark"] .sun-icon { display: none; }
+        [data-theme="dark"] .moon-icon { display: block; }
+        
+        @media (max-width: 968px) {
+            .auth-container {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+            }
+            .auth-left {
+                display: none;
+            }
+        }
+        
+        /* Provider Icon Styling */
+        .provider-icon-large {
+            width: 100px;
+            height: 100px;
+            margin: 0 auto 32px;
+            border-radius: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+        }
+        
+        .provider-icon-large.google {
+            background: linear-gradient(135deg, #4285F4, #34A853);
+        }
+        
+        .provider-icon-large.github {
+            background: linear-gradient(135deg, #24292e, #444d56);
+        }
+        
+        .provider-icon-large.default {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+        }
+        
+        .provider-icon-large svg {
+            width: 50px;
+            height: 50px;
+        }
+        
+        .auth-form-container {
+            width: 100%;
+        }
+        
+        .auth-form-header {
+            text-align: center;
+            margin-bottom: 32px;
+        }
+        
+        .auth-form-header h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .auth-form-header p {
+            color: #6b7280;
+            font-size: 1rem;
+        }
+        
+        .provider-name {
+            color: #10b981;
+            font-weight: 600;
+        }
+        
+        .confirmation-text {
+            background: #f0fdf4;
+            border-left: 4px solid #10b981;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 32px;
+            font-size: 0.938rem;
+            line-height: 1.6;
+            color: #065f46;
+        }
+        
+        [data-theme="dark"] .confirmation-text {
+            background: rgba(16, 185, 129, 0.1);
+            color: #6ee7b7;
+        }
+        
+        .confirmation-text strong {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+        
+        .security-note {
+            margin-top: 24px;
+            padding: 16px;
+            background: #eff6ff;
+            border-radius: 12px;
+            font-size: 0.875rem;
+            color: #1e40af;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        [data-theme="dark"] .security-note {
+            background: rgba(59, 130, 246, 0.1);
+            color: #93c5fd;
+        }
+        
+        .security-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        
+        .btn {
+            width: 100%;
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Inter', sans-serif;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #6b7280;
+        }
+        
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+        
+        [data-theme="dark"] .btn-secondary {
+            background: #374151;
+            color: #d1d5db;
+        }
+        
+        [data-theme="dark"] .btn-secondary:hover {
+            background: #4b5563;
+        }
+        
+        .btn svg {
+            width: 20px;
+            height: 20px;
+        }
+    </style>
+</head>
+<body class="auth-page">
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+    
+    <!-- Back to Home Button -->
+    <div class="back-to-home">
+        <a href="{% url 'dashboard:home' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Back to Home
+        </a>
+        <button class="theme-toggle-auth" id="themeToggle">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <div class="auth-container">
+        <!-- Left Panel -->
+        <div class="auth-left">
+            <div class="auth-left-content">
+                <a href="{% url 'dashboard:home' %}" class="logo">
+                    <div class="logo-icon white">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </div>
+                    <span>SmartLibrary</span>
+                </a>
+                
+                <div class="auth-left-text">
+                    <h1>Quick & Secure Sign In</h1>
+                    <p>Continue with your {{ provider.name }} account for instant access to your digital library.</p>
+                    
+                    <div class="auth-features">
+                        <div class="auth-feature">
+                            <div class="auth-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Secure Authentication</h4>
+                                <p>Your credentials stay private</p>
+                            </div>
+                        </div>
+                        <div class="auth-feature">
+                            <div class="auth-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>One-Click Access</h4>
+                                <p>No password to remember</p>
+                            </div>
+                        </div>
+                        <div class="auth-feature">
+                            <div class="auth-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Instant Setup</h4>
+                                <p>Start reading immediately</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="auth-decorations">
+                    <div class="decoration-circle circle-1"></div>
+                    <div class="decoration-circle circle-2"></div>
+                    <div class="decoration-circle circle-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="auth-right">
+            <div class="auth-form-container">
+                <div class="auth-form">
+                    <!-- Provider Icon -->
+                    <div class="provider-icon-large {% if provider.id == 'google' %}google{% elif provider.id == 'github' %}github{% else %}default{% endif %}">
+                        {% if provider.id == 'google' %}
+                            <svg viewBox="0 0 24 24" width="50" height="50">
+                                <path fill="white" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="white" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="white" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="white" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                        {% elif provider.id == 'github' %}
+                            <svg viewBox="0 0 24 24" width="50" height="50" fill="white">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                        {% else %}
+                            <svg viewBox="0 0 24 24" width="50" height="50" fill="none" stroke="white" stroke-width="2">
+                                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                            </svg>
+                        {% endif %}
+                    </div>
+
+                    <div class="auth-form-header">
+                        <h2>Continue with <span class="provider-name">{{ provider.name }}</span></h2>
+                        <p>Confirm your sign-in to Smart Library</p>
+                    </div>
+
+                    <div class="confirmation-text">
+                        <strong>You're about to sign in</strong>
+                        You will be redirected to {{ provider.name }} to complete the authentication. We'll only receive your basic profile information - your credentials remain private and secure.
+                    </div>
+
+                    <form method="post">
+                        {% csrf_token %}
+                        {% if redirect_field_value %}
+                            <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                        {% endif %}
+                        
+                        <div class="btn-group">
+                            <button type="submit" class="btn btn-primary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                                Continue with {{ provider.name }}
+                            </button>
+                            
+                            <a href="{% url 'users:login' %}" class="btn btn-secondary">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                                    <polyline points="12 19 5 12 12 5"></polyline>
+                                </svg>
+                                Back to Login
+                            </a>
+                        </div>
+                    </form>
+
+                    <div class="security-note">
+                        <svg class="security-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                        </svg>
+                        <div>
+                            <strong>Secure Sign-In:</strong> Your {{ provider.name }} credentials are never shared with us. We only receive your basic profile information to create your library account.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Theme Toggle Functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Load saved theme from localStorage
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+        }
+    </script>
+</body>
+</html>

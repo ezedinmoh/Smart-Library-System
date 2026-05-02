@@ -1,0 +1,354 @@
+<style>
+/* ============================================
+   RESPONSIVE TABLES - MOBILE OPTIMIZATION
+   ============================================ */
+
+/* Desktop: Normal table display */
+@media (min-width: 769px) {
+    .responsive-table-wrapper {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+}
+
+/* Mobile: Convert tables to card layout */
+@media (max-width: 768px) {
+    /* Hide table wrapper overflow on mobile */
+    .responsive-table-wrapper {
+        overflow-x: visible !important;
+    }
+    
+    /* Hide table headers on mobile */
+    .data-table thead,
+    .users-table thead,
+    .log-table thead,
+    .res-table thead,
+    .req-table thead,
+    .activity-table thead,
+    .history-table thead,
+    .stock-table thead {
+        display: none;
+    }
+    
+    /* Make table body display as block */
+    .data-table tbody,
+    .users-table tbody,
+    .log-table tbody,
+    .res-table tbody,
+    .req-table tbody,
+    .activity-table tbody,
+    .history-table tbody,
+    .stock-table tbody {
+        display: block;
+        width: 100%;
+    }
+    
+    /* Convert each row to a card */
+    .data-table tbody tr,
+    .users-table tbody tr,
+    .log-table tbody tr,
+    .res-table tbody tr,
+    .req-table tbody tr,
+    .activity-table tbody tr,
+    .history-table tbody tr,
+    .stock-table tbody tr {
+        display: block;
+        margin-bottom: 1rem;
+        background: var(--bg-white);
+        border: 1px solid var(--border-color);
+        border-radius: var(--radius-lg);
+        padding: 1rem;
+        box-shadow: var(--shadow-sm);
+    }
+    
+    .data-table tbody tr:hover,
+    .users-table tbody tr:hover,
+    .log-table tbody tr:hover,
+    .res-table tbody tr:hover,
+    .req-table tbody tr:hover,
+    .activity-table tbody tr:hover,
+    .history-table tbody tr:hover,
+    .stock-table tbody tr:hover {
+        background: var(--bg-white);
+        box-shadow: var(--shadow-md);
+    }
+    
+    /* Make each cell display as block with label */
+    .data-table tbody td,
+    .users-table tbody td,
+    .log-table tbody td,
+    .res-table tbody td,
+    .req-table tbody td,
+    .activity-table tbody td,
+    .history-table tbody td,
+    .stock-table tbody td {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0.75rem 0;
+        border-bottom: 1px solid var(--border-color);
+        text-align: right;
+    }
+    
+    .data-table tbody td:last-child,
+    .users-table tbody td:last-child,
+    .log-table tbody td:last-child,
+    .res-table tbody td:last-child,
+    .req-table tbody td:last-child,
+    .activity-table tbody td:last-child,
+    .history-table tbody td:last-child,
+    .stock-table tbody td:last-child {
+        border-bottom: none;
+    }
+    
+    /* Add labels before each cell using data-label attribute */
+    .data-table tbody td::before,
+    .users-table tbody td::before,
+    .log-table tbody td::before,
+    .res-table tbody td::before,
+    .req-table tbody td::before,
+    .activity-table tbody td::before,
+    .history-table tbody td::before,
+    .stock-table tbody td::before {
+        content: attr(data-label);
+        font-weight: 700;
+        font-size: 0.8125rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--text-secondary);
+        text-align: left;
+        flex: 0 0 40%;
+        padding-right: 1rem;
+    }
+    
+    /* Adjust cell content alignment */
+    .data-table tbody td > *,
+    .users-table tbody td > *,
+    .log-table tbody td > *,
+    .res-table tbody td > *,
+    .req-table tbody td > *,
+    .activity-table tbody td > *,
+    .history-table tbody td > *,
+    .stock-table tbody td > * {
+        flex: 1;
+        text-align: right;
+    }
+    
+    /* Special handling for user cells */
+    .user-cell {
+        display: flex !important;
+        flex-direction: column;
+        align-items: flex-end !important;
+    }
+    
+    /* Action buttons in mobile cards */
+    .data-table tbody td .btn,
+    .users-table tbody td .btn,
+    .log-table tbody td .btn,
+    .res-table tbody td .btn,
+    .req-table tbody td .btn,
+    .activity-table tbody td .btn,
+    .history-table tbody td .btn,
+    .stock-table tbody td .btn {
+        width: auto;
+        font-size: 0.8125rem;
+        padding: 0.5rem 1rem;
+    }
+    
+    /* Multiple action buttons */
+    .data-table tbody td .btn-group,
+    .users-table tbody td .btn-group,
+    .log-table tbody td .btn-group,
+    .res-table tbody td .btn-group,
+    .req-table tbody td .btn-group,
+    .activity-table tbody td .btn-group,
+    .history-table tbody td .btn-group,
+    .stock-table tbody td .btn-group {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        width: 100%;
+    }
+    
+    /* Status badges in mobile */
+    .status-badge {
+        white-space: nowrap;
+    }
+    
+    /* Fine amounts */
+    .fine-amount,
+    .fine-paid,
+    .fine-unpaid {
+        white-space: nowrap;
+    }
+    
+    /* Book and user info */
+    .book-title,
+    .book-author,
+    .user-name,
+    .user-email {
+        text-align: right;
+    }
+    
+    /* Date text */
+    .date-text {
+        white-space: nowrap;
+    }
+}
+
+/* Tablet optimization (768px - 1024px) */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .data-table th,
+    .users-table th,
+    .log-table th,
+    .res-table th,
+    .req-table th,
+    .activity-table th,
+    .history-table th,
+    .stock-table th {
+        padding: 0.75rem 0.875rem;
+        font-size: 0.75rem;
+    }
+    
+    .data-table td,
+    .users-table td,
+    .log-table td,
+    .res-table td,
+    .req-table td,
+    .activity-table td,
+    .history-table td,
+    .stock-table td {
+        padding: 0.875rem 0.875rem;
+        font-size: 0.875rem;
+    }
+    
+    .btn-sm {
+        padding: 0.375rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+}
+
+/* Extra small mobile (max 480px) */
+@media (max-width: 480px) {
+    .data-table tbody td::before,
+    .users-table tbody td::before,
+    .log-table tbody td::before,
+    .res-table tbody td::before,
+    .req-table tbody td::before,
+    .activity-table tbody td::before,
+    .history-table tbody td::before,
+    .stock-table tbody td::before {
+        flex: 0 0 45%;
+        font-size: 0.75rem;
+    }
+    
+    .data-table tbody td,
+    .users-table tbody td,
+    .log-table tbody td,
+    .res-table tbody td,
+    .req-table tbody td,
+    .activity-table tbody td,
+    .history-table tbody td,
+    .stock-table tbody td {
+        font-size: 0.875rem;
+        padding: 0.625rem 0;
+    }
+    
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.625rem;
+    }
+    
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.625rem;
+    }
+}
+
+/* Dark mode adjustments for mobile cards */
+[data-theme="dark"] {
+    @media (max-width: 768px) {
+        .data-table tbody tr,
+        .users-table tbody tr,
+        .log-table tbody tr,
+        .res-table tbody tr,
+        .req-table tbody tr,
+        .activity-table tbody tr,
+        .history-table tbody tr,
+        .stock-table tbody tr {
+            background: var(--bg-white);
+            border-color: var(--border-color);
+        }
+    }
+}
+
+/* Smooth transitions for responsive changes */
+.data-table,
+.users-table,
+.log-table,
+.res-table,
+.req-table,
+.activity-table,
+.history-table,
+.stock-table {
+    transition: all 0.3s ease;
+}
+
+/* Print styles - keep tables as tables */
+@media print {
+    .data-table thead,
+    .users-table thead,
+    .log-table thead,
+    .res-table thead,
+    .req-table thead,
+    .activity-table thead,
+    .history-table thead,
+    .stock-table thead {
+        display: table-header-group !important;
+    }
+    
+    .data-table tbody,
+    .users-table tbody,
+    .log-table tbody,
+    .res-table tbody,
+    .req-table tbody,
+    .activity-table tbody,
+    .history-table tbody,
+    .stock-table tbody {
+        display: table-row-group !important;
+    }
+    
+    .data-table tbody tr,
+    .users-table tbody tr,
+    .log-table tbody tr,
+    .res-table tbody tr,
+    .req-table tbody tr,
+    .activity-table tbody tr,
+    .history-table tbody tr,
+    .stock-table tbody tr {
+        display: table-row !important;
+    }
+    
+    .data-table tbody td,
+    .users-table tbody td,
+    .log-table tbody td,
+    .res-table tbody td,
+    .req-table tbody td,
+    .activity-table tbody td,
+    .history-table tbody td,
+    .stock-table tbody td {
+        display: table-cell !important;
+    }
+    
+    .data-table tbody td::before,
+    .users-table tbody td::before,
+    .log-table tbody td::before,
+    .res-table tbody td::before,
+    .req-table tbody td::before,
+    .activity-table tbody td::before,
+    .history-table tbody td::before,
+    .stock-table tbody td::before {
+        display: none !important;
+    }
+}
+</style>

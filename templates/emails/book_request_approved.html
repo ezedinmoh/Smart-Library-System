@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+    <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">✅ Request Approved!</h1>
+    </div>
+    
+    <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2 style="color: #1f2937; margin-top: 0;">Hello {{ user.get_full_name|default:user.username }},</h2>
+        
+        <p style="color: #4b5563; font-size: 16px;">Great news! Your book request has been <strong style="color: #10b981;">approved</strong>!</p>
+        
+        <!-- Book Details Card -->
+        <div style="background: #f3f4f6; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin: 24px 0;">
+            <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">📚 Book Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Title:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.title }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Author:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.author }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Category:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.category.name|default:'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">ISBN:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.isbn }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Due Date Alert -->
+        <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px; margin: 24px 0;">
+            <p style="margin: 0; color: #1e40af; font-weight: 600;">
+                📅 Due Date: {{ due_date|date:'F d, Y' }}
+            </p>
+        </div>
+        
+        <!-- What You Can Do -->
+        <div style="margin: 24px 0;">
+            <h3 style="color: #1f2937; font-size: 16px;">✨ What You Can Do Now:</h3>
+            <ul style="color: #4b5563; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">Read the book online through your dashboard</li>
+                <li style="margin-bottom: 8px;">Visit the library to collect the physical copy</li>
+                <li style="margin-bottom: 8px;">Access the book from "My Books" section</li>
+            </ul>
+        </div>
+        
+        <!-- Important Reminders -->
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 24px 0;">
+            <h4 style="color: #92400e; margin-top: 0; font-size: 14px;">⚠️ Important Reminders:</h4>
+            <ul style="color: #92400e; font-size: 14px; padding-left: 20px; margin: 8px 0 0 0;">
+                <li style="margin-bottom: 6px;">Please return the book by <strong>{{ due_date|date:'F d, Y' }}</strong></li>
+                <li style="margin-bottom: 6px;">Late returns incur a fine of <strong>ETB 2 per day</strong></li>
+                <li style="margin-bottom: 6px;">You can renew the book if needed (contact library)</li>
+            </ul>
+        </div>
+        
+        <!-- Action Button -->
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="{{ site_url }}/borrow/my-books/" style="background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">View My Books</a>
+        </div>
+        
+        <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 24px;">Happy reading! 📖</p>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        
+        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+            Best regards,<br>
+            {{ site_name }} Team
+        </p>
+    </div>
+</body>
+</html>

@@ -1,0 +1,1938 @@
+{% load static %}
+{% load book_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ book.title }} - Smart Library Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    {% include 'includes/enhanced_nav_styles.html' %}
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #34d399;
+            --secondary: #0ea5e9;
+            --accent: #f59e0b;
+            --background: #ffffff;
+            --surface: #f8fafc;
+            --surface-hover: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --info: #3b82f6;
+            --gradient-start: #10b981;
+            --gradient-end: #0ea5e9;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+        }
+        
+        [data-theme="dark"] {
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --border-light: #1e293b;
+        }
+        
+        *, *::before, *::after {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 10px 18px;
+            font-size: 0.938rem;
+            font-weight: 600;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+        
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+        
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--surface-hover);
+            border-color: var(--primary);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, var(--success), #16a34a);
+            color: white;
+            box-shadow: 0 4px 14px rgba(34, 197, 94, 0.4);
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.5);
+        }
+        
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #d97706);
+            color: white;
+            box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+        }
+        
+        .btn-warning:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(245, 158, 11, 0.5);
+        }
+        
+        .btn-info {
+            background: linear-gradient(135deg, var(--info), #2563eb);
+            color: white;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.4);
+        }
+        
+        .btn-info:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.5);
+        }
+        
+        .btn-outline {
+            background: transparent;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .btn-sm {
+            padding: 8px 14px;
+            font-size: 0.813rem;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        .btn-full {
+            width: 100%;
+            padding: 10px 18px;
+            min-height: unset;
+            height: auto;
+        }
+        
+        /* Gradient Backgrounds */
+        .gradient-1 { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .gradient-2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .gradient-3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .gradient-4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .gradient-5 { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .gradient-6 { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+        
+        /* Book Detail Page Styles */
+        .book-detail-page {
+            min-height: 100vh;
+            padding-top: 100px;
+            padding-bottom: 60px;
+        }
+        
+        .back-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--surface);
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.938rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+            margin-bottom: 32px;
+        }
+        
+        .back-link:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateX(-4px);
+        }
+        
+        .back-link svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .back-link:hover svg {
+            transform: translateX(-4px);
+        }
+        
+        /* Book Detail Grid */
+        .book-detail-grid {
+            display: grid;
+            grid-template-columns: 480px 1fr;
+            gap: 40px;
+            margin-bottom: 60px;
+        }
+        
+        /* Book Cover Section */
+        .book-cover-section {
+            position: sticky;
+            top: 120px;
+            height: fit-content;
+        }
+        
+        .book-cover-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .book-cover-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .book-cover-container img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .book-cover-placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            text-align: center;
+        }
+        
+        .book-cover-placeholder svg {
+            width: 120px;
+            height: 120px;
+            color: var(--text-muted);
+            margin-bottom: 16px;
+        }
+        
+        .book-actions-card {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            align-items: stretch;
+        }
+        
+        .book-actions-card .btn {
+            padding: 10px 16px;
+            font-size: 0.875rem;
+            width: 100%;
+            max-width: 100%;
+        }
+        
+        .book-actions-card .btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .alert-box {
+            padding: 12px 16px;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .alert-box svg {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+        
+        .alert-success {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        
+        .alert-warning {
+            background: rgba(245, 158, 11, 0.1);
+            color: var(--warning);
+            border: 1px solid rgba(245, 158, 11, 0.2);
+        }
+        
+        .alert-info {
+            background: rgba(59, 130, 246, 0.1);
+            color: var(--info);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+        }
+        
+        .due-date-info {
+            text-align: center;
+            padding: 12px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .due-date-info.overdue {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+        }
+        
+        .qr-code-section {
+            margin-top: 24px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        
+        .qr-code-section p {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-bottom: 12px;
+        }
+        
+        .qr-code-section img {
+            max-width: 180px;
+            border: 2px solid var(--border);
+            padding: 12px;
+            border-radius: var(--radius);
+            background: white;
+        }
+        /* Book Info Section */
+        .book-info-section {
+            display: flex;
+            flex-direction: column;
+            gap: 32px;
+        }
+        
+        .book-header {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .book-title-main {
+            font-size: 2.5rem;
+            font-weight: 700;
+            line-height: 1.2;
+            margin: 0;
+        }
+        
+        .book-author-main {
+            font-size: 1.5rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        
+        .book-badges {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: var(--radius-full);
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .badge svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .badge-category {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary);
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+        
+        .badge-available {
+            background: rgba(34, 197, 94, 0.1);
+            color: var(--success);
+            border: 1px solid rgba(34, 197, 94, 0.2);
+        }
+        
+        .badge-unavailable {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--error);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+        
+        .book-rating-display {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .stars {
+            display: flex;
+            gap: 4px;
+        }
+        
+        .stars svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .rating-value {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .rating-count {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        .info-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+        }
+        
+        .info-card h3 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .info-card h3 svg {
+            width: 24px;
+            height: 24px;
+            color: var(--primary);
+        }
+        
+        .description-text {
+            font-size: 1rem;
+            line-height: 1.8;
+            color: var(--text-secondary);
+        }
+        
+        .details-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 32px;
+        }
+        
+        .detail-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+        
+        .detail-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+        
+        .detail-item svg {
+            width: 20px;
+            height: 20px;
+            color: var(--primary);
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .detail-content {
+            flex: 1;
+        }
+        
+        .detail-label {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        
+        .detail-value {
+            font-size: 1rem;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+        
+        .pdf-alert {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: rgba(59, 130, 246, 0.1);
+            border: 1px solid rgba(59, 130, 246, 0.2);
+            border-radius: var(--radius);
+            color: var(--info);
+        }
+        
+        .pdf-alert svg {
+            width: 24px;
+            height: 24px;
+            flex-shrink: 0;
+        }
+        
+        .pdf-alert a {
+            color: var(--info);
+            font-weight: 600;
+            text-decoration: underline;
+        }
+        
+        .pdf-alert a:hover {
+            color: var(--primary);
+        }
+        
+        /* Reviews Section */
+        .reviews-section {
+            margin-top: 60px;
+        }
+        
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 32px;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .section-title svg {
+            width: 32px;
+            height: 32px;
+            color: var(--primary);
+        }
+        
+        .review-note {
+            padding: 16px 20px;
+            background: rgba(59, 130, 246, 0.1);
+            border-left: 4px solid var(--info);
+            border-radius: var(--radius);
+            margin-bottom: 32px;
+        }
+        
+        .review-note svg {
+            width: 20px;
+            height: 20px;
+            color: var(--info);
+            margin-right: 8px;
+        }
+        
+        .reviews-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+            margin-bottom: 40px;
+        }
+        
+        .review-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 24px;
+            transition: all 0.3s ease;
+        }
+        
+        .review-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+        
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+        }
+        
+        .reviewer-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .reviewer-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        
+        .reviewer-avatar svg {
+            width: 24px;
+            height: 24px;
+            color: white;
+        }
+        
+        .reviewer-details h5 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        
+        .review-date {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.813rem;
+            color: var(--text-muted);
+        }
+        
+        .review-date svg {
+            width: 14px;
+            height: 14px;
+        }
+        
+        .rating-badge {
+            text-align: center;
+            padding: 12px;
+            background: var(--surface);
+            border-radius: var(--radius);
+            min-width: 100px;
+        }
+        
+        .rating-emoji {
+            font-size: 2rem;
+            display: block;
+            margin-bottom: 8px;
+        }
+        
+        .rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 2px;
+            margin-bottom: 6px;
+        }
+        
+        .rating-stars svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .rating-text {
+            font-size: 0.813rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+        }
+        
+        .review-text {
+            background: var(--surface);
+            padding: 16px;
+            border-radius: var(--radius);
+            border-left: 3px solid var(--primary);
+            margin-bottom: 16px;
+            font-size: 0.938rem;
+            line-height: 1.7;
+            color: var(--text-secondary);
+        }
+        
+        .review-text.no-text {
+            font-style: italic;
+            color: var(--text-muted);
+        }
+        
+        .review-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+        
+        .verified-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.813rem;
+            color: var(--success);
+        }
+        
+        .verified-badge svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .btn-delete-review {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            font-size: 0.813rem;
+            font-weight: 600;
+            color: var(--error);
+            background: transparent;
+            border: 1px solid var(--error);
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .btn-delete-review:hover {
+            background: var(--error);
+            color: white;
+            transform: translateY(-1px);
+        }
+        
+        .btn-delete-review svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        /* Rating Summary */
+        .rating-summary-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 32px;
+            margin-top: 32px;
+        }
+        
+        .rating-summary-grid {
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+        
+        .overall-rating {
+            text-align: center;
+            padding: 24px;
+            background: var(--background);
+            border-radius: var(--radius);
+        }
+        
+        .overall-rating-value {
+            font-size: 4rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            line-height: 1;
+            margin-bottom: 12px;
+        }
+        
+        .overall-rating-stars {
+            display: flex;
+            justify-content: center;
+            gap: 4px;
+            margin-bottom: 12px;
+        }
+        
+        .overall-rating-stars svg {
+            width: 24px;
+            height: 24px;
+        }
+        
+        .overall-rating-count {
+            font-size: 0.938rem;
+            color: var(--text-muted);
+        }
+        
+        .rating-distribution h6 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .rating-bar-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        
+        .rating-bar-label {
+            min-width: 80px;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+        
+        .rating-bar {
+            flex: 1;
+            height: 24px;
+            background: var(--border);
+            border-radius: var(--radius-full);
+            overflow: hidden;
+        }
+        
+        .rating-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--warning), #f59e0b);
+            border-radius: var(--radius-full);
+            transition: width 1s ease;
+        }
+        
+        .rating-bar-count {
+            min-width: 50px;
+            text-align: right;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state svg {
+            width: 64px;
+            height: 64px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h5 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+        
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 20px;
+            font-size: 0.938rem;
+        }
+        
+        .empty-state .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 24px;
+            font-size: 0.938rem;
+        }
+        
+        .empty-state .btn svg {
+            width: 18px;
+            height: 18px;
+            margin: 0;
+            color: inherit;
+        }
+        /* Recommendations Section */
+        .recommendations-section {
+            margin-top: 60px;
+        }
+        
+        .recommendations-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 20px;
+        }
+        
+        .recommendation-card {
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .recommendation-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary);
+        }
+        
+        .recommendation-cover {
+            height: 180px;
+            background: var(--surface);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        
+        .recommendation-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
+        .recommendation-cover svg {
+            width: 48px;
+            height: 48px;
+            color: var(--text-muted);
+        }
+        
+        .recommendation-info {
+            padding: 16px;
+        }
+        
+        .recommendation-title {
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .recommendation-author {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        
+        .recommendation-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.75rem;
+        }
+        
+        .recommendation-borrowed {
+            color: var(--success);
+            font-weight: 600;
+        }
+        
+        .loading-spinner {
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 1200px) {
+            .book-detail-grid {
+                grid-template-columns: 420px 1fr;
+                gap: 32px;
+            }
+            
+            .recommendations-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .book-detail-grid {
+                grid-template-columns: 1fr;
+                gap: 32px;
+            }
+            
+            .book-cover-section {
+                position: relative;
+                top: 0;
+            }
+            
+            .details-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .reviews-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .rating-summary-grid {
+                grid-template-columns: 1fr;
+                gap: 24px;
+            }
+            
+            .recommendations-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 0 24px;
+            }
+            
+            .book-detail-page {
+                padding-top: 80px;
+            }
+            
+            .book-title-main {
+                font-size: 2rem;
+            }
+            
+            .book-author-main {
+                font-size: 1.25rem;
+            }
+            
+            .section-title {
+                font-size: 1.5rem;
+            }
+            
+            .recommendations-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .container {
+                padding: 0 16px;
+            }
+            
+            .book-cover-container {
+                height: 400px;
+            }
+            
+            .recommendations-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body class="book-detail-page">
+    <!-- Include Enhanced Navigation -->
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+    
+    <!-- Django Messages for Toast -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="django-message-data" data-message="{{ message }}" data-tags="{{ message.tags }}" style="display: none;"></div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Main Content -->
+    <main>
+        <div class="container">
+            <!-- Back Link -->
+            <a href="{% url 'books:list' %}" class="back-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                </svg>
+                Back to Catalog
+            </a>
+
+            <!-- Book Detail Grid -->
+            <div class="book-detail-grid">
+                <!-- Left Column: Book Cover & Actions -->
+                <div class="book-cover-section">
+                    <div class="book-cover-card">
+                        <div class="book-cover-container">
+                            {% if book.cover_image %}
+                                <img src="{{ book.cover_image.url }}" alt="{{ book.title }}">
+                            {% else %}
+                                <div class="book-cover-placeholder">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                    </svg>
+                                    <p style="color: var(--text-muted); font-size: 0.875rem;">No cover image</p>
+                                </div>
+                            {% endif %}
+                        </div>
+                        
+                        <div class="book-actions-card">
+                            {% if user.is_authenticated %}
+                                {% if user.is_admin or user.is_librarian %}
+                                    <!-- Admins and Librarians can always read without borrowing -->
+                                    <a href="{% url 'books:read_pdf' book.pk %}" class="btn btn-info btn-full">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                            <polyline points="14 2 14 8 20 8"></polyline>
+                                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                                            <polyline points="10 9 9 9 8 9"></polyline>
+                                        </svg>
+                                        Read PDF
+                                    </a>
+                                {% elif user.is_student %}
+                                    {% if active_borrow_record %}
+                                        <!-- Student has borrowed this book - can read -->
+                                        <a href="{% url 'books:read_pdf' book.pk %}" class="btn btn-info btn-full">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                                <polyline points="14 2 14 8 20 8"></polyline>
+                                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                                <polyline points="10 9 9 9 8 9"></polyline>
+                                            </svg>
+                                            Read PDF
+                                        </a>
+                                    {% elif book.available_copies > 0 %}
+                                        <!-- Book available but student hasn't borrowed it -->
+                                        <button class="btn btn-info btn-full" disabled style="opacity: 0.5; cursor: not-allowed;">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M12 15v2m-6 4h12a2 2 0 0 0 2-2v-6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2z"></path>
+                                                <path d="M8 11V7a4 4 0 0 1 8 0v4"></path>
+                                            </svg>
+                                            Borrow to Read
+                                        </button>
+                                        <div class="alert-box alert-info" style="margin-top: 12px;">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <path d="M12 16v-4m0-4h.01"></path>
+                                            </svg>
+                                            You need to borrow this book first to read it. Request it below.
+                                        </div>
+                                    {% else %}
+                                        <!-- No copies available - student needs to join waitlist -->
+                                        <button class="btn btn-info btn-full" disabled style="opacity: 0.5; cursor: not-allowed;">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <circle cx="12" cy="12" r="10"></circle>
+                                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                                            </svg>
+                                            No Copies Available
+                                        </button>
+                                    {% endif %}
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% if user.is_authenticated and user.is_student %}
+                                {% if active_borrow_record %}
+                                    <div class="alert-box alert-success">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                        </svg>
+                                        You have borrowed this book
+                                    </div>
+                                    <a href="{% url 'borrow:student_return' active_borrow_record.pk %}" class="btn btn-warning btn-full">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="9 14 4 9 9 4"></polyline>
+                                            <path d="M20 20v-7a4 4 0 0 0-4-4H4"></path>
+                                        </svg>
+                                        Return This Book
+                                    </a>
+                                    {% if active_borrow_record.status == 'overdue' and active_borrow_record.fine_amount > 0 and not active_borrow_record.fine_paid %}
+                                    <a href="{% url 'payments:select_method' active_borrow_record.pk %}" class="btn btn-full" style="background: linear-gradient(135deg, #f59e0b, #d97706); color: white; margin-top: 8px;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+                                            <path d="M12 18V6"></path>
+                                        </svg>
+                                        Pay Fine (ETB {{ active_borrow_record.fine_amount }})
+                                    </a>
+                                    {% endif %}
+                                    <div class="due-date-info {% if active_borrow_record.status == 'overdue' %}overdue{% endif %}">
+                                        <strong>Due:</strong> {{ active_borrow_record.due_date|date:"M d, Y" }}
+                                        {% if active_borrow_record.status == 'overdue' %}
+                                            <br><strong>Overdue! Fine: ETB {{ active_borrow_record.fine_amount }}</strong>
+                                        {% endif %}
+                                    </div>
+                                {% elif book.is_available %}
+                                    <button type="button" class="btn btn-success btn-full"
+                                            onclick="requestBook('{% url 'borrow:request_book' book.pk %}', '{{ book.title|escapejs }}')">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 4v16m8-8H4"></path>
+                                        </svg>
+                                        Request This Book
+                                    </button>
+                                {% else %}
+                                    <!-- Book is unavailable - show waitlist button -->
+                                    <div class="alert-box alert-warning" style="margin-bottom: 12px;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <line x1="12" y1="8" x2="12" y2="12"></line>
+                                            <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                        </svg>
+                                        All copies are currently borrowed
+                                    </div>
+                                    <button type="button" class="btn btn-info btn-full"
+                                            onclick="requestBook('{% url 'borrow:request_book' book.pk %}', '{{ book.title|escapejs }}')">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                        </svg>
+                                        Join Waitlist
+                                    </button>
+                                    <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 8px; text-align: center;">
+                                        You'll be notified when this book becomes available
+                                    </p>
+                                {% endif %}
+                            {% elif user.is_authenticated and user.is_student and not book.is_available %}
+                                <!-- Student viewing unavailable book - show waitlist option -->
+                                <div class="alert-box alert-warning" style="margin-bottom: 12px;">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                    </svg>
+                                    All copies are currently borrowed
+                                </div>
+                                <button type="button" class="btn btn-info btn-full"
+                                        onclick="requestBook('{% url 'borrow:request_book' book.pk %}', '{{ book.title|escapejs }}')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                                    </svg>
+                                    Join Waitlist
+                                </button>
+                                <p style="font-size: 0.875rem; color: var(--text-muted); margin-top: 8px; text-align: center;">
+                                    You'll be notified when this book becomes available
+                                </p>
+                            {% elif user.is_authenticated and not book.is_available %}
+                                <button class="btn btn-secondary btn-full" disabled>
+                                    Currently Unavailable
+                                </button>
+                            {% elif not user.is_authenticated %}
+                                <a href="{% url 'users:login' %}" class="btn btn-primary btn-full">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                                        <polyline points="10 17 15 12 10 7"></polyline>
+                                        <line x1="15" y1="12" x2="3" y2="12"></line>
+                                    </svg>
+                                    Login to Request
+                                </a>
+                            {% endif %}
+                            
+                            {% if user.is_admin %}
+                                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px;">
+                                    <a href="{% url 'books:edit' book.pk %}" class="btn btn-outline btn-sm">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        </svg>
+                                        Edit
+                                    </a>
+                                    <button onclick="showDeleteModal()" class="btn btn-outline btn-sm" style="border-color: var(--error); color: var(--error);">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <polyline points="3 6 5 6 21 6"></polyline>
+                                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                        </svg>
+                                        Delete
+                                    </button>
+                                </div>
+                            {% endif %}
+                            
+                            {% if user.is_librarian or user.is_admin %}
+                                {% if book.qr_code %}
+                                <a href="{{ book.qr_code.url }}" download="QR_{{ book.isbn }}.png" class="btn btn-secondary btn-full" style="{% if user.is_admin %}margin-top: 8px;{% endif %}">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="3" width="7" height="7"></rect>
+                                        <rect x="14" y="3" width="7" height="7"></rect>
+                                        <rect x="14" y="14" width="7" height="7"></rect>
+                                        <rect x="3" y="14" width="7" height="7"></rect>
+                                    </svg>
+                                    Download QR Code
+                                </a>
+                                {% endif %}
+                            {% endif %}
+                            
+                            {% if book.qr_code %}
+                            <div class="qr-code-section">
+                                <p>Book QR Code</p>
+                                <img src="{{ book.qr_code.url }}" alt="QR Code">
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                <!-- Right Column: Book Information -->
+                <div class="book-info-section">
+                    <!-- Book Header -->
+                    <div class="book-header">
+                        <h1 class="book-title-main">{{ book.title }}</h1>
+                        <p class="book-author-main">by {{ book.author }}</p>
+                        
+                        <div class="book-badges">
+                            <span class="badge badge-category">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                                </svg>
+                                {{ book.category.name|default:"Uncategorized" }}
+                            </span>
+                            {% if book.is_available %}
+                                <span class="badge badge-available">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                    </svg>
+                                    Available
+                                </span>
+                            {% else %}
+                                <span class="badge badge-unavailable">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="15" y1="9" x2="9" y2="15"></line>
+                                        <line x1="9" y1="9" x2="15" y2="15"></line>
+                                    </svg>
+                                    Unavailable
+                                </span>
+                            {% endif %}
+                        </div>
+                        
+                        {% if book.rating > 0 %}
+                        <div class="book-rating-display">
+                            <div class="stars">
+                                {% for i in "12345" %}
+                                    <svg viewBox="0 0 24 24" fill="{% if forloop.counter <= book.rating|floatformat:0|add:0 %}#fbbf24{% else %}none{% endif %}" stroke="{% if forloop.counter <= book.rating|floatformat:0|add:0 %}#fbbf24{% else %}#d1d5db{% endif %}" stroke-width="2">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                {% endfor %}
+                            </div>
+                            <span class="rating-value">{{ book.rating|floatformat:1 }}</span>
+                            <span class="rating-count">({{ total_reviews }} review{{ total_reviews|pluralize }})</span>
+                        </div>
+                        {% else %}
+                        <div class="book-rating-display">
+                            <div class="stars">
+                                {% for i in "12345" %}
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                {% endfor %}
+                            </div>
+                            <span class="rating-count" style="color: var(--text-muted);">No ratings yet</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    
+                    <!-- Description -->
+                    <div class="info-card">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                                <polyline points="10 9 9 9 8 9"></polyline>
+                            </svg>
+                            Description
+                        </h3>
+                        <p class="description-text">{{ book.description|default:"No description available for this book." }}</p>
+                    </div>
+                    
+                    <!-- Details Grid -->
+                    <div class="info-card">
+                        <h3>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                            Book Details
+                        </h3>
+                        <div class="details-grid">
+                            <ul class="detail-list">
+                                <li class="detail-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                    </svg>
+                                    <div class="detail-content">
+                                        <div class="detail-label">ISBN</div>
+                                        <div class="detail-value">{{ book.isbn }}</div>
+                                    </div>
+                                </li>
+                                <li class="detail-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="9" cy="7" r="4"></circle>
+                                        <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                    </svg>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Publisher</div>
+                                        <div class="detail-value">{{ book.publisher|default:"N/A" }}</div>
+                                    </div>
+                                </li>
+                                <li class="detail-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                        <line x1="16" y1="2" x2="16" y2="6"></line>
+                                        <line x1="8" y1="2" x2="8" y2="6"></line>
+                                        <line x1="3" y1="10" x2="21" y2="10"></line>
+                                    </svg>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Publication Date</div>
+                                        <div class="detail-value">{{ book.publication_date|date:"M d, Y"|default:"N/A" }}</div>
+                                    </div>
+                                </li>
+                                <li class="detail-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                    </svg>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Pages</div>
+                                        <div class="detail-value">{{ book.pages|default:"N/A" }}</div>
+                                    </div>
+                                </li>
+                            </ul>
+                            <ul class="detail-list">
+                                <li class="detail-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <path d="M12 16v-4"></path>
+                                        <path d="M12 8h.01"></path>
+                                    </svg>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Language</div>
+                                        <div class="detail-value">{{ book.get_language_display }}</div>
+                                    </div>
+                                </li>
+                                <li class="detail-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                                    </svg>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Total Copies</div>
+                                        <div class="detail-value">{{ book.total_copies }}</div>
+                                    </div>
+                                </li>
+                                <li class="detail-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                    </svg>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Available Copies</div>
+                                        <div class="detail-value">{{ book.available_copies }}</div>
+                                    </div>
+                                </li>
+                                <li class="detail-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                                    </svg>
+                                    <div class="detail-content">
+                                        <div class="detail-label">Times Borrowed</div>
+                                        <div class="detail-value">{{ book.times_borrowed }}</div>
+                                    </div>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    
+                    {% if book.pdf_file %}
+                    <div class="pdf-alert">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        {% if user.is_admin or user.is_librarian %}
+                            <span>PDF available: <a href="{% url 'books:serve_pdf' book.pk %}" download="{{ book.title }}.pdf">Download</a> or <a href="{% url 'books:read_pdf' book.pk %}" target="_blank">Read Online</a></span>
+                        {% elif user.is_student %}
+                            {% if active_borrow_record %}
+                                <span>PDF available: <a href="{% url 'books:serve_pdf' book.pk %}" download="{{ book.title }}.pdf">Download</a> or <a href="{% url 'books:read_pdf' book.pk %}" target="_blank">Read Online</a></span>
+                            {% elif book.available_copies > 0 %}
+                                <span>PDF available. <a href="{% url 'borrow:request_book' book.pk %}">Borrow this book</a> to read it.</span>
+                            {% else %}
+                                <span>PDF available but all copies are currently borrowed. <a href="{% url 'borrow:request_book' book.pk %}">Request this book</a> to join the waitlist and get notified when available.</span>
+                            {% endif %}
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            <!-- Reviews Section -->
+            <div class="reviews-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        Reviews ({{ reviews.count }})
+                    </h2>
+                    {% if user.is_authenticated and user.is_student %}
+                        {% if has_reviewed %}
+                        <a href="{% url 'books:add_review' book.pk %}" class="btn btn-warning">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                            Edit Your Review
+                        </a>
+                        {% elif can_review %}
+                        <a href="{% url 'books:add_review' book.pk %}" class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                            </svg>
+                            Write a Review
+                        </a>
+                        {% elif not has_borrowed_and_returned %}
+                        <button class="btn btn-secondary" disabled title="You must borrow and return this book to review it">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                            </svg>
+                            Review Locked
+                        </button>
+                        {% endif %}
+                    {% elif not user.is_authenticated %}
+                    <a href="{% url 'users:login' %}" class="btn btn-outline">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                            <polyline points="10 17 15 12 10 7"></polyline>
+                            <line x1="15" y1="12" x2="3" y2="12"></line>
+                        </svg>
+                        Login to Review
+                    </a>
+                    {% endif %}
+                </div>
+                
+                {% if user.is_authenticated and user.is_student and not has_reviewed and not has_borrowed_and_returned %}
+                <div class="review-note">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                    <strong>Note:</strong> You can only review books you have borrowed and returned.
+                </div>
+                {% endif %}
+                
+                {% if reviews %}
+                <div class="reviews-grid">
+                    {% for review in reviews %}
+                    <div class="review-card">
+                        <div class="review-header">
+                            <div class="reviewer-info">
+                                <div class="reviewer-avatar">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                </div>
+                                <div class="reviewer-details">
+                                    <h5>{{ review.user.get_full_name|default:review.user.username }}</h5>
+                                    <div class="review-date">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <circle cx="12" cy="12" r="10"></circle>
+                                            <polyline points="12 6 12 12 16 14"></polyline>
+                                        </svg>
+                                        {{ review.created_at|date:"M d, Y" }}
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="rating-badge">
+                                <span class="rating-emoji">
+                                    {% if review.rating == 5 %}🤩
+                                    {% elif review.rating == 4 %}😊
+                                    {% elif review.rating == 3 %}😐
+                                    {% elif review.rating == 2 %}😕
+                                    {% else %}😞{% endif %}
+                                </span>
+                                <div class="rating-stars">
+                                    {% for i in "12345" %}
+                                        <svg viewBox="0 0 24 24" fill="{% if forloop.counter <= review.rating %}#fbbf24{% else %}none{% endif %}" stroke="{% if forloop.counter <= review.rating %}#fbbf24{% else %}currentColor{% endif %}" stroke-width="2">
+                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                        </svg>
+                                    {% endfor %}
+                                </div>
+                                <div class="rating-text">
+                                    {% if review.rating == 5 %}Excellent
+                                    {% elif review.rating == 4 %}Very Good
+                                    {% elif review.rating == 3 %}Good
+                                    {% elif review.rating == 2 %}Fair
+                                    {% else %}Poor{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        {% if review.review_text %}
+                        <div class="review-text">
+                            {{ review.review_text }}
+                        </div>
+                        {% else %}
+                        <div class="review-text no-text">
+                            No written review provided.
+                        </div>
+                        {% endif %}
+                        
+                        <div class="review-footer">
+                            <div class="verified-badge">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                Verified Reader
+                            </div>
+                            {% if user.is_admin %}
+                            <button onclick="showDeleteReviewModal({{ review.pk }}, '{{ review.user.get_full_name|default:review.user.username|escapejs }}')" class="btn-delete-review" title="Delete this review">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                Delete Review
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                
+                <!-- Rating Summary -->
+                <div class="rating-summary-card">
+                    <div class="rating-summary-grid">
+                        <div class="overall-rating">
+                            {% if book.rating > 0 %}
+                            <div class="overall-rating-value">{{ book.rating|floatformat:1 }}</div>
+                            <div class="overall-rating-stars">
+                                {% for i in "12345" %}
+                                    <svg viewBox="0 0 24 24" fill="{% if forloop.counter <= book.rating|floatformat:0|add:0 %}#fbbf24{% else %}none{% endif %}" stroke="{% if forloop.counter <= book.rating|floatformat:0|add:0 %}#fbbf24{% else %}#d1d5db{% endif %}" stroke-width="2">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                {% endfor %}
+                            </div>
+                            <div class="overall-rating-count">Based on {{ total_reviews }} review{{ total_reviews|pluralize }}</div>
+                            {% else %}
+                            <div class="overall-rating-value" style="color: var(--text-muted);">-</div>
+                            <div class="overall-rating-stars">
+                                {% for i in "12345" %}
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#d1d5db" stroke-width="2">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                {% endfor %}
+                            </div>
+                            <div class="overall-rating-count">No ratings yet</div>
+                            {% endif %}
+                        </div>
+                        <div class="rating-distribution">
+                            <h6>Rating Distribution</h6>
+                            {% for rating in "54321" %}
+                            <div class="rating-bar-item">
+                                <span class="rating-bar-label">{{ rating }} star{{ rating|pluralize }}</span>
+                                <div class="rating-bar">
+                                    <div class="rating-bar-fill" data-width="{% if total_reviews > 0 %}{% widthratio rating_distribution|get_item:rating total_reviews 100 %}{% else %}0{% endif %}"></div>
+                                </div>
+                                <span class="rating-bar-count">{{ rating_distribution|get_item:rating }}</span>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                {% else %}
+                <div class="empty-state">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <h5>No reviews yet</h5>
+                    <p>Be the first to share your thoughts about this book!</p>
+                    {% if user.is_authenticated and user.is_student and can_review %}
+                    <a href="{% url 'books:add_review' book.pk %}" class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                        Write the First Review
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            <!-- Recommendations Section -->
+            <div class="recommendations-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                        </svg>
+                        Recommended Books
+                    </h2>
+                </div>
+                <div id="recommendations-container">
+                    <div class="loading-spinner">
+                        <div class="spinner"></div>
+                        <p style="margin-top: 16px; color: var(--text-muted);">Loading recommendations...</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Include Enhanced Navigation Scripts -->
+    {% include 'includes/enhanced_nav_scripts.html' %}
+
+    <script>
+        // Request Book with confirmation
+        async function requestBook(url, bookTitle) {
+            const confirmed = await showConfirm(`Do you want to request "${bookTitle}"?`);
+            if (confirmed) {
+                // Redirect to the request URL (GET request)
+                window.location.href = url;
+            }
+        }
+        
+        // Initialize rating bar widths
+        document.addEventListener('DOMContentLoaded', function() {
+            const ratingBars = document.querySelectorAll('.rating-bar-fill');
+            ratingBars.forEach(bar => {
+                const width = bar.getAttribute('data-width');
+                bar.style.width = width + '%';
+            });
+            
+            // Load recommendations via AJAX
+            fetch('{% url "books:recommendations" book.pk %}')
+                .then(response => response.json())
+                .then(data => {
+                    const container = document.getElementById('recommendations-container');
+                    
+                    if (data.recommendations && data.recommendations.length > 0) {
+                        let html = '<div class="recommendations-grid">';
+                        
+                        data.recommendations.forEach(book => {
+                            html += `
+                                <a href="/books/${book.id}/" class="recommendation-card">
+                                    <div class="recommendation-cover">
+                                        ${book.cover_url ? 
+                                            `<img src="${book.cover_url}" alt="${book.title}">` :
+                                            `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                                <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                            </svg>`
+                                        }
+                                    </div>
+                                    <div class="recommendation-info">
+                                        <div class="recommendation-title">${book.title}</div>
+                                        <div class="recommendation-author">${book.author}</div>
+                                        <div class="recommendation-meta">
+                                            <span class="recommendation-borrowed">${book.times_borrowed} borrows</span>
+                                        </div>
+                                    </div>
+                                </a>
+                            `;
+                        });
+                        
+                        html += '</div>';
+                        container.innerHTML = html;
+                    } else {
+                        container.innerHTML = '<div class="empty-state"><p style="color: var(--text-muted);">No recommendations available at the moment.</p></div>';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading recommendations:', error);
+                    document.getElementById('recommendations-container').innerHTML = 
+                        '<div class="empty-state"><p style="color: var(--error);">Failed to load recommendations.</p></div>';
+                });
+        });
+    </script>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0, 0, 0, 0.7); z-index: 10000; align-items: center; justify-content: center;">
+        <div style="background: var(--surface); border-radius: 16px; padding: 32px; max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 64px; height: 64px; background: rgba(239, 68, 68, 0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                    <svg style="width: 32px; height: 32px; color: #ef4444;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                </div>
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">Delete Book?</h3>
+                <p style="color: var(--text-secondary); font-size: 0.938rem;">Are you sure you want to delete "<strong>{{ book.title }}</strong>"? This action cannot be undone.</p>
+            </div>
+            
+            <div style="display: flex; gap: 12px;">
+                <button onclick="hideDeleteModal()" style="flex: 1; padding: 12px 24px; background: var(--surface-hover); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                    Cancel
+                </button>
+                <form method="post" action="{% url 'books:delete' book.pk %}" style="flex: 1;">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; padding: 12px 24px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; transition: all 0.2s;">
+                        Delete Book
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideDeleteModal() {
+            const modal = document.getElementById('deleteModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        // Close modal on outside click
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideDeleteModal();
+            }
+        });
+
+        // Close modal on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                hideDeleteModal();
+                hideDeleteReviewModal();
+            }
+        });
+    </script>
+
+    <!-- Delete Review Confirmation Modal -->
+    <div id="deleteReviewModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.7); z-index: 10001; align-items: center; justify-content: center;">
+        <div style="background: var(--surface); border-radius: 16px; padding: 32px; max-width: 480px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="text-align: center; margin-bottom: 24px;">
+                <div style="width: 64px; height: 64px; background: rgba(239,68,68,0.1); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;">
+                    <svg style="width: 32px; height: 32px; color: #ef4444;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                </div>
+                <h3 style="font-size: 1.5rem; font-weight: 700; color: var(--text); margin-bottom: 8px;">Delete Review?</h3>
+                <p style="color: var(--text-secondary); font-size: 0.938rem;">
+                    Are you sure you want to delete the review by <strong id="reviewAuthorName"></strong>? This action cannot be undone.
+                </p>
+                <p style="color: #f97316; font-size: 0.875rem; margin-top: 8px; padding: 8px 12px; background: rgba(249,115,22,0.1); border-radius: 8px;">
+                    ⚠️ Use this only for inappropriate or harmful content.
+                </p>
+            </div>
+
+            <div style="display: flex; gap: 12px;">
+                <button onclick="hideDeleteReviewModal()" style="flex: 1; padding: 12px 24px; background: var(--surface-hover); color: var(--text); border: 1px solid var(--border); border-radius: 8px; font-weight: 600; cursor: pointer;">
+                    Cancel
+                </button>
+                <form id="deleteReviewForm" method="post" action="" style="flex: 1;">
+                    {% csrf_token %}
+                    <button type="submit" style="width: 100%; padding: 12px 24px; background: #ef4444; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                        Delete Review
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showDeleteReviewModal(reviewPk, authorName) {
+            document.getElementById('reviewAuthorName').textContent = authorName;
+            document.getElementById('deleteReviewForm').action = '/books/review/' + reviewPk + '/delete/';
+            const modal = document.getElementById('deleteReviewModal');
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function hideDeleteReviewModal() {
+            const modal = document.getElementById('deleteReviewModal');
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        document.getElementById('deleteReviewModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                hideDeleteReviewModal();
+            }
+        });
+    </script>
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

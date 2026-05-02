@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pending Requests - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {% include 'includes/enhanced_nav_styles.html' %}
+    {% include 'includes/responsive_tables_styles.html' %}
+    <style>
+        :root {
+            --primary-green: #10b981; --primary-blue: #0ea5e9;
+            --text-primary: #1f2937; --text-secondary: #6b7280; --text-muted: #9ca3af;
+            --bg-white: #ffffff; --bg-gray: #f9fafb; --bg-light: #f3f4f6; --border-color: #e5e7eb;
+            --error: #ef4444; --warning: #f59e0b; --success: #10b981;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem;
+        }
+        [data-theme="dark"] { --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #9ca3af; --bg-white: #1f2937; --bg-gray: #111827; --bg-light: #374151; --border-color: #374151; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gray); color: var(--text-primary); min-height: 100vh; }
+        .main-container { max-width: 1280px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* Header */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+        .breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--primary-green); }
+        .breadcrumb svg { width: 16px; height: 16px; }
+        .page-title { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.375rem; }
+        .page-title svg { width: 28px; height: 28px; color: var(--primary-green); }
+        .page-title h1 { font-size: 1.875rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-subtitle { color: var(--text-secondary); font-size: 0.9375rem; }
+
+        /* Pending badge */
+        .pending-badge { display: inline-flex; align-items: center; gap: 0.5rem; padding: 0.625rem 1.25rem; background: rgba(245,158,11,0.1); color: var(--warning); border: 1.5px solid rgba(245,158,11,0.3); border-radius: 9999px; font-size: 1rem; font-weight: 700; }
+        .pending-badge svg { width: 18px; height: 18px; }
+        .pending-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--warning); animation: pulse 1.5s infinite; }
+        @keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.4; } }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1.25rem; font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .btn svg { width: 16px; height: 16px; }
+        .btn-approve { background: rgba(16,185,129,0.1); color: var(--success); border: 1.5px solid rgba(16,185,129,0.3); }
+        .btn-approve:hover { background: var(--success); color: white; transform: translateY(-1px); }
+        .btn-approve:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .btn-reject { background: rgba(239,68,68,0.1); color: var(--error); border: 1.5px solid rgba(239,68,68,0.3); }
+        .btn-reject:hover { background: var(--error); color: white; transform: translateY(-1px); }
+
+        /* Table Container */
+        .table-container { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); overflow: hidden; }
+        .table-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .table-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.75rem; }
+        .table-title svg { width: 20px; height: 20px; color: var(--warning); }
+
+        /* Table */
+        .req-table { width: 100%; border-collapse: collapse; }
+        .req-table thead { background: var(--bg-light); border-bottom: 2px solid var(--border-color); }
+        .req-table th { padding: 0.875rem 1.25rem; font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); text-align: left; white-space: nowrap; }
+        .req-table tbody tr { border-bottom: 1px solid var(--border-color); transition: background 0.15s; }
+        .req-table tbody tr:last-child { border-bottom: none; }
+        .req-table tbody tr:hover { background: var(--bg-gray); }
+        .req-table td { padding: 1rem 1.25rem; vertical-align: middle; }
+
+        /* Student Cell */
+        .student-cell { display: flex; align-items: center; gap: 0.875rem; }
+        .student-avatar { width: 40px; height: 40px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 1rem; flex-shrink: 0; }
+        .student-name { font-weight: 600; font-size: 0.9375rem; color: var(--text-primary); }
+        .student-email { font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.125rem; }
+
+        /* Book Cell */
+        .book-cell { display: flex; align-items: center; gap: 0.875rem; }
+        .book-thumb { width: 36px; height: 50px; border-radius: 4px; object-fit: cover; box-shadow: var(--shadow-sm); flex-shrink: 0; }
+        .book-thumb-placeholder { width: 36px; height: 50px; border-radius: 4px; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.875rem; flex-shrink: 0; }
+        .book-title { font-weight: 600; font-size: 0.9375rem; color: var(--text-primary); }
+        .book-author { font-size: 0.8125rem; color: var(--text-secondary); margin-top: 0.125rem; }
+        .book-category { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.125rem; }
+
+        /* Availability */
+        .avail-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.3rem 0.75rem; font-size: 0.8125rem; font-weight: 700; border-radius: 9999px; }
+        .avail-yes { background: rgba(16,185,129,0.1); color: var(--success); }
+        .avail-no { background: rgba(239,68,68,0.1); color: var(--error); }
+        .avail-badge svg { width: 13px; height: 13px; }
+        .total-copies { font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.375rem; }
+
+        /* Date Cell */
+        .date-main { font-size: 0.9375rem; font-weight: 500; color: var(--text-primary); }
+        .date-ago { font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.125rem; }
+
+        /* Row Actions */
+        .row-actions { display: flex; gap: 0.5rem; }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 5rem 2rem; }
+        .empty-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(16,185,129,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
+        .empty-icon svg { width: 40px; height: 40px; color: var(--success); }
+        .empty-state h3 { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .empty-state p { color: var(--text-secondary); font-size: 0.9375rem; }
+
+        @media (max-width: 768px) { .main-container { padding: 1.5rem 1rem; } .page-header { flex-direction: column; } .req-table { font-size: 0.875rem; } }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+
+    <div class="main-container">
+
+        <!-- Messages -->
+        {% if messages %}
+        <div style="margin-bottom: 1.5rem;">
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}" style="padding: 1rem 1.25rem; border-radius: var(--radius-lg); margin-bottom: 0.75rem; display: flex; align-items: center; gap: 0.75rem; font-size: 0.9375rem; font-weight: 500; animation: slideIn 0.3s ease-out; {% if message.tags == 'success' %}background: rgba(16,185,129,0.1); color: var(--success); border: 1.5px solid rgba(16,185,129,0.3);{% elif message.tags == 'error' %}background: rgba(239,68,68,0.1); color: var(--error); border: 1.5px solid rgba(239,68,68,0.3);{% elif message.tags == 'warning' %}background: rgba(245,158,11,0.1); color: var(--warning); border: 1.5px solid rgba(245,158,11,0.3);{% else %}background: rgba(14,165,233,0.1); color: var(--primary-blue); border: 1.5px solid rgba(14,165,233,0.3);{% endif %}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 20px; height: 20px; flex-shrink: 0;">
+                    {% if message.tags == 'success' %}
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    {% elif message.tags == 'error' %}
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="15" y1="9" x2="9" y2="15"></line>
+                    <line x1="9" y1="9" x2="15" y2="15"></line>
+                    {% elif message.tags == 'warning' %}
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    {% else %}
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    {% endif %}
+                </svg>
+                <span>{{ message }}</span>
+            </div>
+            {% endfor %}
+        </div>
+        <style>
+            @keyframes slideIn {
+                from { opacity: 0; transform: translateY(-10px); }
+                to { opacity: 1; transform: translateY(0); }
+            }
+        </style>
+        {% endif %}
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <div class="breadcrumb">
+                    <a href="{% url 'dashboard:home' %}">Dashboard</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                    <span>Pending Requests</span>
+                </div>
+                <div class="page-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <h1>Pending Requests</h1>
+                </div>
+                <p class="page-subtitle">Review and manage student book requests</p>
+            </div>
+            <div class="pending-badge">
+                <div class="pending-dot"></div>
+                {{ pending_count }} pending
+            </div>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Requests Awaiting Action
+                </div>
+            </div>
+
+            {% if requests %}
+            <div class="responsive-table-wrapper">
+                <table class="req-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Book</th>
+                            <th>Availability</th>
+                            <th>Request Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in requests %}
+                        <tr>
+                            <!-- Student -->
+                            <td data-label="Student">
+                                <div class="student-cell">
+                                    <div class="student-avatar">
+                                        {{ record.user.get_full_name|default:record.user.username|slice:":1"|upper }}
+                                    </div>
+                                    <div>
+                                        <div class="student-name">{{ record.user.get_full_name|default:record.user.username }}</div>
+                                        <div class="student-email">{{ record.user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Book -->
+                            <td data-label="Book">
+                                <div class="book-cell">
+                                    {% if record.book.cover_image %}
+                                    <img src="{{ record.book.cover_image.url }}" alt="{{ record.book.title }}" class="book-thumb">
+                                    {% else %}
+                                    <div class="book-thumb-placeholder">{{ record.book.title|slice:":1" }}</div>
+                                    {% endif %}
+                                    <div>
+                                        <div class="book-title">{{ record.book.title|truncatewords:5 }}</div>
+                                        <div class="book-author">{{ record.book.author }}</div>
+                                        <div class="book-category">{{ record.book.category.name|default:"Uncategorized" }}</div>
+                                    </div>
+                                </div>
+                            </td>
+
+                            <!-- Availability -->
+                            <td data-label="Availability">
+                                {% if record.book.available_copies > 0 %}
+                                <span class="avail-badge avail-yes">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    {{ record.book.available_copies }} available
+                                </span>
+                                {% else %}
+                                <span class="avail-badge avail-no">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                                    Out of stock
+                                </span>
+                                <div class="total-copies">{{ record.book.total_copies }} total copies</div>
+                                {% endif %}
+                            </td>
+
+                            <!-- Date -->
+                            <td data-label="Request Date">
+                                <div class="date-main">{{ record.request_date|date:"M d, Y" }}</div>
+                                <div class="date-ago">{{ record.request_date|timesince }} ago</div>
+                            </td>
+
+                            <!-- Actions -->
+                            <td data-label="Actions">
+                                <div class="row-actions">
+                                    {% if record.book.available_copies > 0 %}
+                                    <form method="post" action="{% url 'borrow:approve_request' record.pk %}" style="display: inline;" onsubmit="return handleApproveSubmit(event, '{{ record.user.get_full_name|default:record.user.username }}');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn btn-approve">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                            Approve
+                                        </button>
+                                    </form>
+                                    {% else %}
+                                    <button class="btn btn-approve" disabled title="No copies available">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        Approve
+                                    </button>
+                                    {% endif %}
+                                    <a href="{% url 'borrow:reject_request' record.pk %}" class="btn btn-reject">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        Reject
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <h3>All Caught Up!</h3>
+                <p>No pending requests at the moment. All student requests have been processed.</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    {% include 'includes/enhanced_nav_scripts.html' %}
+    
+    <script>
+        // Handle approve form submission with async confirm
+        async function handleApproveSubmit(event, userName) {
+            event.preventDefault(); // Prevent default form submission
+            
+            const confirmed = await confirm(`Approve this request and issue the book to ${userName}?`);
+            
+            if (confirmed) {
+                // Submit the form
+                event.target.submit();
+            }
+            
+            return false;
+        }
+        
+        // Auto-dismiss messages after 5 seconds
+        document.addEventListener('DOMContentLoaded', function() {
+            const messages = document.querySelectorAll('.alert');
+            messages.forEach(function(message) {
+                setTimeout(function() {
+                    message.style.transition = 'opacity 0.5s ease-out, transform 0.5s ease-out';
+                    message.style.opacity = '0';
+                    message.style.transform = 'translateY(-10px)';
+                    setTimeout(function() {
+                        message.remove();
+                    }, 500);
+                }, 5000);
+            });
+        });
+    </script>
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

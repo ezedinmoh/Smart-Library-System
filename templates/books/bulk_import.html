@@ -1,0 +1,303 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bulk Import Books - Smart Library Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    {% include 'includes/enhanced_nav_styles.html' %}
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #34d399;
+            --secondary: #0ea5e9;
+            --accent: #f59e0b;
+            --background: #ffffff;
+            --surface: #f8fafc;
+            --surface-hover: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --card-bg: #ffffff;
+            --bg-primary: #ffffff;
+        }
+        
+        [data-theme="dark"] {
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --border-light: #1e293b;
+            --card-bg: #1e293b;
+            --bg-primary: #1e293b;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            padding-top: 70px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+        }
+
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .page-header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .page-header p {
+            color: var(--text-secondary);
+        }
+
+        .card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .card h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .card ol {
+            margin-left: 1.5rem;
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            font-weight: 500;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-dark);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+
+        .btn-outline:hover {
+            background: var(--surface-hover);
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-group label {
+            display: block;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 0.75rem;
+            border: 2px dashed var(--border);
+            border-radius: 8px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+        }
+
+        .error-box {
+            background: #FEF2F2;
+            border: 1px solid #FCA5A5;
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .error-box h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #DC2626;
+            margin-bottom: 1rem;
+        }
+
+        .error-box ul {
+            margin-left: 1.5rem;
+            color: #991B1B;
+            line-height: 1.8;
+        }
+
+        [data-theme="dark"] .error-box {
+            background: rgba(220, 38, 38, 0.1);
+            border-color: rgba(220, 38, 38, 0.3);
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    {% include 'includes/toast_notifications.html' %}
+
+    <div class="container">
+        <div class="page-header">
+            <h1>📚 Bulk Import Books</h1>
+            <p>Import multiple books from CSV or Excel file</p>
+        </div>
+
+        <!-- Instructions Card -->
+        <div class="card">
+            <h3>📋 Instructions</h3>
+            <ol>
+                <li>Download the template file below</li>
+                <li>Fill in your book data (CSV or Excel format)</li>
+                <li><strong>Optional:</strong> Add cover_filename and pdf_filename columns if you want to include files</li>
+                <li><strong>Optional:</strong> Prepare a ZIP file with your cover images and PDFs</li>
+                <li>Upload the CSV/Excel file (and optionally the ZIP file)</li>
+                <li>Review the import results</li>
+            </ol>
+            
+            <div style="background: rgba(16,185,129,0.06); border: 1px solid rgba(16,185,129,0.2); border-radius: 12px; padding: 1rem; margin-top: 1rem;">
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin: 0;">
+                    <strong style="color: var(--success);">✨ New Feature:</strong> You can now include cover images and PDF files! 
+                    The <code>cover_filename</code> and <code>pdf_filename</code> columns are optional - books will import successfully even if files are not found.
+                </p>
+            </div>
+            
+            <div style="margin-top: 1.5rem; display: flex; gap: 1rem; flex-wrap: wrap;">
+                <a href="{% url 'books:import_template' %}?format=csv" class="btn btn-outline">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Download CSV Template
+                </a>
+                <a href="{% url 'books:import_template' %}?format=excel" class="btn btn-outline" style="background: rgba(16,185,129,0.1); color: var(--success); border-color: rgba(16,185,129,0.3);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                    Download Excel Template
+                </a>
+            </div>
+        </div>
+
+        <!-- Upload Form -->
+        <div class="card">
+            <h3>📤 Upload Files</h3>
+            
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                
+                <div class="form-group">
+                    <label>Select CSV/Excel File (Required)</label>
+                    <input type="file" name="file" accept=".csv,.xlsx,.xls" required>
+                    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                        📄 Upload your book data file (CSV or Excel format)
+                    </small>
+                </div>
+                
+                <div class="form-group">
+                    <label>Select ZIP File with Covers & PDFs (Optional)</label>
+                    <input type="file" name="zip_file" accept=".zip">
+                    <small style="color: var(--text-secondary); display: block; margin-top: 0.5rem;">
+                        📦 Optional: Upload a ZIP file containing cover images and PDF files
+                    </small>
+                </div>
+                
+                <div style="background: rgba(14,165,233,0.06); border: 1px solid rgba(14,165,233,0.2); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem;">
+                    <h4 style="font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem;">
+                        📁 ZIP File Structure (Optional)
+                    </h4>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem;">
+                        If you want to include cover images and PDFs, organize your ZIP file like this:
+                    </p>
+                    <pre style="background: var(--bg-light); padding: 1rem; border-radius: 8px; font-size: 0.8125rem; overflow-x: auto;">bulk_upload.zip
+├── covers/
+│   ├── example_book.jpg
+│   ├── another_example.jpg
+│   └── ...
+└── pdfs/
+    ├── example_book.pdf
+    ├── another_example.pdf
+    └── ...</pre>
+                    <p style="font-size: 0.875rem; color: var(--text-secondary); margin-top: 0.75rem;">
+                        💡 <strong>Tip:</strong> Filenames in your CSV should match the files in the ZIP (case-insensitive)
+                    </p>
+                </div>
+                
+                <button type="submit" class="btn btn-primary" style="width: 100%;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="17 8 12 3 7 8"></polyline>
+                        <line x1="12" y1="3" x2="12" y2="15"></line>
+                    </svg>
+                    Import Books
+                </button>
+            </form>
+        </div>
+
+        <!-- Errors Display -->
+        {% if errors %}
+        <div class="error-box">
+            <h3>⚠️ Import Errors ({{ errors|length }})</h3>
+            <ul>
+                {% for error in errors %}
+                <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    {% include 'includes/enhanced_nav_scripts.html' %}
+</body>
+</html>

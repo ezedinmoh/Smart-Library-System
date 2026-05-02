@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+    <div style="background: linear-gradient(135deg, #8b5cf6, #7c3aed); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">🎉 Book Available!</h1>
+    </div>
+    
+    <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2 style="color: #1f2937; margin-top: 0;">Hello {{ user.get_full_name|default:user.username }},</h2>
+        
+        <p style="color: #8b5cf6; font-size: 18px; font-weight: 600; text-align: center; margin: 20px 0;">
+            🎉 GREAT NEWS! 🎉
+        </p>
+        
+        <p style="color: #4b5563; font-size: 16px; text-align: center;">The book you requested is now <strong style="color: #8b5cf6;">available</strong>!</p>
+        
+        <!-- Book Details Card -->
+        <div style="background: #f3f4f6; border-left: 4px solid #8b5cf6; padding: 20px; border-radius: 8px; margin: 24px 0;">
+            <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">📚 Book Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Title:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.title }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Author:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.author }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Category:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.category.name|default:'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">ISBN:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ book.isbn }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- Waitlist Status -->
+        <div style="background: {% if position_in_queue == 1 %}#fef3c7{% else %}#e0e7ff{% endif %}; border-left: 4px solid {% if position_in_queue == 1 %}#f59e0b{% else %}#6366f1{% endif %}; padding: 20px; border-radius: 8px; margin: 24px 0; text-align: center;">
+            <h3 style="color: {% if position_in_queue == 1 %}#92400e{% else %}#3730a3{% endif %}; margin-top: 0; font-size: 18px;">📋 Waitlist Status</h3>
+            <p style="margin: 8px 0; color: {% if position_in_queue == 1 %}#92400e{% else %}#3730a3{% endif %}; font-size: 16px;">
+                Your Position: <strong style="font-size: 24px;">#{{ position_in_queue }}</strong> of {{ total_in_queue }}
+            </p>
+            <p style="margin: 8px 0; color: {% if position_in_queue == 1 %}#92400e{% else %}#3730a3{% endif %}; font-size: 14px;">
+                Status: <strong>Pending Approval</strong>
+            </p>
+        </div>
+        
+        {% if position_in_queue == 1 %}
+        <!-- First in Line -->
+        <div style="background: #d1fae5; border-left: 4px solid #10b981; padding: 16px; border-radius: 8px; margin: 24px 0; text-align: center;">
+            <p style="color: #065f46; font-size: 16px; margin: 0; font-weight: 600;">
+                🌟 You're FIRST in line! Your request will be reviewed and approved soon.
+            </p>
+        </div>
+        {% elif position_in_queue == 2 %}
+        <!-- Second in Line -->
+        <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px; margin: 24px 0; text-align: center;">
+            <p style="color: #1e40af; font-size: 16px; margin: 0; font-weight: 600;">
+                You're second in line! Your request will be reviewed shortly.
+            </p>
+        </div>
+        {% else %}
+        <!-- In Queue -->
+        <div style="background: #e0e7ff; border-left: 4px solid #6366f1; padding: 16px; border-radius: 8px; margin: 24px 0; text-align: center;">
+            <p style="color: #3730a3; font-size: 16px; margin: 0; font-weight: 600;">
+                You're in the queue! Your request will be reviewed in order.
+            </p>
+        </div>
+        {% endif %}
+        
+        <!-- What Happens Next -->
+        <div style="margin: 24px 0;">
+            <h3 style="color: #1f2937; font-size: 16px;">🔄 What Happens Next:</h3>
+            <ol style="color: #4b5563; padding-left: 20px;">
+                <li style="margin-bottom: 8px;">A librarian will review your request</li>
+                <li style="margin-bottom: 8px;">You'll receive an approval notification via email</li>
+                <li style="margin-bottom: 8px;">You can then read the book online or pick up the physical copy</li>
+            </ol>
+            <p style="color: #6b7280; font-size: 14px; margin-top: 16px;">
+                Your request is currently pending approval and will be processed soon based on your position in the queue.
+            </p>
+        </div>
+        
+        <!-- Important Notes -->
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 24px 0;">
+            <h4 style="color: #92400e; margin-top: 0; font-size: 14px;">📌 Important Notes:</h4>
+            <ul style="color: #92400e; font-size: 14px; padding-left: 20px; margin: 8px 0 0 0;">
+                <li style="margin-bottom: 6px;">Requests are approved in order (first come, first served)</li>
+                <li style="margin-bottom: 6px;">You'll receive another email when your request is approved</li>
+                <li style="margin-bottom: 6px;">The book will be reserved for you once approved</li>
+                <li style="margin-bottom: 6px;">Make sure to check your email regularly</li>
+            </ul>
+        </div>
+        
+        <!-- Need to Cancel -->
+        <div style="background: #fee2e2; border-left: 4px solid #ef4444; padding: 16px; border-radius: 8px; margin: 24px 0;">
+            <h4 style="color: #991b1b; margin-top: 0; font-size: 14px;">❌ Need to Cancel?</h4>
+            <p style="color: #991b1b; font-size: 14px; margin: 8px 0 0 0;">
+                If you no longer need this book, you can cancel your request from the "My Books" page to free up your borrowing slot.
+            </p>
+        </div>
+        
+        <!-- Action Button -->
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="{{ site_url }}/borrow/my-books/" style="background: #8b5cf6; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">View My Requests</a>
+        </div>
+        
+        <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 24px;">
+            Thank you for using {{ site_name }}! 📚
+        </p>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        
+        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+            Questions? Contact the library.<br><br>
+            Best regards,<br>
+            {{ site_name }} Team<br>
+            <a href="{{ site_url }}" style="color: #3b82f6; text-decoration: none;">{{ site_url }}</a>
+        </p>
+    </div>
+</body>
+</html>

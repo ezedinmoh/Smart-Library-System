@@ -1,0 +1,1229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign Up - Smart Library</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/enhanced.css' %}">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+       <style>
+        body.auth-page {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            transition: background 0.3s ease;
+        }
+        
+        [data-theme="dark"] body.auth-page {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+        }
+        .auth-container {
+            max-width: 1200px;
+            width: 100%;
+            min-height: auto;
+            background: white;
+            border-radius: 24px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+            display: grid;
+            grid-template-columns: 45% 55%;
+        }
+        .auth-left {
+            padding: 48px 40px;
+            min-height: 600px;
+        }
+        .auth-right {
+            padding: 48px 40px;
+            min-height: 600px;
+            display: flex;
+            align-items: center;
+        }
+        .back-to-home {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 1000;
+            display: flex;
+            gap: 12px;
+        }
+        .back-to-home a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: rgba(255, 255, 255, 0.95);
+            color: #10b981;
+            font-weight: 600;
+            font-size: 0.938rem;
+            border-radius: 12px;
+            text-decoration: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .back-to-home a:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
+        }
+        .back-to-home a svg {
+            width: 20px;
+            height: 20px;
+        }
+        .theme-toggle-auth {
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 255, 255, 0.95);
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+        .theme-toggle-auth:hover {
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.2);
+        }
+        .theme-toggle-auth svg {
+            width: 20px;
+            height: 20px;
+            color: #10b981;
+        }
+        .sun-icon { display: block; }
+        .moon-icon { display: none; }
+        [data-theme="dark"] .sun-icon { display: none; }
+        [data-theme="dark"] .moon-icon { display: block; }
+        
+        /* Success message styling */
+        .alert {
+            position: fixed;
+            top: 24px;
+            right: 24px;
+            z-index: 999;
+            max-width: 400px;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            animation: slideInRight 0.3s ease;
+        }
+        .alert-success {
+            background: #d1fae5;
+            border-left: 4px solid #10b981;
+            color: #065f46;
+        }
+        .alert-info {
+            background: #dbeafe;
+            border-left: 4px solid #3b82f6;
+            color: #1e40af;
+        }
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        @media (max-width: 968px) {
+            .auth-container {
+                grid-template-columns: 1fr;
+                max-width: 500px;
+            }
+            .auth-left {
+                display: none;
+            }
+        }
+        
+        /* Left panel spacing fixes */
+        .auth-left-content {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+        }
+        .auth-left .logo {
+            margin-bottom: 40px;
+        }
+        .auth-left-text {
+            margin-top: 0;
+        }
+        
+        /* Multi-step form styles */
+        .form-step {
+            display: none;
+        }
+        .form-step.active {
+            display: block;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .step-indicator {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .step-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #e2e8f0;
+            transition: all 0.3s ease;
+        }
+        .step-dot.active {
+            width: 32px;
+            border-radius: 5px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+        .step-buttons {
+            display: flex;
+            gap: 12px;
+            margin-top: 20px;
+        }
+        .step-buttons .btn {
+            flex: 1;
+        }
+        
+        /* Form header spacing */
+        .auth-form-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        /* Social login buttons - smaller */
+        .social-login { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 10px; 
+            margin-bottom: 16px;
+        }
+        .btn-social {
+            padding: 10px 16px;
+            font-size: 0.875rem;
+        }
+        
+        /* Divider spacing */
+        .auth-divider { 
+            display: flex; 
+            align-items: center; 
+            margin: 16px 0; 
+            color: #999; 
+            font-weight: 500; 
+        }
+        .auth-divider::before, .auth-divider::after { 
+            content: ''; 
+            flex: 1; 
+            height: 1px; 
+            background: #e2e8f0; 
+        }
+        .auth-divider span { 
+            margin: 0 1rem; 
+            font-size: 0.875rem; 
+        }
+        
+        /* Form group spacing - reduced */
+        .form-group {
+            margin-bottom: 16px;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .form-row .form-group {
+            margin-bottom: 0;
+        }
+        
+        .password-strength { 
+            margin-top: 6px; 
+            margin-bottom: 8px; 
+        }
+        .strength-bars { 
+            display: flex; 
+            gap: 4px; 
+            height: 4px; 
+            margin-bottom: 6px; 
+        }
+        .strength-bar { 
+            flex: 1; 
+            background: var(--border); 
+            border-radius: 2px; 
+            transition: background 0.3s ease; 
+        }
+        .password-strength.strength-weak .strength-bar:nth-child(1) { 
+            background: var(--error); 
+        }
+        .password-strength.strength-medium .strength-bar:nth-child(1),
+        .password-strength.strength-medium .strength-bar:nth-child(2) { 
+            background: var(--warning); 
+        }
+        .password-strength.strength-strong .strength-bar:nth-child(1),
+        .password-strength.strength-strong .strength-bar:nth-child(2),
+        .password-strength.strength-strong .strength-bar:nth-child(3) { 
+            background: #22c55e; 
+        }
+        .password-strength.strength-very-strong .strength-bar { 
+            background: var(--primary); 
+        }
+        .strength-text { 
+            font-size: 0.813rem; 
+            font-weight: 500; 
+            color: var(--text-muted); 
+        }
+        .password-requirements { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 4px; 
+            margin-top: 6px; 
+        }
+        .requirement { 
+            display: flex; 
+            align-items: center; 
+            gap: 8px; 
+            font-size: 0.813rem; 
+            color: var(--text-muted); 
+        }
+        .requirement svg { 
+            width: 16px; 
+            height: 16px; 
+            flex-shrink: 0; 
+        }
+        .requirement .check { 
+            display: none; 
+            color: var(--success); 
+        }
+        .requirement .x { 
+            display: block; 
+            color: var(--error); 
+        }
+        .requirement.met .check { 
+            display: block; 
+        }
+        .requirement.met .x { 
+            display: none; 
+        }
+        .requirement.met { 
+            color: var(--success); 
+        }
+        .role-selection { 
+            display: grid; 
+            grid-template-columns: repeat(3, 1fr); 
+            gap: 10px; 
+            margin-top: 8px; 
+        }
+        .role-card { 
+            position: relative; 
+            cursor: pointer; 
+        }
+        .role-card input { 
+            position: absolute; 
+            opacity: 0; 
+        }
+        .role-content { 
+            padding: 14px 10px; 
+            border: 2px solid var(--border); 
+            border-radius: var(--radius); 
+            text-align: center; 
+            transition: all 0.2s ease; 
+        }
+        .role-card:hover .role-content { 
+            border-color: var(--primary); 
+            background: rgba(16, 185, 129, 0.05); 
+        }
+        .role-card input:checked + .role-content { 
+            border-color: var(--primary); 
+            background: rgba(16, 185, 129, 0.1); 
+        }
+        .role-icon { 
+            width: 44px; 
+            height: 44px; 
+            margin: 0 auto 10px; 
+            border-radius: var(--radius); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+        }
+        .role-icon svg { 
+            width: 22px; 
+            height: 22px; 
+            color: white; 
+        }
+        .student-icon { 
+            background: linear-gradient(135deg, #667eea, #764ba2); 
+        }
+        .librarian-icon { 
+            background: linear-gradient(135deg, #f093fb, #f5576c); 
+        }
+        .admin-icon { 
+            background: linear-gradient(135deg, #4facfe, #00f2fe); 
+        }
+        .role-content h4 { 
+            font-size: 0.875rem; 
+            font-weight: 600; 
+            margin-bottom: 2px; 
+        }
+        .role-content p { 
+            font-size: 0.75rem; 
+            color: var(--text-muted); 
+        }
+        
+        /* Messages Container */
+        .messages-container {
+            margin-bottom: 20px;
+        }
+        
+        .alert {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 10px;
+            font-size: 14px;
+            line-height: 1.5;
+            margin-bottom: 10px;
+            animation: slideDown 0.3s ease;
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .alert-icon {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+        
+        .alert-success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 1px solid #6ee7b7;
+        }
+        
+        .alert-error, .alert-danger {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 1px solid #fca5a5;
+        }
+        
+        .alert-warning {
+            background: #fef3c7;
+            color: #92400e;
+            border: 1px solid #fcd34d;
+        }
+        
+        .alert-info {
+            background: #dbeafe;
+            color: #1e40af;
+            border: 1px solid #93c5fd;
+        }
+        
+        [data-theme="dark"] .alert-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #6ee7b7;
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+        
+        [data-theme="dark"] .alert-error,
+        [data-theme="dark"] .alert-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #fca5a5;
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+        
+        [data-theme="dark"] .alert-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fcd34d;
+            border-color: rgba(245, 158, 11, 0.3);
+        }
+        
+        [data-theme="dark"] .alert-info {
+            background: rgba(59, 130, 246, 0.15);
+            color: #93c5fd;
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+        
+        /* Disabled button styles */
+        .btn:disabled,
+        .btn[disabled] {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        
+        .btn:not(:disabled):not([disabled]) {
+            font-weight: 600;
+        }
+        
+        /* Input validation states */
+        .input-wrapper.error {
+            border-color: #ef4444 !important;
+            background: rgba(239, 68, 68, 0.05);
+        }
+        
+        .input-wrapper.success {
+            border-color: #10b981 !important;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .input-wrapper.error .validation-icon::after {
+            content: '✕';
+            color: #ef4444;
+            font-weight: bold;
+        }
+        
+        .input-wrapper.success .validation-icon::after {
+            content: '✓';
+            color: #10b981;
+            font-weight: bold;
+        }
+        
+        .error-message {
+            display: block;
+            color: #ef4444;
+            font-size: 0.813rem;
+            margin-top: 6px;
+            min-height: 20px;
+        }
+        
+        [data-theme="dark"] .input-wrapper.error {
+            border-color: #f87171 !important;
+            background: rgba(239, 68, 68, 0.1);
+        }
+        
+        [data-theme="dark"] .input-wrapper.success {
+            border-color: #34d399 !important;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        [data-theme="dark"] .error-message {
+            color: #fca5a5;
+        }
+    </style>
+
+</head>
+<body class="auth-page">
+    
+    <!-- Back to Home Button -->
+    <div class="back-to-home">
+        <a href="{% url 'dashboard:home' %}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+            </svg>
+            Back to Home
+        </a>
+        <button class="theme-toggle-auth" id="themeToggle">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="5"></circle>
+                <line x1="12" y1="1" x2="12" y2="3"></line>
+                <line x1="12" y1="21" x2="12" y2="23"></line>
+                <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                <line x1="1" y1="12" x2="3" y2="12"></line>
+                <line x1="21" y1="12" x2="23" y2="12"></line>
+                <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+        </button>
+    </div>
+    <div class="auth-container">
+        <div class="auth-left">
+            <div class="auth-left-content">
+                <a href="{% url 'dashboard:home' %}" class="logo">
+                    <div class="logo-icon white">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                    </div>
+                    <span>SmartLibrary</span>
+                </a>
+                <div class="auth-left-text">
+                    <h1>Join Our Reading Community</h1>
+                    <p>Create your account and start your journey through thousands of amazing books.</p>
+                    <div class="auth-features">
+                        <div class="auth-feature">
+                            <div class="auth-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Instant Access</h4>
+                                <p>Start borrowing immediately</p>
+                            </div>
+                        </div>
+                        <div class="auth-feature">
+                            <div class="auth-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <polyline points="12 6 12 12 16 14"></polyline>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Free Forever</h4>
+                                <p>No hidden fees or charges</p>
+                            </div>
+                        </div>
+                        <div class="auth-feature">
+                            <div class="auth-feature-icon">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                </svg>
+                            </div>
+                            <div>
+                                <h4>Secure & Private</h4>
+                                <p>Your data is protected</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="auth-decorations">
+                    <div class="decoration-circle circle-1"></div>
+                    <div class="decoration-circle circle-2"></div>
+                    <div class="decoration-circle circle-3"></div>
+                </div>
+            </div>
+        </div>
+        <div class="auth-right">
+            <div class="auth-form-container">
+                <div class="auth-form" id="signupForm">
+                    <div class="auth-form-header">
+                        <h2>Create Account</h2>
+                        <p>Join our community of readers</p>
+                    </div>
+                    
+                    <!-- Django Messages Display -->
+                    {% if messages %}
+                    <div class="messages-container">
+                        {% for message in messages %}
+                        <div class="alert alert-{{ message.tags }}">
+                            <svg class="alert-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                {% if message.tags == 'success' %}
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                {% elif message.tags == 'error' or message.tags == 'danger' %}
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="15" y1="9" x2="9" y2="15"></line>
+                                <line x1="9" y1="9" x2="15" y2="15"></line>
+                                {% elif message.tags == 'warning' %}
+                                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                <line x1="12" y1="9" x2="12" y2="13"></line>
+                                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                                {% else %}
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                {% endif %}
+                            </svg>
+                            <span>{{ message }}</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                    
+                    <!-- Step Indicator -->
+                    <div class="step-indicator">
+                        <div class="step-dot active" data-step="1"></div>
+                        <div class="step-dot" data-step="2"></div>
+                    </div>
+                    
+                    <!-- Social Login Buttons -->
+                    <div class="social-login">
+                        {% load socialaccount %}
+                        <a href="{% provider_login_url 'google' %}" class="btn btn-social">
+                            <svg viewBox="0 0 24 24" width="20" height="20">
+                                <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                                <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                                <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                                <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                            </svg>
+                            Google
+                        </a>
+                        <a href="{% provider_login_url 'github' %}" class="btn btn-social">
+                            <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
+                                <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+                            </svg>
+                            GitHub
+                        </a>
+                    </div>
+
+                    <div class="auth-divider">
+                        <span>or sign up with email</span>
+                    </div>
+
+                    <form method="post" id="signupFormElement">
+                        {% csrf_token %}
+                        
+                        <!-- Step 1: Personal Information -->
+                        <div class="form-step active" id="step1">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="id_first_name">First Name</label>
+                                    <div class="input-wrapper">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                        <input type="text" id="id_first_name" name="first_name" placeholder="First name" required value="{{ form.first_name.value|default:'' }}">
+                                        <span class="validation-icon"></span>
+                                    </div>
+                                    <span class="error-message">{% if form.first_name.errors %}{{ form.first_name.errors.0 }}{% endif %}</span>
+                                </div>
+                                <div class="form-group">
+                                    <label for="id_last_name">Last Name</label>
+                                    <div class="input-wrapper">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                            <circle cx="12" cy="7" r="4"></circle>
+                                        </svg>
+                                        <input type="text" id="id_last_name" name="last_name" placeholder="Last name" required value="{{ form.last_name.value|default:'' }}">
+                                        <span class="validation-icon"></span>
+                                    </div>
+                                    <span class="error-message">{% if form.last_name.errors %}{{ form.last_name.errors.0 }}{% endif %}</span>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="id_username">Username</label>
+                                <div class="input-wrapper">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                        <circle cx="12" cy="7" r="4"></circle>
+                                    </svg>
+                                    <input type="text" id="id_username" name="username" placeholder="Choose a username" required value="{{ form.username.value|default:'' }}" pattern="[a-zA-Z0-9_]+" title="Username can only contain letters, numbers, and underscores" minlength="3" maxlength="150">
+                                    <span class="validation-icon"></span>
+                                </div>
+                                <span class="error-message">{% if form.username.errors %}{{ form.username.errors.0 }}{% endif %}</span>
+                            </div>
+                            <div class="form-group">
+                                <label for="id_email">Email Address</label>
+                                <div class="input-wrapper">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                                        <polyline points="22,6 12,13 2,6"></polyline>
+                                    </svg>
+                                    <input type="email" id="id_email" name="email" placeholder="Enter your email" required value="{{ form.email.value|default:'' }}" pattern="[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}" title="Please enter a valid email address">
+                                    <span class="validation-icon"></span>
+                                </div>
+                                <span class="error-message">{% if form.email.errors %}{{ form.email.errors.0 }}{% endif %}</span>
+                            </div>
+                            
+                            <button type="button" class="btn btn-primary btn-full" id="step1ContinueBtn" onclick="nextStep()" disabled>
+                                Continue
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M5 12h14M12 5l7 7-7 7"></path>
+                                </svg>
+                            </button>
+                        </div>
+                                              <!-- Step 2: Contact & Password Information -->
+                        <div class="form-step" id="step2">
+                            <!-- Optional Contact Info - Side by Side at Top -->
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="id_phone">Phone Number <span style="color: #94a3b8; font-weight: 400;">(Optional)</span></label>
+                                    <div class="input-wrapper">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                                        </svg>
+                                        <input type="tel" id="id_phone" name="phone_number" placeholder="+251912345678" value="{{ form.phone_number.value|default:'' }}">
+                                        <span class="validation-icon"></span>
+                                    </div>
+                                    <span class="error-message">{% if form.phone_number.errors %}{{ form.phone_number.errors.0 }}{% endif %}</span>
+                                </div>
+                                
+                                <div class="form-group">
+                                    <label for="id_address">Address <span style="color: #94a3b8; font-weight: 400;">(Optional)</span></label>
+                                    <div class="input-wrapper">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
+                                            <circle cx="12" cy="10" r="3"></circle>
+                                        </svg>
+                                        <input type="text" id="id_address" name="address" placeholder="123 Main St, City, State" value="{{ form.address.value|default:'' }}">
+                                        <span class="validation-icon"></span>
+                                    </div>
+                                    <span class="error-message">{% if form.address.errors %}{{ form.address.errors.0 }}{% endif %}</span>
+                                </div>
+                            </div>
+
+                            <!-- Password Fields -->
+                            <div class="form-group">
+                                <label for="id_password1">Password</label>
+                                <div class="input-wrapper">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" id="id_password1" name="password1" class="password-field" placeholder="Create a password" required oninput="checkPasswordStrength(this.value)">
+                                    <button type="button" class="toggle-password" onclick="toggleBothPasswords(this)">
+                                        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                                        </svg>
+                                    </button>
+                                    <span class="validation-icon"></span>
+                                </div>
+                                <span class="error-message">{% if form.password1.errors %}{{ form.password1.errors.0 }}{% endif %}</span>
+                                <div class="password-strength">
+                                    <div class="strength-bars">
+                                        <div class="strength-bar"></div>
+                                        <div class="strength-bar"></div>
+                                        <div class="strength-bar"></div>
+                                        <div class="strength-bar"></div>
+                                    </div>
+                                    <span class="strength-text">Password Strength</span>
+                                </div>
+                                <div class="password-requirements">
+                                    <div class="requirement" data-requirement="length">
+                                        <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        At least 8 characters
+                                    </div>
+                                    <div class="requirement" data-requirement="uppercase">
+                                        <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        One uppercase letter
+                                    </div>
+                                    <div class="requirement" data-requirement="number">
+                                        <svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        <svg class="x" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        One number
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="id_password2">Confirm Password</label>
+                                <div class="input-wrapper">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                    <input type="password" id="id_password2" name="password2" class="password-field" placeholder="Confirm your password" required oninput="checkPasswordMatch()">
+                                    <button type="button" class="toggle-password" onclick="toggleBothPasswords(this)">
+                                        <svg class="eye-open" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                            <circle cx="12" cy="12" r="3"></circle>
+                                        </svg>
+                                        <svg class="eye-closed" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path>
+                                            <line x1="1" y1="1" x2="23" y2="23"></line>
+                                        </svg>
+                                    </button>
+                                    <span class="validation-icon"></span>
+                                </div>
+                                <span class="error-message">{% if form.password2.errors %}{{ form.password2.errors.0 }}{% endif %}</span>
+                            </div>
+                            
+                            <div class="step-buttons">
+                                <button type="button" class="btn btn-outline" onclick="prevStep()">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                                    </svg>
+                                    Back
+                                </button>
+                                <button type="submit" class="btn btn-primary">
+                                    Create Account
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M5 12h14M12 5l7 7-7 7"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+
+                        
+    <script>
+        // Theme Toggle Functionality
+        const themeToggle = document.getElementById('themeToggle');
+        const htmlElement = document.documentElement;
+        
+        // Load saved theme from localStorage
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        htmlElement.setAttribute('data-theme', savedTheme);
+        
+        if (themeToggle) {
+            themeToggle.addEventListener('click', () => {
+                const currentTheme = htmlElement.getAttribute('data-theme');
+                const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+                
+                htmlElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+            });
+        }
+        
+        let currentStep = 1;
+        const totalSteps = 2;  // Changed from 3 to 2 steps
+
+        function showStep(step) {
+            // Hide all steps
+            document.querySelectorAll('.form-step').forEach(s => s.classList.remove('active'));
+            // Show current step
+            document.getElementById('step' + step).classList.add('active');
+            
+            // Update step indicators
+            document.querySelectorAll('.step-dot').forEach((dot, index) => {
+                if (index < step) {
+                    dot.classList.add('active');
+                } else {
+                    dot.classList.remove('active');
+                }
+            });
+        }
+
+        function nextStep() {
+            // Validate current step fields
+            const currentStepEl = document.getElementById('step' + currentStep);
+            const inputs = currentStepEl.querySelectorAll('input[required]');
+            let valid = true;
+            
+            inputs.forEach(input => {
+                if (!input.value.trim()) {
+                    valid = false;
+                    input.classList.add('invalid');
+                } else {
+                    input.classList.remove('invalid');
+                }
+            });
+
+            // Step 2 - no validation needed (just optional contact info)
+            // All users are automatically registered as students
+
+            if (valid && currentStep < totalSteps) {
+                currentStep++;
+                showStep(currentStep);
+            }
+        }
+
+        function prevStep() {
+            if (currentStep > 1) {
+                currentStep--;
+                showStep(currentStep);
+            }
+        }
+
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            const type = input.getAttribute('type');
+            if (type === 'password') {
+                input.setAttribute('type', 'text');
+                button.classList.add('active');
+            } else {
+                input.setAttribute('type', 'password');
+                button.classList.remove('active');
+            }
+        }
+        // Toggle both password fields together
+        function toggleBothPasswords(button) {
+            const allPasswordFields = document.querySelectorAll('.password-field');
+            const allToggleButtons = document.querySelectorAll('.toggle-password');
+            
+            // Check current state of first password field
+            const isPassword = allPasswordFields[0].getAttribute('type') === 'password';
+            
+            // Toggle all password fields
+            allPasswordFields.forEach(input => {
+                input.setAttribute('type', isPassword ? 'text' : 'password');
+            });
+            
+            // Toggle all buttons
+            allToggleButtons.forEach(btn => {
+                if (isPassword) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
+        function checkPasswordStrength(password) {
+            const strengthBars = document.querySelector('.password-strength');
+            const strengthText = document.querySelector('.strength-text');
+            const requirements = {
+                length: password.length >= 8,
+                uppercase: /[A-Z]/.test(password),
+                number: /[0-9]/.test(password)
+            };
+
+            Object.keys(requirements).forEach(req => {
+                const element = document.querySelector(`[data-requirement="${req}"]`);
+                if (element) {
+                    if (requirements[req]) {
+                        element.classList.add('met');
+                    } else {
+                        element.classList.remove('met');
+                    }
+                }
+            });
+
+            const metCount = Object.values(requirements).filter(Boolean).length;
+            strengthBars.classList.remove('strength-weak', 'strength-medium', 'strength-strong', 'strength-very-strong');
+            
+            if (password.length === 0) {
+                strengthText.textContent = 'Password Strength';
+                strengthText.style.color = 'var(--text-muted)';
+            } else if (metCount <= 1) {
+                strengthBars.classList.add('strength-weak');
+                strengthText.textContent = 'Weak';
+                strengthText.style.color = 'var(--error)';
+            } else if (metCount === 2) {
+                strengthBars.classList.add('strength-medium');
+                strengthText.textContent = 'Medium';
+                strengthText.style.color = 'var(--warning)';
+            } else {
+                strengthBars.classList.add('strength-strong');
+                strengthText.textContent = 'Strong';
+                strengthText.style.color = '#22c55e';
+            }
+        }
+
+        function checkPasswordMatch() {
+            const password = document.getElementById('id_password1').value;
+            const confirmPassword = document.getElementById('id_password2');
+            const errorMessage = confirmPassword.closest('.form-group').querySelector('.error-message');
+            
+            if (confirmPassword.value.length > 0) {
+                if (password === confirmPassword.value) {
+                    confirmPassword.classList.add('valid');
+                    confirmPassword.classList.remove('invalid');
+                    errorMessage.textContent = '';
+                } else {
+                    confirmPassword.classList.add('invalid');
+                    confirmPassword.classList.remove('valid');
+                    errorMessage.textContent = 'Passwords do not match';
+                }
+            } else {
+                confirmPassword.classList.remove('valid', 'invalid');
+                errorMessage.textContent = '';
+            }
+        }
+
+        // Initialize first step
+        showStep(1);
+        
+        // Real-time validation for Step 1
+        const step1Fields = ['id_first_name', 'id_last_name', 'id_username', 'id_email'];
+        const step1Btn = document.getElementById('step1ContinueBtn');
+        
+        // Debounce function for AJAX calls
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
+        }
+        
+        async function validateField(fieldId) {
+            const field = document.getElementById(fieldId);
+            const wrapper = field.closest('.input-wrapper');
+            const errorMsg = field.closest('.form-group').querySelector('.error-message');
+            const value = field.value.trim();
+            
+            // Clear previous state
+            wrapper.classList.remove('error', 'success');
+            errorMsg.textContent = '';
+            
+            if (!value) {
+                wrapper.classList.add('error');
+                // Only show error message for username and email
+                if (fieldId === 'id_username' || fieldId === 'id_email') {
+                    errorMsg.textContent = 'This field is required';
+                }
+                return false;
+            }
+            
+            // Name specific validation (no error text, just icon)
+            if (fieldId === 'id_first_name' || fieldId === 'id_last_name') {
+                if (value.length < 2) {
+                    wrapper.classList.add('error');
+                    return false;
+                }
+                wrapper.classList.add('success');
+                return true;
+            }
+            
+            // Email specific validation
+            if (fieldId === 'id_email') {
+                if (!isValidEmail(value)) {
+                    wrapper.classList.add('error');
+                    errorMsg.textContent = 'Please enter a valid email address';
+                    return false;
+                }
+                
+                // Check if email already exists
+                try {
+                    const response = await fetch(`/users/check-email/?email=${encodeURIComponent(value)}`);
+                    const data = await response.json();
+                    if (!data.available) {
+                        wrapper.classList.add('error');
+                        errorMsg.textContent = 'Email already exists';
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Error checking email:', error);
+                }
+            }
+            
+            // Username specific validation
+            if (fieldId === 'id_username') {
+                if (value.length < 3) {
+                    wrapper.classList.add('error');
+                    errorMsg.textContent = 'Username must be at least 3 characters';
+                    return false;
+                }
+                if (!/^[a-zA-Z0-9_]+$/.test(value)) {
+                    wrapper.classList.add('error');
+                    errorMsg.textContent = 'Username can only contain letters, numbers, and underscores';
+                    return false;
+                }
+                
+                // Check if username already exists
+                try {
+                    const response = await fetch(`/users/check-username/?username=${encodeURIComponent(value)}`);
+                    const data = await response.json();
+                    if (!data.available) {
+                        wrapper.classList.add('error');
+                        errorMsg.textContent = 'Username already exists';
+                        return false;
+                    }
+                } catch (error) {
+                    console.error('Error checking username:', error);
+                }
+            }
+            
+            wrapper.classList.add('success');
+            return true;
+        }
+        
+        async function validateStep1() {
+            let allValid = true;
+            
+            for (const fieldId of step1Fields) {
+                const isValid = await validateField(fieldId);
+                if (!isValid) {
+                    allValid = false;
+                }
+            }
+            
+            step1Btn.disabled = !allValid;
+        }
+        
+        function isValidEmail(email) {
+            // Only allow letters, numbers, dots, hyphens, and underscores before @
+            // Only allow letters, numbers, dots, and hyphens in domain
+            // Domain extension must be 2-6 letters only
+            return /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/.test(email);
+        }
+        
+        // Add event listeners to Step 1 fields
+        step1Fields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            
+            // Debounced validation for input event (500ms delay)
+            const debouncedValidate = debounce(async () => {
+                await validateField(fieldId);
+                await validateStep1();
+            }, 500);
+            
+            // Validate on input (debounced for username/email)
+            field.addEventListener('input', () => {
+                if (fieldId === 'id_username' || fieldId === 'id_email') {
+                    debouncedValidate();
+                } else {
+                    validateField(fieldId);
+                    validateStep1();
+                }
+            });
+            
+            // Validate on blur (immediate)
+            field.addEventListener('blur', async () => {
+                await validateField(fieldId);
+                await validateStep1();
+            });
+        });
+        
+        // Step 2 button is always enabled (no role selection needed)
+        const step2Btn = document.getElementById('step2ContinueBtn');
+        if (step2Btn) {
+            step2Btn.disabled = false;
+        }
+        
+        // Validate step 1 on page load (but don't show errors initially)
+        setTimeout(() => {
+            step1Fields.forEach(fieldId => {
+                const field = document.getElementById(fieldId);
+                if (field.value.trim()) {
+                    validateField(fieldId);
+                }
+            });
+            validateStep1();
+        }, 100);
+        
+        // Auto-dismiss messages after 5 seconds and only show the most recent
+        const messagesContainer = document.querySelector('.messages-container');
+        if (messagesContainer) {
+            const alerts = messagesContainer.querySelectorAll('.alert');
+            
+            // If there are multiple messages, only show the last one
+            if (alerts.length > 1) {
+                alerts.forEach((alert, index) => {
+                    if (index < alerts.length - 1) {
+                        alert.style.display = 'none';
+                    }
+                });
+            }
+            
+            // Auto-dismiss after 5 seconds
+            setTimeout(() => {
+                alerts.forEach(alert => {
+                    alert.style.opacity = '0';
+                    alert.style.transform = 'translateY(-20px)';
+                    alert.style.transition = 'all 0.3s ease';
+                });
+                setTimeout(() => {
+                    messagesContainer.style.display = 'none';
+                }, 300);
+            }, 5000);
+        }
+    </script>
+</body>
+</html>
+

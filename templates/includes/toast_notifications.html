@@ -1,0 +1,488 @@
+<!-- Toast Notification System -->
+<div id="toastContainer" style="position: fixed !important; top: 80px !important; right: 20px !important; z-index: 10000 !important; display: flex !important; flex-direction: column !important; gap: 12px !important; max-width: 400px !important; pointer-events: none !important; width: auto !important; height: auto !important;"></div>
+
+<!-- Custom Confirmation Modal -->
+<div id="confirmModal" style="display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 10001; background: rgba(0, 0, 0, 0.5); backdrop-filter: blur(4px);">
+    <div id="confirmModalContent" style="background: var(--bg-white, #ffffff); border-radius: 16px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25); max-width: 440px; width: 90%; margin: 20px auto; position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); animation: modalSlideIn 0.3s ease-out;">
+        <div style="padding: 24px 24px 20px 24px; border-bottom: 1px solid var(--border-color, #e5e7eb);">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <div id="confirmIcon" style="width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                </div>
+                <div style="flex: 1;">
+                    <h3 id="confirmTitle" style="font-size: 1.125rem; font-weight: 700; color: var(--text-primary, #1f2937); margin: 0;"></h3>
+                </div>
+            </div>
+        </div>
+        <div style="padding: 20px 24px;">
+            <p id="confirmMessage" style="font-size: 0.9375rem; color: var(--text-secondary, #6b7280); line-height: 1.6; margin: 0;"></p>
+        </div>
+        <div style="padding: 16px 24px 24px 24px; display: flex; gap: 12px; justify-content: flex-end;">
+            <button id="confirmCancel" style="padding: 10px 20px; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; border: 1px solid var(--border-color, #e5e7eb); background: var(--bg-white, #ffffff); color: var(--text-secondary, #6b7280); cursor: pointer; transition: all 0.2s;">
+                Cancel
+            </button>
+            <button id="confirmOk" style="padding: 10px 20px; border-radius: 8px; font-size: 0.9375rem; font-weight: 600; border: none; cursor: pointer; transition: all 0.2s; color: white;">
+                Confirm
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    #toastContainer {
+        max-height: calc(100vh - 100px) !important;
+        overflow-y: auto !important;
+        overflow-x: visible !important;
+    }
+    
+    .toast {
+        display: flex !important;
+        align-items: flex-start !important;
+        gap: 12px !important;
+        padding: 16px 20px !important;
+        background: var(--bg-white, #ffffff) !important;
+        border-radius: 12px !important;
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+        border-left: 4px solid !important;
+        min-width: 320px !important;
+        max-width: 400px !important;
+        animation: slideInRight 0.3s ease-out !important;
+        position: relative !important;
+        overflow: hidden !important;
+        pointer-events: auto !important;
+    }
+    
+    .toast::before {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 3px;
+        background: currentColor;
+        animation: shrink 5s linear;
+    }
+    
+    .toast-success {
+        border-left-color: #10b981;
+        color: #10b981;
+    }
+    
+    .toast-error {
+        border-left-color: #ef4444;
+        color: #ef4444;
+    }
+    
+    .toast-warning {
+        border-left-color: #f59e0b;
+        color: #f59e0b;
+    }
+    
+    .toast-info {
+        border-left-color: #0ea5e9;
+        color: #0ea5e9;
+    }
+    
+    .toast-icon {
+        width: 24px;
+        height: 24px;
+        flex-shrink: 0;
+        margin-top: 2px;
+    }
+    
+    .toast-content {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+    
+    .toast-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--text-primary, #1f2937);
+    }
+    
+    .toast-message {
+        font-size: 0.875rem;
+        color: var(--text-secondary, #6b7280);
+        line-height: 1.5;
+    }
+    
+    .toast-close {
+        width: 20px;
+        height: 20px;
+        flex-shrink: 0;
+        background: none;
+        border: none;
+        cursor: pointer;
+        padding: 0;
+        color: var(--text-muted, #9ca3af);
+        transition: color 0.2s;
+    }
+    
+    .toast-close:hover {
+        color: var(--text-primary, #1f2937);
+    }
+    
+    .toast-close svg {
+        width: 100%;
+        height: 100%;
+    }
+    
+    @keyframes slideInRight {
+        from {
+            opacity: 0;
+            transform: translateX(100%);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+    
+    @keyframes slideOutRight {
+        from {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        to {
+            opacity: 0;
+            transform: translateX(120%);
+        }
+    }
+    
+    @keyframes shrink {
+        from {
+            width: 100%;
+        }
+        to {
+            width: 0%;
+        }
+    }
+    
+    @keyframes modalSlideIn {
+        from {
+            opacity: 0;
+            transform: scale(0.95) translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+    }
+    
+    .toast.removing {
+        animation: slideOutRight 0.3s ease-in forwards;
+    }
+    
+    #confirmCancel:hover {
+        background: var(--bg-gray, #f9fafb);
+        border-color: var(--text-secondary, #6b7280);
+    }
+    
+    #confirmOk:hover {
+        opacity: 0.9;
+        transform: translateY(-1px);
+    }
+    
+    @media (max-width: 640px) {
+        #toastContainer {
+            left: 20px;
+            right: 20px;
+            max-width: none;
+        }
+        
+        .toast {
+            min-width: auto;
+            max-width: none;
+        }
+    }
+</style>
+
+<script>
+    // Toast Notification System
+    const toastIcons = {
+        success: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+            <polyline points="22 4 12 14.01 9 11.01"></polyline>
+        </svg>`,
+        error: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="15" y1="9" x2="9" y2="15"></line>
+            <line x1="9" y1="9" x2="15" y2="15"></line>
+        </svg>`,
+        warning: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+            <line x1="12" y1="9" x2="12" y2="13"></line>
+            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+        </svg>`,
+        info: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+        </svg>`
+    };
+    
+    const toastTitles = {
+        success: 'Success',
+        error: 'Error',
+        warning: 'Warning',
+        info: 'Information'
+    };
+    
+    // Track shown messages to prevent duplicates
+    const shownMessages = new Set();
+    
+    function showToast(message, type = 'info', duration = 5000) {
+        const container = document.getElementById('toastContainer');
+        if (!container) return;
+        
+        // Create a unique key for this message
+        const messageKey = `${type}:${message}`;
+        
+        // Check if this exact message was already shown recently
+        if (shownMessages.has(messageKey)) {
+            console.log('Duplicate toast prevented:', messageKey);
+            return null;
+        }
+        
+        // Add to shown messages
+        shownMessages.add(messageKey);
+        
+        // Remove from tracking after duration + 1 second (longer window to catch rapid duplicates)
+        setTimeout(() => {
+            shownMessages.delete(messageKey);
+        }, duration + 1000);
+        
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        toast.innerHTML = `
+            <div class="toast-icon">
+                ${toastIcons[type]}
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">${toastTitles[type]}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+            <button class="toast-close" onclick="removeToast(this.parentElement)">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        `;
+        
+        container.appendChild(toast);
+        
+        // Auto remove after duration
+        if (duration > 0) {
+            setTimeout(() => {
+                removeToast(toast);
+            }, duration);
+        }
+        
+        return toast;
+    }
+    
+    function removeToast(toast) {
+        if (!toast) return;
+        toast.classList.add('removing');
+        setTimeout(() => {
+            if (toast.parentElement) {
+                toast.parentElement.removeChild(toast);
+            }
+        }, 300);
+    }
+    
+    // Custom Confirm Dialog
+    let confirmResolve = null;
+    
+    function showConfirm(message, type = 'warning') {
+        return new Promise((resolve) => {
+            confirmResolve = resolve;
+            
+            const modal = document.getElementById('confirmModal');
+            const icon = document.getElementById('confirmIcon');
+            const title = document.getElementById('confirmTitle');
+            const messageEl = document.getElementById('confirmMessage');
+            const okBtn = document.getElementById('confirmOk');
+            
+            // Set content
+            messageEl.textContent = message;
+            
+            // Set style based on type
+            if (type === 'danger' || type === 'error') {
+                title.textContent = 'Confirm Action';
+                icon.style.background = 'rgba(239, 68, 68, 0.1)';
+                icon.style.color = '#ef4444';
+                okBtn.style.background = '#ef4444';
+                icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                    <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                    <line x1="12" y1="9" x2="12" y2="13"></line>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>`;
+            } else if (type === 'success') {
+                title.textContent = 'Confirm';
+                icon.style.background = 'rgba(16, 185, 129, 0.1)';
+                icon.style.color = '#10b981';
+                okBtn.style.background = '#10b981';
+                icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>`;
+            } else {
+                title.textContent = 'Please Confirm';
+                icon.style.background = 'rgba(245, 158, 11, 0.1)';
+                icon.style.color = '#f59e0b';
+                okBtn.style.background = '#f59e0b';
+                icon.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>`;
+            }
+            
+            // Show modal with flex display for centering
+            modal.style.display = 'flex';
+            modal.style.alignItems = 'center';
+            modal.style.justifyContent = 'center';
+            
+            // Prevent body scroll
+            document.body.style.overflow = 'hidden';
+        });
+    }
+    
+    function hideConfirm() {
+        const modal = document.getElementById('confirmModal');
+        modal.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+    
+    // Event listeners for confirm dialog
+    document.addEventListener('DOMContentLoaded', function() {
+        const modal = document.getElementById('confirmModal');
+        const cancelBtn = document.getElementById('confirmCancel');
+        const okBtn = document.getElementById('confirmOk');
+        
+        cancelBtn.addEventListener('click', function() {
+            hideConfirm();
+            if (confirmResolve) {
+                confirmResolve(false);
+                confirmResolve = null;
+            }
+        });
+        
+        okBtn.addEventListener('click', function() {
+            hideConfirm();
+            if (confirmResolve) {
+                confirmResolve(true);
+                confirmResolve = null;
+            }
+        });
+        
+        // Close on background click
+        modal.addEventListener('click', function(e) {
+            if (e.target === modal) {
+                hideConfirm();
+                if (confirmResolve) {
+                    confirmResolve(false);
+                    confirmResolve = null;
+                }
+            }
+        });
+        
+        // Close on Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape' && modal.style.display === 'flex') {
+                hideConfirm();
+                if (confirmResolve) {
+                    confirmResolve(false);
+                    confirmResolve = null;
+                }
+            }
+        });
+    });
+    
+    // Replace alert function with toast
+    window.originalAlert = window.alert;
+    window.alert = function(message) {
+        // Determine type based on message content
+        let type = 'info';
+        if (message.toLowerCase().includes('success') || message.toLowerCase().includes('updated') || message.toLowerCase().includes('saved')) {
+            type = 'success';
+        } else if (message.toLowerCase().includes('error') || message.toLowerCase().includes('failed')) {
+            type = 'error';
+        } else if (message.toLowerCase().includes('warning') || message.toLowerCase().includes('must') || message.toLowerCase().includes('should')) {
+            type = 'warning';
+        }
+        
+        showToast(message, type);
+    };
+    
+    // Replace confirm function with custom dialog
+    window.originalConfirm = window.confirm;
+    window.confirm = async function(message) {
+        // Determine type based on message content
+        let type = 'warning';
+        if (message.toLowerCase().includes('delete') || message.toLowerCase().includes('remove')) {
+            type = 'danger';
+        } else if (message.toLowerCase().includes('approve') || message.toLowerCase().includes('accept')) {
+            type = 'success';
+        }
+        
+        return await showConfirm(message, type);
+    };
+    
+    // Helper function for handling async confirms in onclick/onsubmit
+    window.handleAsyncConfirm = async function(message, callback) {
+        const confirmed = await confirm(message);
+        if (confirmed && callback) {
+            callback();
+        }
+        return confirmed;
+    };
+    
+    // Auto-show Django messages as toasts on page load
+    // Use a flag to ensure this only runs once
+    let djangoMessagesProcessed = false;
+    
+    document.addEventListener('DOMContentLoaded', function() {
+        // Prevent duplicate processing
+        if (djangoMessagesProcessed) {
+            console.log('Django messages already processed, skipping');
+            return;
+        }
+        djangoMessagesProcessed = true;
+        
+        // Check if there are Django messages in the page
+        const djangoMessages = document.querySelectorAll('.django-message-data');
+        
+        if (djangoMessages.length === 0) {
+            return; // No messages to process
+        }
+        
+        console.log(`Processing ${djangoMessages.length} Django message(s)`);
+        
+        djangoMessages.forEach(function(msgEl) {
+            const message = msgEl.getAttribute('data-message');
+            const tags = msgEl.getAttribute('data-tags');
+            
+            // Map Django tags to toast types
+            let type = 'info';
+            if (tags.includes('success')) type = 'success';
+            else if (tags.includes('error') || tags.includes('danger')) type = 'error';
+            else if (tags.includes('warning')) type = 'warning';
+            
+            showToast(message, type);
+            
+            // Remove the message element after processing to prevent re-processing
+            msgEl.remove();
+        });
+    });
+</script>

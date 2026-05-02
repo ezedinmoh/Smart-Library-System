@@ -1,0 +1,383 @@
+<script>
+    // Theme Toggle Functionality
+    const themeToggle = document.getElementById('themeToggle');
+    const htmlElement = document.documentElement;
+    
+    // Load saved theme from localStorage
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    htmlElement.setAttribute('data-theme', savedTheme);
+    
+    if (themeToggle) {
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = htmlElement.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            
+            htmlElement.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+    }
+
+    // Profile Dropdown
+    const profileDropdown = document.getElementById('profileDropdown');
+    const profileBtn = document.getElementById('profileBtn');
+    const profileMenu = document.getElementById('profileMenu');
+
+    if (profileBtn && profileMenu) {
+        let profileHoverTimeout;
+        
+        // Click to toggle (works on all devices)
+        profileBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const isCurrentlyActive = profileDropdown.classList.contains('active');
+            
+            // Close other nav dropdowns when opening profile
+            if (!isCurrentlyActive) {
+                navDropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+            }
+            
+            // Toggle profile dropdown
+            profileDropdown.classList.toggle('active');
+        });
+        
+        // Hover support for desktop (better UX)
+        if (window.innerWidth >= 768) {
+            // Open on hover
+            profileDropdown.addEventListener('mouseenter', function() {
+                clearTimeout(profileHoverTimeout);
+                profileDropdown.classList.add('active');
+            });
+            
+            // Close with delay on mouse leave
+            profileDropdown.addEventListener('mouseleave', function() {
+                profileHoverTimeout = setTimeout(() => {
+                    profileDropdown.classList.remove('active');
+                }, 200); // 200ms delay to prevent accidental closes
+            });
+            
+            // Cancel close if mouse re-enters
+            profileDropdown.addEventListener('mouseenter', function() {
+                clearTimeout(profileHoverTimeout);
+            });
+        }
+        
+        // Prevent clicks inside the dropdown from closing it
+        profileMenu.addEventListener('click', function(e) {
+            // Only close if clicking on a link (dropdown-item)
+            if (e.target.classList.contains('dropdown-item') || e.target.closest('.dropdown-item')) {
+                profileDropdown.classList.remove('active');
+            } else {
+                e.stopPropagation();
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(e) {
+            // Check if click is outside the entire profile dropdown
+            if (!profileDropdown.contains(e.target)) {
+                profileDropdown.classList.remove('active');
+            }
+        });
+        
+        // Close on touch outside for mobile
+        document.addEventListener('touchstart', function(e) {
+            if (!profileDropdown.contains(e.target)) {
+                profileDropdown.classList.remove('active');
+            }
+        }, { passive: true });
+    }
+
+    // Navigation Dropdowns (for Admin and Librarian menus)
+    const navDropdowns = document.querySelectorAll('.nav-dropdown');
+    
+    navDropdowns.forEach(dropdown => {
+        const trigger = dropdown.querySelector('.dropdown-trigger');
+        const content = dropdown.querySelector('.dropdown-content');
+        
+        if (trigger && content) {
+            // Toggle on click
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+
+                const isCurrentlyActive = dropdown.classList.contains('active');
+
+                // Close other nav dropdowns
+                navDropdowns.forEach(other => {
+                    if (other !== dropdown) {
+                        other.classList.remove('active');
+                    }
+                });
+                
+                // Close profile dropdown when opening nav dropdown
+                if (profileDropdown && !isCurrentlyActive) {
+                    profileDropdown.classList.remove('active');
+                }
+
+                // Toggle this dropdown
+                dropdown.classList.toggle('active');
+            });
+
+            // Add hover support for desktop (min-width: 768px)
+            if (window.innerWidth >= 768) {
+                let hoverTimeout;
+                
+                dropdown.addEventListener('mouseenter', function() {
+                    clearTimeout(hoverTimeout);
+                    // Close other nav dropdowns
+                    navDropdowns.forEach(other => {
+                        if (other !== dropdown) {
+                            other.classList.remove('active');
+                        }
+                    });
+                    dropdown.classList.add('active');
+                });
+
+                dropdown.addEventListener('mouseleave', function() {
+                    // Add small delay before closing to prevent accidental closes
+                    hoverTimeout = setTimeout(() => {
+                        dropdown.classList.remove('active');
+                    }, 100);
+                });
+                
+                // Cancel close if mouse re-enters
+                dropdown.addEventListener('mouseenter', function() {
+                    clearTimeout(hoverTimeout);
+                });
+            }
+
+            // Close dropdown when clicking outside
+            document.addEventListener('click', function(e) {
+                if (!dropdown.contains(e.target)) {
+                    dropdown.classList.remove('active');
+                }
+            });
+        }
+    });
+
+    // Re-initialize hover on window resize
+    window.addEventListener('resize', function() {
+        navDropdowns.forEach(dropdown => {
+            const trigger = dropdown.querySelector('.dropdown-trigger');
+            const content = dropdown.querySelector('.dropdown-content');
+            
+            if (trigger && content) {
+                // Remove old listeners by cloning (simple approach)
+                // Add hover support for desktop
+                if (window.innerWidth >= 768) {
+                    dropdown.addEventListener('mouseenter', function() {
+                        navDropdowns.forEach(other => {
+                            if (other !== dropdown) {
+                                other.classList.remove('active');
+                            }
+                        });
+                        dropdown.classList.add('active');
+                    });
+
+                    dropdown.addEventListener('mouseleave', function() {
+                        dropdown.classList.remove('active');
+                    });
+                }
+            }
+        });
+    });
+
+    // Mobile Menu & Backdrop Toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    const mobileMenu = document.getElementById('mobileMenu');
+    const mobileMenuBackdrop = document.getElementById('mobileMenuBackdrop');
+
+    function toggleMobileMenu() {
+        const isActive = mobileMenu.classList.contains('active');
+        
+        if (isActive) {
+            // Close menu
+            mobileMenu.classList.remove('active');
+            mobileMenuBackdrop.classList.remove('active');
+            document.body.style.overflow = ''; // Restore scroll
+            
+            // Reset hamburger icon
+            const svg = mobileMenuBtn.querySelector('svg');
+            if (svg) {
+                svg.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+            }
+        } else {
+            // Open menu
+            mobileMenu.classList.add('active');
+            mobileMenuBackdrop.classList.add('active');
+            document.body.style.overflow = 'hidden'; // Prevent scroll
+            
+            // Change to X icon
+            const svg = mobileMenuBtn.querySelector('svg');
+            if (svg) {
+                svg.innerHTML = '<line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line>';
+            }
+        }
+    }
+
+    if (mobileMenuBtn && mobileMenu && mobileMenuBackdrop) {
+        // Toggle menu on button click
+        mobileMenuBtn.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleMobileMenu();
+        });
+
+        // Close menu when clicking backdrop
+        mobileMenuBackdrop.addEventListener('click', function() {
+            toggleMobileMenu();
+        });
+
+        // Close mobile menu when clicking a non-dropdown link
+        const mobileLinks = mobileMenu.querySelectorAll('.mobile-link:not(.mobile-dropdown-trigger)');
+        mobileLinks.forEach(link => {
+            link.addEventListener('click', function() {
+                toggleMobileMenu();
+            });
+        });
+    }
+
+    // Mobile Accordion Functionality
+    const mobileDropdowns = document.querySelectorAll('.mobile-dropdown');
+    
+    mobileDropdowns.forEach(dropdown => {
+        const trigger = dropdown.querySelector('.mobile-dropdown-trigger');
+        const content = dropdown.querySelector('.mobile-dropdown-content');
+        
+        if (trigger && content) {
+            trigger.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Toggle this dropdown
+                dropdown.classList.toggle('active');
+                
+                // Optional: Close other mobile dropdowns (uncomment if you want only one open at a time)
+                // mobileDropdowns.forEach(other => {
+                //     if (other !== dropdown) {
+                //         other.classList.remove('active');
+                //     }
+                // });
+            });
+        }
+    });
+
+    // Navbar scroll effect
+    const navbar = document.getElementById('navbar');
+    let lastScroll = 0;
+
+    if (navbar) {
+        window.addEventListener('scroll', function() {
+            const currentScroll = window.pageYOffset;
+
+            if (currentScroll > 10) {
+                navbar.classList.add('scrolled');
+            } else {
+                navbar.classList.remove('scrolled');
+            }
+
+            // Close all dropdowns on scroll (mobile)
+            if (window.innerWidth < 768) {
+                // Close nav dropdowns
+                navDropdowns.forEach(dropdown => {
+                    dropdown.classList.remove('active');
+                });
+                
+                // Close profile dropdown
+                if (profileDropdown) {
+                    profileDropdown.classList.remove('active');
+                }
+            }
+
+            lastScroll = currentScroll;
+        });
+    }
+
+    // Close all dropdowns on window resize
+    window.addEventListener('resize', function() {
+        // Re-check screen size and update hover behavior
+        const isDesktop = window.innerWidth >= 768;
+        
+        navDropdowns.forEach(dropdown => {
+            dropdown.classList.remove('active');
+        });
+        
+        if (profileDropdown) {
+            profileDropdown.classList.remove('active');
+        }
+
+        // Close mobile menu on desktop
+        if (window.innerWidth > 767 && mobileMenu && mobileMenu.classList.contains('active')) {
+            mobileMenu.classList.remove('active');
+            mobileMenuBackdrop.classList.remove('active');
+            document.body.style.overflow = '';
+            
+            const svg = mobileMenuBtn.querySelector('svg');
+            if (svg) {
+                svg.innerHTML = '<line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="18" x2="21" y2="18"></line>';
+            }
+        }
+    });
+
+    // Keyboard navigation (ESC key)
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            // Close all desktop dropdowns
+            navDropdowns.forEach(dropdown => {
+                dropdown.classList.remove('active');
+            });
+            
+            if (profileDropdown) {
+                profileDropdown.classList.remove('active');
+            }
+
+            // Close mobile menu
+            if (mobileMenu && mobileMenu.classList.contains('active')) {
+                toggleMobileMenu();
+            }
+        }
+    });
+
+    // Touch swipe to close mobile menu (optional enhancement)
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    if (mobileMenu) {
+        mobileMenu.addEventListener('touchstart', function(e) {
+            touchStartX = e.changedTouches[0].screenX;
+        }, { passive: true });
+
+        mobileMenu.addEventListener('touchend', function(e) {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, { passive: true });
+
+        function handleSwipe() {
+            // Swipe right to close (since menu slides from right)
+            if (touchEndX > touchStartX + 50) {
+                if (mobileMenu.classList.contains('active')) {
+                    toggleMobileMenu();
+                }
+            }
+        }
+    }
+
+    // Prevent body scroll when mobile menu is open (additional safety)
+    if (mobileMenu) {
+        const observer = new MutationObserver(function(mutations) {
+            mutations.forEach(function(mutation) {
+                if (mutation.attributeName === 'class') {
+                    if (mobileMenu.classList.contains('active')) {
+                        document.body.style.overflow = 'hidden';
+                    } else {
+                        document.body.style.overflow = '';
+                    }
+                }
+            });
+        });
+
+        observer.observe(mobileMenu, { attributes: true });
+    }
+</script>

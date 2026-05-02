@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ target_user.get_full_name|default:target_user.username }} - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {% include 'includes/enhanced_nav_styles.html' %}
+    {% include 'includes/responsive_tables_styles.html' %}
+    <style>
+        :root {
+            --primary-green: #10b981; --primary-blue: #0ea5e9; --primary-purple: #8b5cf6;
+            --text-primary: #1f2937; --text-secondary: #6b7280; --text-muted: #9ca3af;
+            --bg-white: #ffffff; --bg-gray: #f9fafb; --bg-light: #f3f4f6; --border-color: #e5e7eb;
+            --error: #ef4444; --warning: #f59e0b; --success: #10b981;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1); --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem;
+        }
+        [data-theme="dark"] { --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #9ca3af; --bg-white: #1f2937; --bg-gray: #111827; --bg-light: #374151; --border-color: #374151; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gray); color: var(--text-primary); min-height: 100vh; }
+        .main-container { max-width: 1280px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* Header */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+        .breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--primary-green); }
+        .breadcrumb svg { width: 16px; height: 16px; }
+        .page-title { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.375rem; }
+        .page-title svg { width: 28px; height: 28px; color: var(--primary-green); }
+        .page-title h1 { font-size: 1.875rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-subtitle { color: var(--text-secondary); font-size: 0.9375rem; }
+        .header-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .btn svg { width: 18px; height: 18px; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-warning { background: rgba(245,158,11,0.1); color: #f59e0b; border: 1.5px solid rgba(245,158,11,0.3); }
+        .btn-warning:hover { background: #f59e0b; color: white; }
+        .btn-outline { background: transparent; color: var(--text-secondary); border: 2px solid var(--border-color); }
+        .btn-outline:hover { border-color: var(--primary-green); color: var(--primary-green); }
+        .btn-ghost { background: var(--bg-light); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .btn-ghost:hover { background: var(--border-color); color: var(--text-primary); }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
+        .btn-success { background: rgba(16,185,129,0.1); color: var(--success); border: 1.5px solid rgba(16,185,129,0.3); }
+        .btn-success:hover { background: var(--success); color: white; }
+        .btn-danger { background: rgba(239,68,68,0.1); color: var(--error); border: 1.5px solid rgba(239,68,68,0.3); }
+        .btn-danger:hover { background: var(--error); color: white; }
+
+        /* Layout Grid */
+        .detail-grid { display: grid; grid-template-columns: 320px 1fr; gap: 1.5rem; align-items: start; }
+
+        /* Cards */
+        .card { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 1.25rem; }
+        .card:last-child { margin-bottom: 0; }
+        .card-header { padding: 1.125rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; }
+        .card-header-title { font-size: 0.9375rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.625rem; }
+        .card-header-title svg { width: 18px; height: 18px; color: var(--primary-green); }
+        .card-body { padding: 1.5rem; }
+
+        /* Profile Card */
+        .profile-top { text-align: center; padding: 2rem 1.5rem 1.5rem; }
+        .profile-avatar { width: 96px; height: 96px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 800; font-size: 2.5rem; margin: 0 auto 1rem; box-shadow: var(--shadow-md); }
+        .profile-top .profile-name { font-size: 1.125rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.25rem; line-height: 1.3; word-wrap: break-word; overflow-wrap: break-word; max-width: 100%; }
+        .profile-username { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 0.75rem; font-weight: 400; }
+        .profile-badges { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 1.25rem; }
+        .badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.375rem 0.875rem; font-size: 0.8125rem; font-weight: 700; border-radius: 9999px; }
+        .badge svg { width: 14px; height: 14px; }
+        .badge-admin { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .badge-librarian { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .badge-student { background: rgba(14,165,233,0.1); color: var(--primary-blue); }
+        .badge-active { background: rgba(16,185,129,0.1); color: var(--success); }
+        .badge-inactive { background: rgba(107,114,128,0.1); color: var(--text-secondary); }
+        .badge-avid { background: rgba(16,185,129,0.1); color: var(--success); }
+        .badge-lover { background: rgba(14,165,233,0.1); color: var(--primary-blue); }
+        .badge-reader { background: rgba(107,114,128,0.1); color: var(--text-secondary); }
+
+        /* Contact Info */
+        .info-list { display: flex; flex-direction: column; gap: 0.875rem; }
+        .info-item { display: flex; align-items: flex-start; gap: 0.875rem; }
+        .info-item svg { width: 18px; height: 18px; color: var(--text-muted); flex-shrink: 0; margin-top: 2px; }
+        .info-item-label { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-muted); margin-bottom: 0.125rem; }
+        .info-item-value { font-size: 0.9375rem; color: var(--text-primary); font-weight: 500; }
+
+        /* Library Stats */
+        .lib-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+        .lib-stat { padding: 0.875rem; background: var(--bg-light); border-radius: var(--radius-md); text-align: center; }
+        .lib-stat-value { font-size: 1.375rem; font-weight: 800; color: var(--text-primary); line-height: 1; margin-bottom: 0.25rem; }
+        .lib-stat-label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 500; }
+        .lib-stat-value.red { color: var(--error); }
+
+        /* Library Card */
+        .id-card { max-width: 400px; margin: 0 auto; }
+        .id-card-front { background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); border-radius: var(--radius-lg); padding: 20px; color: white; box-shadow: var(--shadow-lg); }
+        .id-card-header { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .id-card-logo svg { width: 32px; height: 32px; }
+        .id-card-title { display: flex; flex-direction: column; }
+        .id-card-org { font-size: 1.125rem; font-weight: 700; }
+        .id-card-type { font-size: 0.75rem; opacity: 0.9; }
+        .id-card-body { display: flex; gap: 16px; margin-bottom: 20px; }
+        .id-card-photo { width: 80px; height: 100px; background: rgba(255, 255, 255, 0.2); border-radius: var(--radius-md); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .id-photo-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .id-photo-placeholder { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .id-photo-placeholder svg { width: 32px; height: 32px; opacity: 0.7; }
+        .id-card-details { flex: 1; display: flex; flex-direction: column; gap: 8px; }
+        .id-detail { display: flex; flex-direction: column; }
+        .id-label { font-size: 0.688rem; opacity: 0.8; text-transform: uppercase; letter-spacing: 0.05em; }
+        .id-value { font-size: 0.875rem; font-weight: 600; }
+        .id-card-footer { display: flex; justify-content: space-between; align-items: flex-end; padding-top: 16px; border-top: 1px solid rgba(255, 255, 255, 0.2); }
+        .id-barcode { display: flex; flex-direction: column; gap: 4px; }
+        .barcode-lines { display: flex; gap: 2px; height: 32px; }
+        .barcode-lines span { width: 2px; background: white; border-radius: 1px; }
+        .barcode-lines span:nth-child(odd) { height: 100%; }
+        .barcode-lines span:nth-child(even) { height: 80%; }
+        .barcode-lines span:nth-child(3n) { width: 3px; }
+        .barcode-number { font-size: 0.688rem; font-family: monospace; letter-spacing: 0.1em; }
+        .qr-code { width: 48px; height: 48px; background: white; border-radius: 4px; padding: 4px; }
+        .qr-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 2px; width: 100%; height: 100%; }
+        .qr-grid span { background: var(--text-primary); border-radius: 1px; }
+        .qr-grid span:nth-child(2n) { background: transparent; }
+        .qr-grid span:nth-child(3n) { background: var(--text-primary); }
+
+        /* Stats Row */
+        .stats-row { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 1.25rem; }
+        .stat-card { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; text-align: center; box-shadow: var(--shadow-sm); }
+        .stat-value { font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: 0.25rem; }
+        .stat-label { font-size: 0.8125rem; color: var(--text-secondary); font-weight: 500; }
+
+        /* Table */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table thead { background: var(--bg-light); border-bottom: 2px solid var(--border-color); }
+        .data-table th { padding: 0.875rem 1.25rem; font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); text-align: left; }
+        .data-table tbody tr { border-bottom: 1px solid var(--border-color); transition: background 0.15s; }
+        .data-table tbody tr:last-child { border-bottom: none; }
+        .data-table tbody tr:hover { background: var(--bg-gray); }
+        .data-table td { padding: 0.875rem 1.25rem; font-size: 0.9375rem; vertical-align: middle; }
+        .status-badge { display: inline-flex; align-items: center; padding: 0.25rem 0.625rem; font-size: 0.8125rem; font-weight: 700; border-radius: 9999px; }
+        .status-borrowed { background: rgba(14,165,233,0.1); color: var(--primary-blue); }
+        .status-overdue { background: rgba(239,68,68,0.1); color: var(--error); }
+        .status-returned { background: rgba(16,185,129,0.1); color: var(--success); }
+
+        /* Pending Requests */
+        .request-item { display: flex; align-items: center; justify-content: space-between; padding: 0.875rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+        
+        /* Navigation Profile Name Override - Show full name */
+        .profile-dropdown .profile-name {
+            max-width: 200px;
+        }
+        .request-item:last-child { border-bottom: none; }
+        .request-title { font-weight: 600; font-size: 0.9375rem; color: var(--text-primary); margin-bottom: 0.125rem; }
+        .request-date { font-size: 0.8125rem; color: var(--text-muted); }
+        .avail-badge { display: inline-flex; padding: 0.25rem 0.625rem; font-size: 0.8125rem; font-weight: 700; border-radius: 9999px; }
+        .avail-yes { background: rgba(16,185,129,0.1); color: var(--success); }
+        .avail-no { background: rgba(239,68,68,0.1); color: var(--error); }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 3rem 2rem; color: var(--text-muted); }
+        .empty-state svg { width: 48px; height: 48px; opacity: 0.4; margin-bottom: 0.875rem; }
+        .empty-state p { font-size: 0.9375rem; }
+
+        /* Modal Styles */
+        .modal-input { width: 100%; padding: 0.75rem; border: 2px solid var(--border-color); border-radius: var(--radius-md); font-size: 1rem; font-family: 'Inter', sans-serif; margin-bottom: 0.5rem; }
+        .modal-input:focus { outline: none; border-color: var(--primary-green); }
+        .modal-label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .modal-help-text { font-size: 0.75rem; color: var(--text-muted); margin-top: 0.5rem; }
+        .modal-warning { background: rgba(245,158,11,0.1); border-left: 4px solid #f59e0b; padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; }
+        .modal-danger { background: rgba(239,68,68,0.1); border-left: 4px solid #ef4444; padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; }
+        .modal-success { background: rgba(16,185,129,0.1); border-left: 4px solid #10b981; padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; }
+        .data-summary { background: var(--bg-light); padding: 1rem; border-radius: var(--radius-md); margin-bottom: 1rem; }
+        .data-summary-item { display: flex; justify-content: space-between; padding: 0.5rem 0; border-bottom: 1px solid var(--border-color); }
+        .data-summary-item:last-child { border-bottom: none; }
+        .data-summary-label { font-size: 0.875rem; color: var(--text-secondary); }
+        .data-summary-value { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+
+        @media (max-width: 1024px) { .detail-grid { grid-template-columns: 1fr; } .stats-row { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 640px) { .main-container { padding: 1.5rem 1rem; } .stats-row { grid-template-columns: repeat(2, 1fr); } .header-actions { flex-direction: column; width: 100%; } }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+
+    <div class="main-container">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <div class="breadcrumb">
+                    <a href="{% url 'dashboard:home' %}">Dashboard</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                    <a href="{% url 'users:list' %}">Users</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                    <span>{{ target_user.get_full_name|default:target_user.username }}</span>
+                </div>
+                <div class="page-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <h1>User Profile</h1>
+                </div>
+                <p class="page-subtitle">Detailed view of user account and activity</p>
+            </div>
+            <div class="header-actions">
+                {% if target_user.is_active %}
+                <button onclick="openDeactivateModal()" class="btn btn-warning btn-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line>
+                    </svg>
+                    Deactivate
+                </button>
+                {% else %}
+                <button onclick="openActivateModal()" class="btn btn-success btn-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Activate
+                </button>
+                {% endif %}
+                <button onclick="openDeleteModal()" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239,68,68,0.3);">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    </svg>
+                    Delete
+                </button>
+                <a href="{% url 'users:role_change' target_user.pk %}" class="btn btn-warning btn-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                    Change Role
+                </a>
+                <a href="{% url 'users:list' %}" class="btn btn-outline btn-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5m7-7l-7 7 7 7"></path></svg>
+                    Back to Users
+                </a>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+
+            <!-- LEFT COLUMN -->
+            <div>
+                <!-- Profile Card -->
+                <div class="card">
+                    <div class="profile-top">
+                        <div class="profile-avatar">{{ target_user.get_full_name|default:target_user.username|slice:":1"|upper }}</div>
+                        <div class="profile-name">{{ target_user.get_full_name|default:target_user.username }}</div>
+                        <div class="profile-username">@{{ target_user.username }}</div>
+                        <div class="profile-badges">
+                            {% if target_user.role == 'admin' %}
+                            <span class="badge badge-admin">Administrator</span>
+                            {% elif target_user.role == 'librarian' %}
+                            <span class="badge badge-librarian">Librarian</span>
+                            {% else %}
+                            <span class="badge badge-student">Student</span>
+                            {% endif %}
+                            
+                            {% if target_user.is_active %}
+                            <span class="badge badge-active">Active</span>
+                            {% else %}
+                            <span class="badge badge-inactive">Inactive</span>
+                            {% endif %}
+                        </div>
+                        {% if target_user.is_student %}
+                        <div style="margin-bottom: 1rem;">
+                            {% if target_user.profile.reading_badge == 'avid_reader' %}
+                            <span class="badge badge-avid">📚 Avid Reader</span>
+                            {% elif target_user.profile.reading_badge == 'book_lover' %}
+                            <span class="badge badge-lover">📖 Book Lover</span>
+                            {% else %}
+                            <span class="badge badge-reader">📕 Reader</span>
+                            {% endif %}
+                            <p style="font-size:0.8125rem;color:var(--text-muted);margin-top:0.375rem;">{{ target_user.profile.total_books_read }} books read</p>
+                        </div>
+                        {% endif %}
+                        <a href="{% url 'dashboard:library_card' target_user.id %}" class="btn btn-success btn-sm" style="width:100%;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                            Download Library Card
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Contact Info -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4m0-4h.01"></path></svg>
+                            Contact Info
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="info-list">
+                            <div class="info-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+                                <div><div class="info-item-label">Email</div><div class="info-item-value">{{ target_user.email }}</div></div>
+                            </div>
+                            <div class="info-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.56 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                                <div><div class="info-item-label">Phone</div><div class="info-item-value">{{ target_user.phone_number|default:"Not provided" }}</div></div>
+                            </div>
+                            <div class="info-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                                <div><div class="info-item-label">Address</div><div class="info-item-value">{{ target_user.address|default:"Not provided" }}</div></div>
+                            </div>
+                            <div class="info-item">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                                <div><div class="info-item-label">Joined</div><div class="info-item-value">{{ target_user.date_joined|date:"M d, Y" }}</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Library Profile -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                            Library Profile
+                        </div>
+                        <button onclick="openBorrowLimitModal()" class="btn btn-sm btn-ghost">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            Edit Limit
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="lib-stats">
+                            <div class="lib-stat">
+                                <div class="lib-stat-value">{{ profile.max_books_allowed }}</div>
+                                <div class="lib-stat-label">Borrow Limit</div>
+                            </div>
+                            <div class="lib-stat">
+                                <div class="lib-stat-value">{{ profile.currently_borrowed }}</div>
+                                <div class="lib-stat-label">Currently Borrowed</div>
+                            </div>
+                            <div class="lib-stat">
+                                <div class="lib-stat-value red">ETB {{ total_fines|floatformat:0 }}</div>
+                                <div class="lib-stat-label">Total Fines</div>
+                            </div>
+                            <div class="lib-stat">
+                                <div class="lib-stat-value red">ETB {{ unpaid_fines|floatformat:0 }}</div>
+                                <div class="lib-stat-label">Unpaid Fines</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Library Card -->
+                <div class="card">
+                    <div class="card-header" style="background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));">
+                        <div class="card-header-title" style="color: white;">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                            Library Card
+                        </div>
+                    </div>
+                    <div class="card-body" style="background: linear-gradient(135deg, #f5f7fa, #e8edf5); padding: 1.5rem;">
+                        <div class="id-card">
+                            <div class="id-card-front">
+                                <div class="id-card-header">
+                                    <div class="id-card-logo">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                                        </svg>
+                                    </div>
+                                    <div class="id-card-title">
+                                        <span class="id-card-org">SmartLibrary</span>
+                                        <span class="id-card-type">Library Membership Card</span>
+                                    </div>
+                                </div>
+                                <div class="id-card-body">
+                                    <div class="id-card-photo">
+                                        {% if target_user.profile.profile_picture %}
+                                            <img src="{{ target_user.profile.profile_picture.url }}" alt="{{ target_user.username }}" class="id-photo-img">
+                                        {% else %}
+                                            <div class="id-photo-placeholder">
+                                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                                                    <circle cx="12" cy="7" r="4"></circle>
+                                                </svg>
+                                            </div>
+                                        {% endif %}
+                                    </div>
+                                    <div class="id-card-details">
+                                        <div class="id-detail">
+                                            <span class="id-label">Name</span>
+                                            <span class="id-value">{{ target_user.get_full_name|default:target_user.username }}</span>
+                                        </div>
+                                        <div class="id-detail">
+                                            <span class="id-label">ID Number</span>
+                                            <span class="id-value">LIB-{{ target_user.id|stringformat:"04d" }}</span>
+                                        </div>
+                                        <div class="id-detail">
+                                            <span class="id-label">Role</span>
+                                            <span class="id-value">{{ target_user.get_role_display }}</span>
+                                        </div>
+                                        <div class="id-detail">
+                                            <span class="id-label">Valid Until</span>
+                                            <span class="id-value">{{ valid_until|date:"F Y" }}</span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="id-card-footer">
+                                    <div class="id-barcode">
+                                        <div class="barcode-lines">
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                            <span></span><span></span><span></span><span></span><span></span>
+                                        </div>
+                                        <span class="barcode-number">LIB{{ target_user.id|stringformat:"04d" }}</span>
+                                    </div>
+                                    <div class="id-qr">
+                                        <div class="qr-code">
+                                            <div class="qr-grid">
+                                                <span></span><span></span><span></span><span></span><span></span>
+                                                <span></span><span></span><span></span><span></span><span></span>
+                                                <span></span><span></span><span></span><span></span><span></span>
+                                                <span></span><span></span><span></span><span></span><span></span>
+                                                <span></span><span></span><span></span><span></span><span></span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- RIGHT COLUMN -->
+            <div>
+
+                <!-- Stats Row -->
+                <div class="stats-row">
+                    <div class="stat-card">
+                        <div class="stat-value" style="color:var(--primary-blue);">{{ active_borrows.count }}</div>
+                        <div class="stat-label">Active Borrows</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color:var(--success);">{{ total_returned }}</div>
+                        <div class="stat-label">Returned</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color:var(--error);">{{ overdue_borrows.count }}</div>
+                        <div class="stat-label">Overdue</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" style="color:var(--primary-purple);">{{ total_borrowed }}</div>
+                        <div class="stat-label">Total Borrowed</div>
+                    </div>
+                </div>
+
+                <!-- Pending Requests -->
+                {% if pending_requests %}
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Pending Requests
+                        </div>
+                        <span style="display:inline-flex;align-items:center;padding:0.25rem 0.75rem;font-size:0.8125rem;font-weight:700;background:rgba(245,158,11,0.1);color:#f59e0b;border-radius:9999px;">
+                            {{ pending_requests.count }}
+                        </span>
+                    </div>
+                    <div>
+                        {% for req in pending_requests %}
+                        <div class="request-item">
+                            <div>
+                                <div class="request-title">{{ req.book.title }}</div>
+                                <div class="request-date">Requested {{ req.request_date|date:"M d, Y" }}</div>
+                            </div>
+                            {% if req.book.available_copies > 0 %}
+                            <span class="avail-badge avail-yes">{{ req.book.available_copies }} available</span>
+                            {% else %}
+                            <span class="avail-badge avail-no">Out of stock</span>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Borrow History -->
+                <div class="card">
+                    <div class="card-header">
+                        <div class="card-header-title">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path>
+                            </svg>
+                            Recent Borrow History
+                        </div>
+                        <span style="display:inline-flex;align-items:center;padding:0.25rem 0.75rem;font-size:0.8125rem;font-weight:700;background:rgba(16,185,129,0.1);color:var(--primary-green);border-radius:9999px;">
+                            Last 10
+                        </span>
+                    </div>
+
+                    {% if borrow_records %}
+                    <div class="responsive-table-wrapper">
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Book</th>
+                                    <th>Borrowed</th>
+                                    <th>Due</th>
+                                    <th>Status</th>
+                                    <th>Fine</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for record in borrow_records %}
+                                <tr>
+                                    <td data-label="Book">
+                                        <div style="font-weight:600;font-size:0.9375rem;color:var(--text-primary);">{{ record.book.title|truncatewords:4 }}</div>
+                                        <div style="font-size:0.8125rem;color:var(--text-muted);">{{ record.book.author|truncatewords:3 }}</div>
+                                    </td>
+                                    <td data-label="Borrowed" style="font-size:0.875rem;color:var(--text-secondary);">{{ record.borrow_date|date:"M d, Y" }}</td>
+                                    <td data-label="Due" style="font-size:0.875rem;color:var(--text-secondary);">{{ record.due_date|date:"M d, Y" }}</td>
+                                    <td data-label="Status">
+                                        {% if record.status == 'borrowed' %}
+                                        <span class="status-badge status-borrowed">Borrowed</span>
+                                        {% elif record.status == 'overdue' %}
+                                        <span class="status-badge status-overdue">Overdue</span>
+                                        {% elif record.status == 'returned' %}
+                                        <span class="status-badge status-returned">Returned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td data-label="Fine">
+                                        {% if record.fine_amount > 0 %}
+                                        <div style="font-weight:700;color:var(--error);font-size:0.9375rem;">ETB {{ record.fine_amount }}</div>
+                                        {% if record.fine_paid %}
+                                        <div style="font-size:0.8125rem;color:var(--success);">Paid</div>
+                                        {% else %}
+                                        <div style="font-size:0.8125rem;color:var(--error);">Unpaid</div>
+                                        {% endif %}
+                                        {% else %}
+                                        <span style="color:var(--text-muted);">-</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    {% else %}
+                    <div class="empty-state">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        <p>No borrow history yet.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+            </div>
+            <!-- END RIGHT COLUMN -->
+
+        </div>
+        <!-- END DETAIL GRID -->
+
+    </div>
+    <!-- END MAIN CONTAINER -->
+
+    <!-- Borrow Limit Modal -->
+    <div id="borrowLimitModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:var(--bg-white); border-radius:var(--radius-xl); padding:2rem; max-width:400px; width:90%; box-shadow:var(--shadow-lg);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <h3 style="font-size:1.25rem; font-weight:700; color:var(--text-primary);">Edit Borrow Limit</h3>
+                <button onclick="closeBorrowLimitModal()" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); font-size:1.5rem;">&times;</button>
+            </div>
+            <form method="post" action="{% url 'users:update_borrow_limit' target_user.id %}">
+                {% csrf_token %}
+                <div style="margin-bottom:1.5rem;">
+                    <label style="display:block; font-size:0.875rem; font-weight:600; color:var(--text-secondary); margin-bottom:0.5rem;">
+                        Maximum Books Allowed
+                    </label>
+                    <input type="number" name="max_books_allowed" value="{{ profile.max_books_allowed }}" min="1" max="20" required
+                           style="width:100%; padding:0.75rem; border:2px solid var(--border-color); border-radius:var(--radius-md); font-size:1rem; font-family:'Inter',sans-serif;">
+                    <p style="font-size:0.75rem; color:var(--text-muted); margin-top:0.5rem;">Set between 1 and 20 books</p>
+                </div>
+                <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                    <button type="button" onclick="closeBorrowLimitModal()" class="btn btn-outline btn-sm">Cancel</button>
+                    <button type="submit" class="btn btn-primary btn-sm">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    <!-- Delete User Modal -->
+    <div id="deleteModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:var(--bg-white); border-radius:var(--radius-xl); padding:2rem; max-width:500px; width:90%; box-shadow:var(--shadow-lg); max-height:90vh; overflow-y:auto;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <h3 style="font-size:1.25rem; font-weight:700; background:linear-gradient(135deg, #ef4444, #dc2626); -webkit-background-clip:text; -webkit-text-fill-color:transparent;">⚠️ Permanent Deletion Warning</h3>
+                <button onclick="closeDeleteModal()" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); font-size:1.5rem;">&times;</button>
+            </div>
+            
+            <div class="modal-danger">
+                <p style="font-weight:600; color:#ef4444; margin-bottom:0.5rem;">⚠️ This action CANNOT be undone!</p>
+                <p style="font-size:0.875rem; color:var(--text-secondary);">All user data will be permanently deleted from the system.</p>
+            </div>
+
+            <div class="data-summary">
+                <h4 style="font-size:0.875rem; font-weight:700; color:var(--text-primary); margin-bottom:0.75rem;">Data to be Deleted:</h4>
+                <div class="data-summary-item">
+                    <span class="data-summary-label">Borrow Records</span>
+                    <span class="data-summary-value">{{ borrow_records|default:0 }}</span>
+                </div>
+                <div class="data-summary-item">
+                    <span class="data-summary-label">Active Borrows</span>
+                    <span class="data-summary-value">{{ active_borrows|default:0 }}</span>
+                </div>
+                <div class="data-summary-item">
+                    <span class="data-summary-label">Book Requests</span>
+                    <span class="data-summary-value">{{ book_requests|default:0 }}</span>
+                </div>
+                <div class="data-summary-item">
+                    <span class="data-summary-label">Payments</span>
+                    <span class="data-summary-value">{{ payments|default:0 }}</span>
+                </div>
+                <div class="data-summary-item">
+                    <span class="data-summary-label">Reviews</span>
+                    <span class="data-summary-value">{{ reviews|default:0 }}</span>
+                </div>
+            </div>
+
+            <form method="post" action="{% url 'users:delete' target_user.id %}" id="deleteForm">
+                {% csrf_token %}
+                <div style="margin-bottom:1rem;">
+                    <label class="modal-label">Type the username to confirm: <strong>{{ target_user.username }}</strong></label>
+                    <input type="text" name="confirmation" id="deleteUsernameInput" class="modal-input" placeholder="Enter username" autocomplete="off">
+                    <p class="modal-help-text">Username must match exactly</p>
+                </div>
+
+                <div style="margin-bottom:1.5rem;">
+                    <label class="modal-label">Type <strong>DELETE</strong> to confirm permanent deletion</label>
+                    <input type="text" id="deleteConfirmInput" class="modal-input" placeholder="Type DELETE" autocomplete="off">
+                    <p class="modal-help-text">Type DELETE in capital letters</p>
+                </div>
+
+                <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                    <button type="button" onclick="closeDeleteModal()" class="btn btn-outline btn-sm">Cancel</button>
+                    <button type="submit" id="deleteSubmitBtn" class="btn btn-danger btn-sm" disabled>Permanently Delete</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Deactivate User Modal -->
+    <div id="deactivateModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:var(--bg-white); border-radius:var(--radius-xl); padding:2rem; max-width:450px; width:90%; box-shadow:var(--shadow-lg);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <h3 style="font-size:1.25rem; font-weight:700; color:#f59e0b;">⚠️ Deactivate User</h3>
+                <button onclick="closeDeactivateModal()" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); font-size:1.5rem;">&times;</button>
+            </div>
+            
+            <div class="modal-warning">
+                <p style="font-weight:600; color:#f59e0b; margin-bottom:0.5rem;">User will be deactivated</p>
+                <p style="font-size:0.875rem; color:var(--text-secondary);">All data will be preserved and the user can be reactivated later.</p>
+            </div>
+
+            <div style="background:var(--bg-light); padding:1rem; border-radius:var(--radius-md); margin-bottom:1.5rem;">
+                <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:0.5rem;"><strong>User:</strong> {{ target_user.username }}</p>
+                <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:0.5rem;"><strong>Email:</strong> {{ target_user.email }}</p>
+                <p style="font-size:0.875rem; color:var(--text-secondary);"><strong>Active Borrows:</strong> {{ active_borrows|default:0 }}</p>
+            </div>
+
+            <form method="post" action="{% url 'users:deactivate' target_user.id %}">
+                {% csrf_token %}
+                <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                    <button type="button" onclick="closeDeactivateModal()" class="btn btn-outline btn-sm">Cancel</button>
+                    <button type="submit" class="btn btn-warning btn-sm">Deactivate User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Activate User Modal -->
+    <div id="activateModal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; align-items:center; justify-content:center;">
+        <div style="background:var(--bg-white); border-radius:var(--radius-xl); padding:2rem; max-width:450px; width:90%; box-shadow:var(--shadow-lg);">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+                <h3 style="font-size:1.25rem; font-weight:700; color:var(--success);">✅ Activate User</h3>
+                <button onclick="closeActivateModal()" style="background:none; border:none; cursor:pointer; color:var(--text-secondary); font-size:1.5rem;">&times;</button>
+            </div>
+            
+            <div class="modal-success">
+                <p style="font-weight:600; color:var(--success); margin-bottom:0.5rem;">Reactivate this user account</p>
+                <p style="font-size:0.875rem; color:var(--text-secondary);">The user will regain access to their account and all preserved data.</p>
+            </div>
+
+            <div style="background:var(--bg-light); padding:1rem; border-radius:var(--radius-md); margin-bottom:1.5rem;">
+                <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:0.5rem;"><strong>User:</strong> {{ target_user.username }}</p>
+                <p style="font-size:0.875rem; color:var(--text-secondary); margin-bottom:0.5rem;"><strong>Email:</strong> {{ target_user.email }}</p>
+                <p style="font-size:0.875rem; color:var(--text-secondary);"><strong>Role:</strong> {{ target_user.get_role_display }}</p>
+            </div>
+
+            <form method="post" action="{% url 'users:activate' target_user.id %}">
+                {% csrf_token %}
+                <div style="display:flex; gap:0.75rem; justify-content:flex-end;">
+                    <button type="button" onclick="closeActivateModal()" class="btn btn-outline btn-sm">Cancel</button>
+                    <button type="submit" class="btn btn-success btn-sm">Activate User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+        <script>
+        // Borrow Limit Modal Functions
+        function openBorrowLimitModal() {
+            document.getElementById('borrowLimitModal').style.display = 'flex';
+        }
+        
+        function closeBorrowLimitModal() {
+            document.getElementById('borrowLimitModal').style.display = 'none';
+        }
+        
+        document.getElementById('borrowLimitModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeBorrowLimitModal();
+            }
+        });
+
+        // Delete Modal Functions
+        function openDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'flex';
+            document.getElementById('deleteUsernameInput').value = '';
+            document.getElementById('deleteConfirmInput').value = '';
+            document.getElementById('deleteSubmitBtn').disabled = true;
+        }
+        
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+        }
+        
+        document.getElementById('deleteModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeleteModal();
+            }
+        });
+
+        // Delete form validation
+        const deleteUsernameInput = document.getElementById('deleteUsernameInput');
+        const deleteConfirmInput = document.getElementById('deleteConfirmInput');
+        const deleteSubmitBtn = document.getElementById('deleteSubmitBtn');
+        const expectedUsername = '{{ target_user.username }}';
+
+        function validateDeleteForm() {
+            const usernameMatch = deleteUsernameInput.value === expectedUsername;
+            const confirmMatch = deleteConfirmInput.value === 'DELETE';
+            deleteSubmitBtn.disabled = !(usernameMatch && confirmMatch);
+        }
+
+        deleteUsernameInput.addEventListener('input', validateDeleteForm);
+        deleteConfirmInput.addEventListener('input', validateDeleteForm);
+
+        // Deactivate Modal Functions
+        function openDeactivateModal() {
+            document.getElementById('deactivateModal').style.display = 'flex';
+        }
+        
+        function closeDeactivateModal() {
+            document.getElementById('deactivateModal').style.display = 'none';
+        }
+        
+        document.getElementById('deactivateModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeDeactivateModal();
+            }
+        });
+
+        // Activate Modal Functions
+        function openActivateModal() {
+            document.getElementById('activateModal').style.display = 'flex';
+        }
+        
+        function closeActivateModal() {
+            document.getElementById('activateModal').style.display = 'none';
+        }
+        
+        document.getElementById('activateModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeActivateModal();
+            }
+        });
+    </script>
+
+
+    {% include 'includes/enhanced_nav_scripts.html' %}
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

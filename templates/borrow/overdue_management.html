@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Overdue Books - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {% include 'includes/enhanced_nav_styles.html' %}
+    {% include 'includes/responsive_tables_styles.html' %}
+    <style>
+        :root { --primary-green: #10b981; --primary-blue: #0ea5e9; --text-primary: #1f2937; --text-secondary: #6b7280; --text-muted: #9ca3af; --bg-white: #ffffff; --bg-gray: #f9fafb; --bg-light: #f3f4f6; --border-color: #e5e7eb; --error: #ef4444; --warning: #f59e0b; --success: #10b981; --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1); --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem; }
+        [data-theme="dark"] { --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #9ca3af; --bg-white: #1f2937; --bg-gray: #111827; --bg-light: #374151; --border-color: #374151; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gray); color: var(--text-primary); min-height: 100vh; }
+        .main-container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+        .breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--primary-green); }
+        .breadcrumb svg { width: 16px; height: 16px; }
+        .page-title { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.375rem; }
+        .page-title svg { width: 28px; height: 28px; color: var(--error); }
+        .page-title h1 { font-size: 1.875rem; font-weight: 800; background: linear-gradient(135deg, var(--error), var(--warning)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-subtitle { color: var(--text-secondary); font-size: 0.9375rem; }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .btn svg { width: 18px; height: 18px; }
+        .btn-outline { background: transparent; color: var(--text-secondary); border: 2px solid var(--border-color); }
+        .btn-outline:hover { border-color: var(--primary-green); color: var(--primary-green); }
+        .btn-sm { padding: 0.5rem 0.875rem; font-size: 0.875rem; }
+        .btn-pay { background: rgba(16,185,129,0.1); color: var(--success); border: 1.5px solid rgba(16,185,129,0.3); }
+        .btn-pay:hover { background: var(--success); color: white; transform: translateY(-1px); }
+        .btn-return { background: rgba(14,165,233,0.1); color: var(--primary-blue); border: 1.5px solid rgba(14,165,233,0.3); }
+        .btn-return:hover { background: var(--primary-blue); color: white; transform: translateY(-1px); }
+
+        /* Stats */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 1.5rem; }
+        .stat-card { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-sm); transition: all 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .stat-icon { width: 52px; height: 52px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .stat-icon svg { width: 24px; height: 24px; }
+        .stat-icon.red { background: rgba(239,68,68,0.1); color: var(--error); }
+        .stat-icon.orange { background: rgba(245,158,11,0.1); color: var(--warning); }
+        .stat-icon.green { background: rgba(16,185,129,0.1); color: var(--success); }
+        .stat-icon.red2 { background: rgba(239,68,68,0.1); color: var(--error); }
+        .stat-value { font-size: 1.625rem; font-weight: 800; line-height: 1; margin-bottom: 0.25rem; }
+        .stat-label { font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; }
+
+        /* Info Banner */
+        .info-banner { display: flex; align-items: center; gap: 0.75rem; padding: 1rem 1.25rem; background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.2); border-radius: var(--radius-lg); margin-bottom: 1.5rem; font-size: 0.9375rem; color: #0c4a6e; }
+        [data-theme="dark"] .info-banner { color: #7dd3fc; }
+        .info-banner svg { width: 20px; height: 20px; color: var(--primary-blue); flex-shrink: 0; }
+
+        /* Table */
+        .table-container { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); overflow: hidden; }
+        .table-header { display: flex; align-items: center; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .table-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.75rem; }
+        .table-title svg { width: 20px; height: 20px; color: var(--error); }
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table thead { background: var(--bg-light); border-bottom: 2px solid var(--border-color); }
+        .data-table th { padding: 0.875rem 1.25rem; font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); text-align: left; white-space: nowrap; }
+        .data-table tbody tr { border-bottom: 1px solid var(--border-color); transition: background 0.15s; }
+        .data-table tbody tr:last-child { border-bottom: none; }
+        .data-table tbody tr:hover { background: rgba(239,68,68,0.03); }
+        .data-table td { padding: 1rem 1.25rem; font-size: 0.9375rem; vertical-align: middle; }
+
+        .user-name { font-weight: 600; color: var(--text-primary); }
+        .user-email { font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.125rem; }
+        .book-title { font-weight: 600; color: var(--text-primary); }
+        .book-author { font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.125rem; }
+
+        .status-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.3rem 0.75rem; font-size: 0.8125rem; font-weight: 700; border-radius: 9999px; }
+        .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .status-overdue { background: rgba(239,68,68,0.1); color: var(--error); }
+        .status-overdue::before { background: var(--error); }
+        .status-returned { background: rgba(16,185,129,0.1); color: var(--success); }
+        .status-returned::before { background: var(--success); }
+        
+        .overdue-badge { display: inline-flex; align-items: center; padding: 0.3rem 0.75rem; font-size: 0.8125rem; font-weight: 700; background: rgba(239,68,68,0.1); color: var(--error); border-radius: 9999px; }
+        .fine-amount { font-weight: 700; font-size: 1rem; }
+        .fine-amount.paid { color: var(--success); }
+        .fine-amount.unpaid { color: var(--error); }
+        .fine-badge-paid { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.3rem 0.75rem; font-size: 0.8125rem; font-weight: 700; background: rgba(16,185,129,0.1); color: var(--success); border-radius: 9999px; }
+        .fine-badge-unpaid { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.3rem 0.75rem; font-size: 0.8125rem; font-weight: 700; background: rgba(245,158,11,0.1); color: var(--warning); border-radius: 9999px; }
+        .paid-date { font-size: 0.8125rem; color: var(--success); font-weight: 600; margin-top: 0.25rem; }
+        .row-actions { display: flex; flex-direction: column; gap: 0.5rem; }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 5rem 2rem; }
+        .empty-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(16,185,129,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
+        .empty-icon svg { width: 40px; height: 40px; color: var(--success); }
+        .empty-state h3 { font-size: 1.25rem; font-weight: 700; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .empty-state p { color: var(--text-secondary); }
+
+        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .main-container { padding: 1.5rem 1rem; } .page-header { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+
+    <div class="main-container">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <div class="breadcrumb">
+                    <a href="{% url 'dashboard:home' %}">Dashboard</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                    <span>Overdue Books</span>
+                </div>
+                <div class="page-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                        <line x1="12" y1="9" x2="12" y2="13"></line>
+                        <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                    </svg>
+                    <h1>Overdue Books</h1>
+                </div>
+                <p class="page-subtitle">{% if can_manage %}Manage overdue books and collect fines{% else %}View overdue books{% endif %}</p>
+            </div>
+            <a href="{% url 'borrow:all_records' %}" class="btn btn-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                All Records
+            </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <div><div class="stat-value" style="color:var(--error);">{{ records.count }}</div><div class="stat-label">Total Records</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+                <div>
+                    <div class="stat-value" style="color:var(--warning);">ETB {{ total_fines|floatformat:0 }}</div>
+                    <div class="stat-label">Current Overdue (≈ ${{ total_fines_usd|floatformat:2 }})</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red2">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg>
+                </div>
+                <div>
+                    <div class="stat-value" style="color:var(--error);">ETB {{ unpaid_fines|floatformat:0 }}</div>
+                    <div class="stat-label">Unpaid ({{ unpaid_count }}) ≈ ${{ unpaid_fines_usd|floatformat:2 }}</div>
+                </div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                </div>
+                <div>
+                    <div class="stat-value" style="color:var(--success);">ETB {{ paid_fines|floatformat:0 }}</div>
+                    <div class="stat-label">Collected (≈ ${{ paid_fines_usd|floatformat:2 }})</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Info Banner for non-admin -->
+        {% if not can_manage %}
+        <div class="info-banner">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4m0-4h.01"></path></svg>
+            You can view overdue records. Only admins can process returns.
+        </div>
+        {% endif %}
+
+        <!-- Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    Overdue Records
+                </div>
+            </div>
+
+            {% if records %}
+            <div class="responsive-table-wrapper">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Student</th>
+                            <th>Book</th>
+                            <th>Due Date</th>
+                            <th>Status</th>
+                            <th>Days Overdue</th>
+                            <th>Fine</th>
+                            <th>Fine Status</th>
+                            {% if can_manage %}<th>Actions</th>{% endif %}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for record in records %}
+                        <tr>
+                            <td data-label="Student">
+                                <div class="user-name">{{ record.user.get_full_name|default:record.user.username }}</div>
+                                <div class="user-email">{{ record.user.email }}</div>
+                            </td>
+                            <td data-label="Book">
+                                <div class="book-title">{{ record.book.title|truncatewords:5 }}</div>
+                                <div class="book-author">{{ record.book.author }}</div>
+                            </td>
+                            <td data-label="Due Date" style="color:var(--error);font-weight:600;">{{ record.due_date|date:"M d, Y" }}</td>
+                            <td data-label="Status">
+                                {% if record.status == 'overdue' %}
+                                <span class="status-badge status-overdue">Overdue</span>
+                                {% elif record.status == 'returned' %}
+                                <span class="status-badge status-returned">Returned</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Days Overdue">
+                                {% if record.status == 'overdue' %}
+                                <span class="overdue-badge">{{ record.get_days_overdue }} day{{ record.get_days_overdue|pluralize }}</span>
+                                {% else %}
+                                <span style="color:var(--text-muted);">-</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Fine">
+                                <span class="fine-amount {% if record.fine_paid %}paid{% else %}unpaid{% endif %}">ETB {{ record.fine_amount }}</span>
+                            </td>
+                            <td data-label="Fine Status">
+                                {% if record.fine_paid %}
+                                <span class="fine-badge-paid">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                    Paid
+                                </span>
+                                {% if record.return_date %}
+                                <div class="paid-date">{{ record.return_date|date:"M d, Y" }}</div>
+                                {% endif %}
+                                {% else %}
+                                <span class="fine-badge-unpaid">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                                    Unpaid
+                                </span>
+                                {% endif %}
+                            </td>
+                            {% if can_manage %}
+                            <td data-label="Actions">
+                                <div class="row-actions">
+                                    {% if record.status == 'overdue' %}
+                                    <a href="{% url 'borrow:return_book' record.pk %}" class="btn btn-return btn-sm">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 14 4 9 9 4"></polyline><path d="M20 20v-7a4 4 0 0 0-4-4H4"></path></svg>
+                                        Return Book
+                                    </a>
+                                    {% else %}
+                                    <span style="color:var(--text-muted);font-size:0.875rem;">Already returned</span>
+                                    {% endif %}
+                                </div>
+                            </td>
+                            {% endif %}
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+            <div class="empty-state">
+                <div class="empty-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                </div>
+                <h3>All Clear!</h3>
+                <p>No overdue books at the moment. All books are returned on time.</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% include 'includes/enhanced_nav_scripts.html' %}
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

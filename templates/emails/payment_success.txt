@@ -1,0 +1,20 @@
+Hello {{ user.get_full_name|default:user.username }},
+
+Your payment has been processed successfully!
+
+PAYMENT DETAILS:
+Amount: {{ amount }} {{ currency }}
+Payment Method: {{ payment_method }}
+Transaction ID: {{ transaction_id }}
+
+BOOK DETAILS:
+Title: {{ book.title }}
+Author: {{ book.author }}
+
+Your fine has been cleared and your library account is now in good standing.
+
+Thank you for using {{ site_name }}!
+
+Best regards,
+{{ site_name }} Team
+{{ site_url }}

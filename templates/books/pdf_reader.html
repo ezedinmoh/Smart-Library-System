@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reading: {{ book.title }} - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+    {% include 'includes/enhanced_nav_styles.html' %}
+
+    <style>
+        :root {
+            --primary-green: #10b981;
+            --primary-blue: #0ea5e9;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --bg-white: #ffffff;
+            --bg-gray: #f9fafb;
+            --bg-light: #f3f4f6;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+        }
+
+        [data-theme="dark"] {
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-muted: #9ca3af;
+            --bg-white: #1f2937;
+            --bg-gray: #111827;
+            --bg-light: #374151;
+            --border-color: #374151;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-gray);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* "" Page Layout "" */
+        .reader-page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 1.5rem;
+            gap: 1rem;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* "" Book Info Bar "" */
+        .book-info-bar {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1.25rem;
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+        }
+
+        .book-cover-mini {
+            width: 48px;
+            height: 68px;
+            border-radius: var(--radius-sm);
+            object-fit: cover;
+            box-shadow: var(--shadow-md);
+            flex-shrink: 0;
+        }
+
+        .book-cover-mini-placeholder {
+            width: 48px;
+            height: 68px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 800;
+            font-size: 1.25rem;
+            flex-shrink: 0;
+        }
+
+        .book-info-text { flex: 1; min-width: 0; }
+
+        .book-info-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .book-info-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.25rem;
+            flex-wrap: wrap;
+        }
+
+        .book-info-meta span {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .book-info-meta svg { width: 14px; height: 14px; }
+
+        .info-bar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            flex-shrink: 0;
+        }
+
+        /* "" Buttons "" */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.625rem 1.25rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn svg { width: 16px; height: 16px; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue));
+            color: white;
+        }
+
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1.5px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+            background: rgba(16,185,129,0.05);
+        }
+
+        .btn-dark {
+            background: #1f2937;
+            color: white;
+            border: 1px solid #374151;
+        }
+
+        .btn-dark:hover { background: #374151; }
+
+        /* "" PDF Toolbar "" */
+        .pdf-toolbar {
+            background: #1e293b;
+            border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+            padding: 0.875rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .toolbar-left {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .toolbar-title {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .toolbar-title svg { width: 18px; height: 18px; color: var(--primary-green); }
+
+        .toolbar-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.25rem 0.625rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(16,185,129,0.2);
+            color: #6ee7b7;
+            border-radius: 9999px;
+        }
+
+        .toolbar-right {
+            display: flex;
+            align-items: center;
+            gap: 0.625rem;
+        }
+
+        .toolbar-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.5rem 0.875rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.12);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .toolbar-btn:hover {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            border-color: rgba(255,255,255,0.25);
+        }
+
+        .toolbar-btn svg { width: 15px; height: 15px; }
+
+        .toolbar-btn.active {
+            background: rgba(16,185,129,0.25);
+            color: #6ee7b7;
+            border-color: rgba(16,185,129,0.4);
+        }
+
+        /* "" PDF Container "" */
+        .pdf-wrapper {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            min-height: 0;
+        }
+
+        .pdf-frame-container {
+            flex: 1;
+            background: #525659;
+            position: relative;
+            min-height: 75vh;
+        }
+
+        .pdf-iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+            min-height: 75vh;
+        }
+
+        /* "" Status Bar "" */
+        .pdf-statusbar {
+            background: #1e293b;
+            border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+            padding: 0.625rem 1.25rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .statusbar-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .statusbar-item {
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.8125rem;
+            color: #94a3b8;
+        }
+
+        .statusbar-item svg { width: 14px; height: 14px; }
+
+        .statusbar-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--primary-green);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* "" Reading Tips Card "" */
+        .tips-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.25rem 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+        }
+
+        .tips-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: var(--radius-md);
+            background: rgba(16,185,129,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary-green);
+            flex-shrink: 0;
+        }
+
+        .tips-icon svg { width: 20px; height: 20px; }
+
+        .tips-text { flex: 1; }
+
+        .tips-text strong {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+
+        .tips-text span {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .tips-actions {
+            display: flex;
+            gap: 0.625rem;
+            flex-shrink: 0;
+        }
+
+        /* "" Fullscreen "" */
+        .pdf-wrapper:fullscreen .pdf-frame-container,
+        .pdf-wrapper:-webkit-full-screen .pdf-frame-container {
+            min-height: 100vh;
+        }
+
+        .pdf-wrapper:fullscreen .pdf-iframe,
+        .pdf-wrapper:-webkit-full-screen .pdf-iframe {
+            min-height: 100vh;
+        }
+
+        /* "" Responsive "" */
+        @media (max-width: 768px) {
+            .reader-page { padding: 1rem; }
+            .book-info-bar { gap: 0.875rem; }
+            .book-info-title { font-size: 1rem; }
+            .toolbar-title span { display: none; }
+            .toolbar-btn span { display: none; }
+            .pdf-frame-container { min-height: 60vh; }
+            .pdf-iframe { min-height: 60vh; }
+            .tips-card { flex-direction: column; align-items: flex-start; }
+        }
+
+        @media (max-width: 480px) {
+            .info-bar-actions .btn span { display: none; }
+            .statusbar-left { gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+    <div class="reader-page">
+
+        <!-- Book Info Bar -->
+        <div class="book-info-bar">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-mini">
+            {% else %}
+            <div class="book-cover-mini-placeholder">{{ book.title|slice:":1" }}</div>
+            {% endif %}
+
+            <div class="book-info-text">
+                <div class="book-info-title">{{ book.title }}</div>
+                <div class="book-info-meta">
+                    <span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        {{ book.author }}
+                    </span>
+                    {% if book.category %}
+                    <span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        </svg>
+                        {{ book.category.name }}
+                    </span>
+                    {% endif %}
+                    {% if book.pages %}
+                    <span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        {{ book.pages }} pages
+                    </span>
+                    {% endif %}
+                    {% if book.language %}
+                    <span>
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="2" y1="12" x2="22" y2="12"></line>
+                            <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                        </svg>
+                        {{ book.get_language_display }}
+                    </span>
+                    {% endif %}
+                </div>
+            </div>
+
+            <div class="info-bar-actions">
+                <a href="{% url 'books:serve_pdf' book.pk %}" download="{{ book.title }}.pdf" class="btn btn-outline">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                        <polyline points="7 10 12 15 17 10"></polyline>
+                        <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    <span>Download</span>
+                </a>
+                <a href="{% url 'books:detail' book.pk %}" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5m7-7l-7 7 7 7"></path>
+                    </svg>
+                    <span>Back to Book</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- PDF Viewer -->
+        <div class="pdf-wrapper" id="pdfWrapper">
+
+            <!-- Toolbar -->
+            <div class="pdf-toolbar">
+                <div class="toolbar-left">
+                    <div class="toolbar-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                            <line x1="16" y1="13" x2="8" y2="13"></line>
+                            <line x1="16" y1="17" x2="8" y2="17"></line>
+                            <polyline points="10 9 9 9 8 9"></polyline>
+                        </svg>
+                        <span>{{ book.title|truncatewords:6 }}</span>
+                    </div>
+                    <span class="toolbar-badge">PDF Reader</span>
+                </div>
+
+                <div class="toolbar-right">
+                    <button class="toolbar-btn" onclick="zoomOut()" title="Zoom Out">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            <line x1="8" y1="11" x2="14" y2="11"></line>
+                        </svg>
+                        <span>Zoom Out</span>
+                    </button>
+                    <button class="toolbar-btn" onclick="zoomIn()" title="Zoom In">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            <line x1="11" y1="8" x2="11" y2="14"></line>
+                            <line x1="8" y1="11" x2="14" y2="11"></line>
+                        </svg>
+                        <span>Zoom In</span>
+                    </button>
+                    <button class="toolbar-btn" id="fullscreenBtn" onclick="toggleFullscreen()" title="Fullscreen">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" id="fullscreenIcon">
+                            <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                        </svg>
+                        <span id="fullscreenText">Fullscreen</span>
+                    </button>
+                    <a href="{% url 'books:serve_pdf' book.pk %}" download="{{ book.title }}.pdf" class="toolbar-btn" title="Download PDF">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                            <polyline points="7 10 12 15 17 10"></polyline>
+                            <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        <span>Download</span>
+                    </a>
+                    <a href="{% url 'books:detail' book.pk %}" class="toolbar-btn" title="Back to Book">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 12H5m7-7l-7 7 7 7"></path>
+                        </svg>
+                        <span>Back</span>
+                    </a>
+                </div>
+            </div>
+
+            <!-- PDF Frame -->
+            <div class="pdf-frame-container" id="pdfFrameContainer">
+                <iframe
+                    src="{% url 'books:serve_pdf' book.pk %}"
+                    class="pdf-iframe"
+                    id="pdfViewer"
+                    allowfullscreen
+                    title="PDF Reader - {{ book.title }}">
+                    <div style="display:flex; align-items:center; justify-content:center; height:100%; color:#94a3b8; flex-direction:column; gap:1rem;">
+                        <svg style="width:64px;height:64px;opacity:0.4;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        <p>Your browser does not support inline PDFs.</p>
+                        <a href="{% url 'books:serve_pdf' book.pk %}" class="btn btn-primary">Download PDF</a>
+                    </div>
+                </iframe>
+            </div>
+
+            <!-- Status Bar -->
+            <div class="pdf-statusbar">
+                <div class="statusbar-left">
+                    <div class="statusbar-item">
+                        <div class="statusbar-dot"></div>
+                        <span>Reading now</span>
+                    </div>
+                    <div class="statusbar-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="12" cy="7" r="4"></circle>
+                        </svg>
+                        <span>{{ request.user.get_full_name|default:request.user.username }}</span>
+                    </div>
+                    {% if book.pages %}
+                    <div class="statusbar-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        </svg>
+                        <span>{{ book.pages }} pages</span>
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="statusbar-item">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polyline points="12 6 12 12 16 14"></polyline>
+                    </svg>
+                    <span id="readingTimer">0s</span>
+                </div>
+                <div class="statusbar-item" id="zoomLevel">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    <span>100%</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reading Tips -->
+        <div class="tips-card">
+            <div class="tips-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4m0-4h.01"></path>
+                </svg>
+            </div>
+            <div class="tips-text">
+                <strong>Reading Tips</strong>
+                <span>Use Ctrl+Scroll to zoom · Press F11 for browser fullscreen · Click Fullscreen button for immersive reading · Download for offline access</span>
+            </div>
+            <div class="tips-actions">
+                <a href="{% url 'books:detail' book.pk %}" class="btn btn-outline">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5m7-7l-7 7 7 7"></path>
+                    </svg>
+                    Back to Details
+                </a>
+                {% if user.is_student %}
+                <a href="{% url 'books:add_review' book.pk %}" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                    </svg>
+                    Write a Review
+                </a>
+                {% endif %}
+            </div>
+        </div>
+
+    </div>
+    {% include 'includes/enhanced_nav_scripts.html' %}
+
+    <script>
+        // "" Zoom """"""""""""""""""""""""""""""""""""""""""""""
+        let currentZoom = 100;
+
+        function zoomIn() {
+            currentZoom = Math.min(currentZoom + 25, 200);
+            applyZoom();
+        }
+
+        function zoomOut() {
+            currentZoom = Math.max(currentZoom - 25, 50);
+            applyZoom();
+        }
+
+        function applyZoom() {
+            const container = document.getElementById('pdfFrameContainer');
+            const iframe    = document.getElementById('pdfViewer');
+            iframe.style.transform       = `scale(${currentZoom / 100})`;
+            iframe.style.transformOrigin = 'top center';
+            iframe.style.width           = `${10000 / currentZoom}%`;
+            container.style.overflow     = currentZoom > 100 ? 'auto' : 'hidden';
+            document.getElementById('zoomLevel').querySelector('span').textContent = `${currentZoom}%`;
+        }
+
+        // "" Fullscreen """"""""""""""""""""""""""""""""""""""""
+        function toggleFullscreen() {
+            const wrapper = document.getElementById('pdfWrapper');
+            if (!document.fullscreenElement) {
+                wrapper.requestFullscreen().catch(err => {
+                    console.warn('Fullscreen error:', err);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+
+        document.addEventListener('fullscreenchange', function () {
+            const isFullscreen = !!document.fullscreenElement;
+            const btn  = document.getElementById('fullscreenBtn');
+            const icon = document.getElementById('fullscreenIcon');
+            const text = document.getElementById('fullscreenText');
+            const frameContainer = document.getElementById('pdfFrameContainer');
+            const iframe         = document.getElementById('pdfViewer');
+
+            if (isFullscreen) {
+                btn.classList.add('active');
+                text.textContent = 'Exit';
+                icon.innerHTML = `<path d="M8 3v3a2 2 0 0 1-2 2H3m18 0h-3a2 2 0 0 1-2-2V3m0 18v-3a2 2 0 0 1 2-2h3M3 16h3a2 2 0 0 1 2 2v3"></path>`;
+                frameContainer.style.minHeight = 'calc(100vh - 110px)';
+                iframe.style.minHeight         = 'calc(100vh - 110px)';
+            } else {
+                btn.classList.remove('active');
+                text.textContent = 'Fullscreen';
+                icon.innerHTML = `<path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>`;
+                frameContainer.style.minHeight = '75vh';
+                iframe.style.minHeight         = '75vh';
+            }
+        });
+
+        // "" Keyboard Shortcuts """"""""""""""""""""""""""""""""
+        document.addEventListener('keydown', function (e) {
+            // F11 ' toggle fullscreen
+            if (e.key === 'F11') {
+                e.preventDefault();
+                toggleFullscreen();
+            }
+            // Ctrl + = or Ctrl + + ' zoom in
+            if (e.ctrlKey && (e.key === '=' || e.key === '+')) {
+                e.preventDefault();
+                zoomIn();
+            }
+            // Ctrl + - ' zoom out
+            if (e.ctrlKey && e.key === '-') {
+                e.preventDefault();
+                zoomOut();
+            }
+            // Ctrl + 0 ' reset zoom
+            if (e.ctrlKey && e.key === '0') {
+                e.preventDefault();
+                currentZoom = 100;
+                applyZoom();
+            }
+        });
+
+        // "" Reading Timer """""""""""""""""""""""""""""""""""""
+        let readingSeconds = 0;
+        const timerEl = document.getElementById('readingTimer');
+
+        setInterval(function () {
+            readingSeconds++;
+            if (timerEl) {
+                const mins = Math.floor(readingSeconds / 60);
+                const secs = readingSeconds % 60;
+                timerEl.textContent = mins > 0
+                    ? `${mins}m ${secs}s`
+                    : `${secs}s`;
+            }
+        }, 1000);
+
+        // "" Auto-hide tips after 8s """""""""""""""""""""""""""
+        setTimeout(function () {
+            const tips = document.querySelector('.tips-card');
+            if (tips) {
+                tips.style.transition = 'opacity 0.5s ease, max-height 0.5s ease';
+                tips.style.opacity    = '0.4';
+            }
+        }, 8000);
+
+        document.querySelector('.tips-card')?.addEventListener('mouseenter', function () {
+            this.style.opacity = '1';
+        });
+
+        document.querySelector('.tips-card')?.addEventListener('mouseleave', function () {
+            this.style.opacity = '0.4';
+        });
+    </script>
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

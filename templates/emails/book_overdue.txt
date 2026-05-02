@@ -1,0 +1,52 @@
+Hi {{ user.get_full_name|default:user.username }},
+
+⚠️ OVERDUE NOTICE ⚠️
+
+Your borrowed book is now OVERDUE and requires immediate attention.
+
+Book Details:
+-------------
+Title: {{ book.title }}
+Author: {{ book.author }}
+Due Date: {{ due_date|date:"F d, Y" }}
+Days Overdue: {{ days_overdue }} day{{ days_overdue|pluralize }}
+
+FINE INFORMATION:
+-----------------
+Current Fine: ETB {{ fine_amount }}
+Fine Rate: ETB 2 per day
+
+{% if days_overdue == 1 %}
+Your book became overdue yesterday. Please return it as soon as possible to minimize additional fines.
+{% elif days_overdue <= 3 %}
+Your book is {{ days_overdue }} days overdue. Please return it immediately to avoid further penalties.
+{% else %}
+Your book is significantly overdue ({{ days_overdue }} days). Please return it urgently to avoid additional fines and restrictions.
+{% endif %}
+
+IMMEDIATE ACTION REQUIRED:
+--------------------------
+1. Return the book to the library immediately
+2. Pay the outstanding fine of ETB {{ fine_amount }}
+3. Contact the library if you have any issues
+
+CONSEQUENCES OF LATE RETURN:
+-----------------------------
+- Fines continue to accumulate (ETB 2 per day)
+- Your borrowing privileges may be suspended
+- You cannot borrow new books until this is resolved
+- Outstanding fines must be paid before future borrowing
+
+Return Options:
+- Visit the library during opening hours
+- Use the library return desk
+- Contact us for special arrangements
+
+Need Help?
+If you've already returned the book or have questions, please contact the library immediately at {{ site_name }}.
+
+IMPORTANT: Please resolve this matter as soon as possible to avoid further penalties.
+
+Best regards,
+{{ site_name }} Team
+{{ site_url }}

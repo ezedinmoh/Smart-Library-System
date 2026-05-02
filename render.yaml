@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: smart-library
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn library_system.wsgi:application --bind 0.0.0.0:$PORT"
+    envVars:
+      - key: RENDER
+        value: true
+      - key: DJANGO_SETTINGS_MODULE
+        value: library_system.settings_production
+      - key: PYTHON_VERSION
+        value: 3.11.0

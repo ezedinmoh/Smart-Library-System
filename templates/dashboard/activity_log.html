@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Activity Log - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {% include 'includes/enhanced_nav_styles.html' %}
+    {% include 'includes/responsive_tables_styles.html' %}
+    <style>
+        :root {
+            --primary-green: #10b981; --primary-blue: #0ea5e9; --primary-purple: #8b5cf6;
+            --text-primary: #1f2937; --text-secondary: #6b7280; --text-muted: #9ca3af;
+            --bg-white: #ffffff; --bg-gray: #f9fafb; --bg-light: #f3f4f6; --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem;
+        }
+        [data-theme="dark"] { --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #9ca3af; --bg-white: #1f2937; --bg-gray: #111827; --bg-light: #374151; --border-color: #374151; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gray); color: var(--text-primary); min-height: 100vh; }
+        .main-container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* Header */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+        .breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--primary-green); }
+        .breadcrumb svg { width: 16px; height: 16px; }
+        .page-title { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.375rem; }
+        .page-title svg { width: 28px; height: 28px; color: var(--primary-green); }
+        .page-title h1 { font-size: 1.875rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-subtitle { color: var(--text-secondary); font-size: 0.9375rem; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .btn svg { width: 18px; height: 18px; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .btn-ghost { background: var(--bg-light); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .btn-ghost:hover { background: var(--border-color); color: var(--text-primary); }
+        .btn-sm { padding: 0.5rem 1rem; font-size: 0.875rem; }
+
+        /* Filter Bar */
+        .filter-bar { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+        .filter-grid { display: grid; grid-template-columns: 2fr 1.5fr 1fr 1fr auto; gap: 1rem; align-items: end; }
+        .filter-group { display: flex; flex-direction: column; gap: 0.375rem; }
+        .filter-label { font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .filter-input, .filter-select { padding: 0.75rem 1rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem; color: var(--text-primary); background: var(--bg-gray); border: 2px solid var(--border-color); border-radius: var(--radius-md); transition: all 0.2s; width: 100%; }
+        .filter-input:focus, .filter-select:focus { outline: none; border-color: var(--primary-green); background: var(--bg-white); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+        .filter-actions { display: flex; gap: 0.5rem; }
+
+        /* Table Container */
+        .table-container { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); overflow: hidden; }
+        .table-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .table-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.75rem; }
+        .table-title svg { width: 20px; height: 20px; color: var(--primary-green); }
+        .count-badge { display: inline-flex; padding: 0.25rem 0.75rem; font-size: 0.8125rem; font-weight: 700; background: rgba(16,185,129,0.1); color: var(--primary-green); border-radius: 9999px; }
+
+        /* Log Table */
+        .log-table { width: 100%; border-collapse: collapse; }
+        .log-table thead { background: var(--bg-light); border-bottom: 2px solid var(--border-color); }
+        .log-table th { padding: 0.875rem 1.25rem; font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); text-align: left; white-space: nowrap; }
+        .log-table tbody tr { border-bottom: 1px solid var(--border-color); transition: background 0.15s; }
+        .log-table tbody tr:last-child { border-bottom: none; }
+        .log-table tbody tr:hover { background: var(--bg-gray); }
+        .log-table td { padding: 0.875rem 1.25rem; font-size: 0.9375rem; vertical-align: middle; }
+
+        /* Time Cell */
+        .time-cell { font-size: 0.8125rem; color: var(--text-secondary); white-space: nowrap; font-family: 'Courier New', monospace; }
+
+        /* User Link */
+        .user-link { display: inline-flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--primary-green); text-decoration: none; }
+        .user-link:hover { text-decoration: underline; }
+        .user-avatar-sm { width: 28px; height: 28px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.75rem; flex-shrink: 0; }
+
+        /* Action Badges */
+        .action-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.25rem 0.75rem; font-size: 0.8125rem; font-weight: 700; border-radius: 9999px; white-space: nowrap; }
+        .action-badge svg { width: 12px; height: 12px; }
+        .action-book_added, .action-book_updated { background: rgba(16,185,129,0.1); color: #10b981; }
+        .action-book_deleted { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .action-book_borrowed, .action-book_issued { background: rgba(14,165,233,0.1); color: #0ea5e9; }
+        .action-book_returned { background: rgba(139,92,246,0.1); color: #8b5cf6; }
+        .action-review_added, .action-review_updated { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .action-review_deleted { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .action-user_login, .action-user_registered { background: rgba(16,185,129,0.1); color: #10b981; }
+        .action-user_logout { background: rgba(107,114,128,0.1); color: #6b7280; }
+        .action-default { background: rgba(107,114,128,0.1); color: #6b7280; }
+
+        /* Description */
+        .desc-text { color: var(--text-primary); font-size: 0.9375rem; max-width: 400px; }
+        .ip-text { font-size: 0.8125rem; color: var(--text-muted); font-family: 'Courier New', monospace; }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 4rem 2rem; }
+        .empty-state svg { width: 64px; height: 64px; color: var(--text-muted); opacity: 0.4; margin-bottom: 1rem; }
+        .empty-state h4 { font-size: 1.125rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .empty-state p { color: var(--text-muted); }
+
+        /* Pagination */
+        .pagination-wrapper { display: flex; justify-content: center; align-items: center; gap: 0.5rem; padding: 1.25rem; border-top: 1px solid var(--border-color); }
+        .page-btn { display: inline-flex; align-items: center; justify-content: center; padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600; color: var(--text-secondary); background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-md); text-decoration: none; transition: all 0.2s; }
+        .page-btn:hover { border-color: var(--primary-green); color: var(--primary-green); }
+        .page-btn.active { background: var(--primary-green); color: white; border-color: var(--primary-green); }
+        .page-btn svg { width: 16px; height: 16px; }
+        .page-info { font-size: 0.875rem; color: var(--text-secondary); padding: 0 0.5rem; }
+
+        @media (max-width: 1024px) { .filter-grid { grid-template-columns: 1fr 1fr; } }
+        @media (max-width: 768px) { .main-container { padding: 1.5rem 1rem; } .filter-grid { grid-template-columns: 1fr; } .log-table { font-size: 0.875rem; } }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+
+    <div class="main-container">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <div class="breadcrumb">
+                    <a href="{% url 'dashboard:home' %}">Dashboard</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                    <a href="{% url 'dashboard:system_admin' %}">System Admin</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                    <span>Activity Log</span>
+                </div>
+                <div class="page-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                    </svg>
+                    <h1>Activity Log</h1>
+                </div>
+                <p class="page-subtitle">Complete history of all system actions and events</p>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <form method="get">
+                <div class="filter-grid">
+                    <div class="filter-group">
+                        <label class="filter-label">Action Type</label>
+                        <select name="action" class="filter-select">
+                            <option value="">All Actions</option>
+                            {% for value, label in action_choices %}
+                            <option value="{{ value }}" {% if action_filter == value %}selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">User</label>
+                        <input type="text" name="user" class="filter-input" placeholder="Search username..." value="{{ user_filter }}">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">From Date</label>
+                        <input type="date" name="date_from" class="filter-input" value="{{ date_from }}">
+                    </div>
+                    <div class="filter-group">
+                        <label class="filter-label">To Date</label>
+                        <input type="date" name="date_to" class="filter-input" value="{{ date_to }}">
+                    </div>
+                    <div class="filter-actions">
+                        <button type="submit" class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                            Filter
+                        </button>
+                        {% if action_filter or user_filter or date_from or date_to %}
+                        <a href="{% url 'dashboard:activity_log' %}" class="btn btn-ghost">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                    Activity Logs
+                    <span class="count-badge">{{ total_count }} total</span>
+                </div>
+            </div>
+
+            {% if logs %}
+            <div class="responsive-table-wrapper">
+                <table class="log-table">
+                    <thead>
+                        <tr>
+                            <th>Time</th>
+                            <th>User</th>
+                            <th>Action</th>
+                            <th>Description</th>
+                            <th>IP Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for log in logs %}
+                        <tr>
+                            <td data-label="Time"><span class="time-cell">{{ log.created_at|date:"Y-m-d H:i:s" }}</span></td>
+                            <td data-label="User">
+                                {% if log.user %}
+                                <a href="{% url 'users:detail' log.user.pk %}" class="user-link">
+                                    <div class="user-avatar-sm">{{ log.user.username|slice:":1"|upper }}</div>
+                                    {{ log.user.username }}
+                                </a>
+                                {% else %}
+                                <span style="color:var(--text-muted);font-size:0.875rem;">System</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Action">
+                                <span class="action-badge action-{{ log.action|default:'default' }}">
+                                    {{ log.get_action_display }}
+                                </span>
+                            </td>
+                            <td data-label="Description"><span class="desc-text">{{ log.description }}</span></td>
+                            <td data-label="IP Address"><span class="ip-text">{{ log.ip_address|default:"-" }}</span></td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if page_obj.has_other_pages %}
+            <div class="pagination-wrapper">
+                {% if page_obj.has_previous %}
+                <a href="?page={{ page_obj.previous_page_number }}&action={{ action_filter }}&user={{ user_filter }}&date_from={{ date_from }}&date_to={{ date_to }}" class="page-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"></path></svg>
+                    Previous
+                </a>
+                {% endif %}
+                <span class="page-info">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}&action={{ action_filter }}&user={{ user_filter }}&date_from={{ date_from }}&date_to={{ date_to }}" class="page-btn">
+                    Next
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            {% else %}
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                <h4>No activity logs found</h4>
+                <p>{% if action_filter or user_filter or date_from or date_to %}Try adjusting your filters.{% else %}No system activity has been recorded yet.{% endif %}</p>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    {% include 'includes/enhanced_nav_scripts.html' %}
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

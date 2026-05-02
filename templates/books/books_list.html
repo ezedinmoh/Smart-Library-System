@@ -1,0 +1,1324 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Catalog - Smart Library Management System</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    {% include 'includes/enhanced_nav_styles.html' %}
+    <style>
+        :root {
+            --primary: #10b981;
+            --primary-dark: #059669;
+            --primary-light: #34d399;
+            --secondary: #0ea5e9;
+            --accent: #f59e0b;
+            --background: #ffffff;
+            --surface: #f8fafc;
+            --surface-hover: #f1f5f9;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --text-muted: #94a3b8;
+            --border: #e2e8f0;
+            --border-light: #f1f5f9;
+            --success: #22c55e;
+            --error: #ef4444;
+            --warning: #f59e0b;
+            --gradient-start: #10b981;
+            --gradient-end: #0ea5e9;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --shadow-xl: 0 25px 50px -12px rgb(0 0 0 / 0.25);
+            --radius: 12px;
+            --radius-lg: 16px;
+            --radius-full: 9999px;
+        }
+        
+        [data-theme="dark"] {
+            --background: #0f172a;
+            --surface: #1e293b;
+            --surface-hover: #334155;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --border: #334155;
+            --border-light: #1e293b;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--background);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+            transition: background 0.3s ease, color 0.3s ease;
+        }
+        
+        a {
+            text-decoration: none;
+            color: inherit;
+        }
+        
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 40px;
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Button Styles */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            font-size: 1rem;
+            font-weight: 600;
+            border-radius: var(--radius);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.5);
+        }
+        
+        .btn-secondary {
+            background: var(--surface);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            background: var(--surface-hover);
+            border-color: var(--primary);
+        }
+        
+        .btn-sm {
+            padding: 10px 18px;
+            font-size: 0.875rem;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+        }
+        
+        /* Gradient Backgrounds */
+        .gradient-1 { background: linear-gradient(135deg, #667eea, #764ba2); }
+        .gradient-2 { background: linear-gradient(135deg, #f093fb, #f5576c); }
+        .gradient-3 { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .gradient-4 { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .gradient-5 { background: linear-gradient(135deg, #fa709a, #fee140); }
+        .gradient-6 { background: linear-gradient(135deg, #a18cd1, #fbc2eb); }
+        
+        /* Catalog Page Styles */
+        .catalog-page {
+            min-height: 100vh;
+        }
+        
+        .catalog-main {
+            padding: 100px 0 60px;
+        }
+        
+        .back-to-home-catalog {
+            margin-bottom: 24px;
+        }
+        
+        .back-to-home-catalog a {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--surface);
+            color: var(--primary);
+            font-weight: 600;
+            font-size: 0.938rem;
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            transition: all 0.3s ease;
+        }
+        
+        .back-to-home-catalog a:hover {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateX(-4px);
+        }
+        
+        .back-to-home-catalog a svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
+        }
+        
+        .back-to-home-catalog a:hover svg {
+            transform: translateX(-4px);
+        }
+        
+        .catalog-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            flex-wrap: wrap;
+            gap: 24px;
+        }
+        
+        .catalog-title h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+        
+        .catalog-title p {
+            color: var(--text-secondary);
+        }
+        
+        .catalog-stats {
+            display: flex;
+            gap: 32px;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-value {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .stat-label {
+            font-size: 0.813rem;
+            color: var(--text-muted);
+        }
+        
+        /* Search and Filters */
+        .search-filters-section {
+            margin-bottom: 32px;
+        }
+        
+        .search-container {
+            margin-bottom: 20px;
+        }
+        
+        .advanced-search-box {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 8px 8px 8px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-lg);
+            transition: all 0.2s ease;
+        }
+        
+        .advanced-search-box:focus-within {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+        
+        .advanced-search-box svg {
+            width: 22px;
+            height: 22px;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+        
+        .advanced-search-box input {
+            flex: 1;
+            border: none;
+            background: none;
+            outline: none;
+            font-size: 1rem;
+            color: var(--text-primary);
+            padding: 12px 0;
+        }
+        
+        .advanced-search-box input::placeholder {
+            color: var(--text-muted);
+        }
+        
+        .search-btn {
+            padding: 12px 24px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 0.938rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .search-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+        }
+        
+        .filters-container {
+            display: flex;
+            align-items: flex-end;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        
+        .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .filter-group select {
+            padding: 10px 36px 10px 14px;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            color: var(--text-primary);
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            min-width: 160px;
+        }
+        
+        .filter-group select:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        
+        .clear-filters-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .clear-filters-btn svg {
+            width: 16px;
+            height: 16px;
+        }
+        
+        .clear-filters-btn:hover {
+            border-color: var(--error);
+            color: var(--error);
+        }
+        
+        .results-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+        
+        .results-info p {
+            color: var(--text-secondary);
+        }
+        
+        .results-info span {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        
+        .view-toggle {
+            display: flex;
+            gap: 4px;
+            background: var(--surface);
+            padding: 4px;
+            border-radius: var(--radius);
+        }
+        
+        .view-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            background: transparent;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .view-btn svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-muted);
+        }
+        
+        .view-btn.active {
+            background: var(--background);
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .view-btn.active svg {
+            color: var(--primary);
+        }
+        
+        /* Books Grid */
+        .books-catalog-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+        
+        /* List View Styles */
+        .books-catalog-list {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            margin-bottom: 48px;
+        }
+        
+        .books-catalog-list .book-catalog-card {
+            display: flex;
+            flex-direction: row;
+            height: 140px;
+        }
+        
+        .books-catalog-list .book-catalog-cover {
+            width: 100px;
+            height: 140px;
+            flex-shrink: 0;
+        }
+        
+        .books-catalog-list .book-catalog-info {
+            flex: 1;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .books-catalog-list .book-title {
+            font-size: 1.125rem;
+            margin-bottom: 8px;
+        }
+        
+        .books-catalog-list .book-author {
+            margin-bottom: 4px;
+        }
+        
+        .books-catalog-list .book-category {
+            margin-bottom: 4px;
+        }
+        
+        .books-catalog-list .book-isbn {
+            margin-bottom: 8px;
+        }
+        
+        .books-catalog-list .book-rating {
+            margin-bottom: 12px;
+        }
+        
+        .books-catalog-list .btn {
+            width: auto;
+            align-self: flex-start;
+        }
+        
+        .book-catalog-card {
+            background: var(--background);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--border);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        
+        .book-catalog-card:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-lg);
+        }
+        
+        .book-catalog-cover {
+            height: 180px;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .book-cover-image {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            background: var(--surface);
+        }
+        
+        .book-badge {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            padding: 4px 10px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            border-radius: var(--radius-full);
+        }
+        
+        .book-badge.available {
+            background: rgba(34, 197, 94, 0.9);
+            color: white;
+        }
+        
+        .book-badge.borrowed {
+            background: rgba(245, 158, 11, 0.9);
+            color: white;
+        }
+        
+        .book-actions {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            opacity: 0;
+            transform: translateX(-10px);
+            transition: all 0.3s ease;
+        }
+        
+        .book-catalog-card:hover .book-actions {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .book-action-btn {
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            border: none;
+            border-radius: var(--radius);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: var(--shadow);
+        }
+        
+        .book-action-btn svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-secondary);
+        }
+        
+        .book-action-btn:hover {
+            background: var(--primary);
+        }
+        
+        .book-action-btn:hover svg {
+            color: white;
+        }
+        
+        .book-catalog-info {
+            padding: 16px;
+        }
+        
+        .book-title {
+            font-size: 0.938rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .book-author {
+            font-size: 0.813rem;
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+        
+        .book-category {
+            font-size: 0.75rem;
+            color: var(--primary);
+            font-weight: 500;
+            margin-bottom: 4px;
+        }
+        
+        .book-isbn {
+            font-size: 0.688rem;
+            color: var(--text-muted);
+            margin-bottom: 8px;
+        }
+        
+        .book-rating {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+            margin-bottom: 12px;
+        }
+        
+        .book-rating svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+        
+        .book-rating span {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-left: 6px;
+        }
+        /* Pagination */
+        .pagination {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+        }
+        
+        .pagination-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .pagination-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+        
+        .pagination-btn:hover:not(:disabled) {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .pagination-numbers {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .page-num {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-decoration: none;
+        }
+        
+        .page-num:hover {
+            border-color: var(--border);
+        }
+        
+        .page-num.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .pagination-ellipsis {
+            color: var(--text-muted);
+            padding: 0 8px;
+        }
+        
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            color: var(--text-muted);
+            margin-bottom: 20px;
+        }
+        
+        .empty-state h3 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+        }
+        
+        .empty-state p {
+            color: var(--text-secondary);
+            margin-bottom: 24px;
+        }
+        
+        /* Responsive Styles */
+        @media (max-width: 1400px) {
+            .books-catalog-grid {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+        
+        @media (max-width: 1200px) {
+            .books-catalog-grid {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+        
+        @media (max-width: 1024px) {
+            .books-catalog-grid {
+                grid-template-columns: repeat(3, 1fr);
+            }
+            
+            .nav-links {
+                display: none;
+            }
+            
+            .mobile-menu-btn {
+                display: flex;
+            }
+            
+            .catalog-header {
+                flex-direction: column;
+            }
+            
+            .catalog-stats {
+                width: 100%;
+                justify-content: space-around;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            .books-catalog-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 16px;
+            }
+            
+            .container {
+                padding: 0 24px;
+            }
+            
+            .catalog-title h1 {
+                font-size: 2rem;
+            }
+            
+            .filters-container {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .filter-group {
+                width: 100%;
+            }
+            
+            .filter-group select {
+                width: 100%;
+            }
+        }
+        
+        @media (max-width: 480px) {
+            .books-catalog-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .nav-container {
+                padding: 0 16px;
+            }
+            
+            .container {
+                padding: 0 16px;
+            }
+            
+            .profile-name {
+                display: none;
+            }
+        }
+        
+        
+
+        .dropdown-content {
+            position: absolute;
+            top: calc(100% + 0.5rem);
+            left: 0;
+            min-width: 280px;
+            background: var(--background);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-lg);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(-10px);
+            transition: all 0.2s ease;
+            z-index: 1001;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .nav-dropdown:hover .dropdown-content,
+        .nav-dropdown.active .dropdown-content {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .dropdown-section {
+            padding: 0.5rem;
+        }
+
+        .dropdown-section-title {
+            padding: 0.5rem 0.75rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .nav-dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 0.75rem;
+            color: var(--text-primary);
+            text-decoration: none;
+            font-size: 0.875rem;
+            border-radius: 0.5rem;
+            transition: var(--transition);
+        }
+
+        .nav-dropdown-item svg {
+            width: 18px;
+            height: 18px;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+        }
+
+        .nav-dropdown-item:hover {
+            background: var(--surface);
+            color: var(--primary);
+        }
+
+        .nav-dropdown-item:hover svg {
+            color: var(--primary);
+        }
+
+        .mobile-section-title {
+            padding: 1rem 0.75rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+        }
+
+        .mobile-menu.active {
+            display: flex;
+        }
+
+        .profile-dropdown.active .dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0);
+        }
+
+        .profile-dropdown.active .chevron {
+            transform: rotate(180deg);
+        }
+    </style>
+</head>
+<body class="catalog-page">
+<!-- Include Enhanced Navigation -->
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+    
+    <!-- Django Messages for Toast -->
+    {% if messages %}
+        {% for message in messages %}
+        <div class="django-message-data" data-message="{{ message }}" data-tags="{{ message.tags }}" style="display: none;"></div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="catalog-main">
+        <div class="container">
+
+            <!-- Back to Home Button -->
+            <div class="back-to-home-catalog">
+                <a href="{% url 'dashboard:home' %}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5M12 19l-7-7 7-7"></path>
+                    </svg>
+                    Back to Home
+                </a>
+            </div>
+
+            <!-- Page Header -->
+            <div class="catalog-header">
+                <div class="catalog-title">
+                    <h1>Book <span class="gradient-text">Catalog</span></h1>
+                    <p>Explore our comprehensive collection of books</p>
+                    {% if user.is_librarian or user.is_admin %}
+                    <a href="{% url 'books:create' %}" class="btn btn-primary btn-sm" style="margin-top: 16px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 4v16m8-8H4"></path>
+                        </svg>
+                        Add New Book
+                    </a>
+                    {% endif %}
+                </div>
+                <div class="catalog-stats">
+                    <div class="stat-item">
+                        <span class="stat-value">{{ page_obj.paginator.count }}</span>
+                        <span class="stat-label">Total Books</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value">{{ books|length }}</span>
+                        <span class="stat-label">On This Page</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Advanced Search & Filters -->
+            <div class="search-filters-section">
+                <form method="get" action="{% url 'books:list' %}">
+                    <div class="search-container">
+                        <div class="advanced-search-box">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <path d="M21 21l-4.35-4.35"></path>
+                            </svg>
+                            <input type="text" name="search" id="searchInput" placeholder="Search by title, author, ISBN, or keyword..." value="{{ form.search.value|default:'' }}">
+                            <button type="submit" class="search-btn">
+                                Search
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="filters-container">
+                        <div class="filter-group">
+                            <label for="categoryFilter">Category</label>
+                            <select name="category" id="categoryFilter" onchange="this.form.submit()">
+                                <option value="">All Categories</option>
+                                {% for category in form.category.field.queryset %}
+                                <option value="{{ category.id }}" {% if form.category.value == category.id|stringformat:"s" %}selected{% endif %}>
+                                    {{ category.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="availabilityFilter">Availability</label>
+                            <select name="availability" id="availabilityFilter" onchange="this.form.submit()">
+                                <option value="">All Books</option>
+                                <option value="available" {% if form.availability.value == 'available' %}selected{% endif %}>Available Only</option>
+                                <option value="unavailable" {% if form.availability.value == 'unavailable' %}selected{% endif %}>Unavailable Only</option>
+                            </select>
+                        </div>
+
+                        <div class="filter-group">
+                            <label for="languageFilter">Language</label>
+                            <select name="language" id="languageFilter" onchange="this.form.submit()">
+                                <option value="">All Languages</option>
+                                {% for lang_code, lang_name in form.language.field.choices %}
+                                {% if lang_code %}
+                                <option value="{{ lang_code }}" {% if form.language.value == lang_code %}selected{% endif %}>
+                                    {{ lang_name }}
+                                </option>
+                                {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        {% if form.search.value or form.category.value or form.availability.value or form.language.value %}
+                        <a href="{% url 'books:list' %}" class="clear-filters-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                            </svg>
+                            Clear Filters
+                        </a>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+
+            <!-- Results Info -->
+            <div class="results-info">
+                <p><span id="resultsCount">{{ page_obj.paginator.count }}</span> book{{ page_obj.paginator.count|pluralize }} found</p>
+                <div class="view-toggle">
+                    <button class="view-btn active" id="gridViewBtn" title="Grid View">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="3" width="7" height="7"></rect>
+                            <rect x="14" y="14" width="7" height="7"></rect>
+                            <rect x="3" y="14" width="7" height="7"></rect>
+                        </svg>
+                    </button>
+                    <button class="view-btn" id="listViewBtn" title="List View">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="8" y1="6" x2="21" y2="6"></line>
+                            <line x1="8" y1="12" x2="21" y2="12"></line>
+                            <line x1="8" y1="18" x2="21" y2="18"></line>
+                            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                        </svg>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Books Grid -->
+            {% if books %}
+            <div class="books-catalog-grid" id="booksGrid">
+                {% for book in books %}
+                <div class="book-catalog-card">
+                    <div class="book-catalog-cover {% cycle 'gradient-1' 'gradient-2' 'gradient-3' 'gradient-4' 'gradient-5' 'gradient-6' %}">
+                        {% if book.cover_image %}
+                        <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-image">
+                        {% else %}
+                        <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width: 60px; height: 60px; opacity: 0.5;">
+                            <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                            <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
+                        </svg>
+                        {% endif %}
+                        <span class="book-badge {% if book.available_copies > 0 %}available{% else %}borrowed{% endif %}">
+                            {% if book.available_copies > 0 %}Available{% else %}Unavailable{% endif %}
+                        </span>
+                        <div class="book-actions">
+                            <button class="book-action-btn" title="Quick View" onclick="window.location.href='{% url 'books:detail' book.pk %}'">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="book-catalog-info">
+                        <h3 class="book-title">{{ book.title }}</h3>
+                        <p class="book-author">{{ book.author|truncatewords:3 }}</p>
+                        <p class="book-category">{{ book.category.name|default:"Uncategorized" }}</p>
+                        <p class="book-isbn">ISBN: {{ book.isbn }}</p>
+                        <div class="book-rating">
+                            {% if book.reviews.count > 0 %}
+                                {% for i in "12345" %}
+                                    {% if forloop.counter <= book.rating|floatformat:0|add:0 %}
+                                        <svg viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24">
+                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                        </svg>
+                                    {% else %}
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="#d1d5db">
+                                            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                        </svg>
+                                    {% endif %}
+                                {% endfor %}
+                                <span style="margin-left: 8px;">{{ book.rating|floatformat:1 }} ({{ book.reviews.count }} review{{ book.reviews.count|pluralize }})</span>
+                            {% else %}
+                                {% for i in "12345" %}
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="#d1d5db">
+                                        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                                    </svg>
+                                {% endfor %}
+                                <span style="margin-left: 8px; color: var(--text-muted);">No reviews yet</span>
+                            {% endif %}
+                        </div>
+                        <p style="font-size: 0.75rem; color: {% if book.available_copies > 0 %}var(--success){% else %}var(--error){% endif %}; font-weight: 600; margin-bottom: 10px;">
+                            {{ book.available_copies }}/{{ book.total_copies }} copies available
+                        </p>
+                        <a href="{% url 'books:detail' book.pk %}" class="btn btn-primary btn-sm" style="width: 100%; text-decoration: none;">View Details</a>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% else %}
+            <!-- Empty State -->
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <h3>No Books Found</h3>
+                <p>Try adjusting your search filters or {% if form.search.value or form.category.value or form.availability.value %}<a href="{% url 'books:list' %}" style="color: var(--primary); font-weight: 600;">clear all filters</a>{% else %}check back later{% endif %}</p>
+                {% if user.is_librarian or user.is_admin %}
+                <a href="{% url 'books:create' %}" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 4v16m8-8H4"></path>
+                    </svg>
+                    Add First Book
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+
+            <!-- Pagination -->
+            {% if page_obj.paginator.num_pages > 1 %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                <a href="?page=1{% if form.search.value %}&search={{ form.search.value }}{% endif %}{% if form.category.value %}&category={{ form.category.value }}{% endif %}{% if form.availability.value %}&availability={{ form.availability.value }}{% endif %}{% if form.language.value %}&language={{ form.language.value }}{% endif %}" class="pagination-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="11 17 6 12 11 7"></polyline>
+                        <polyline points="18 17 13 12 18 7"></polyline>
+                    </svg>
+                    First
+                </a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if form.search.value %}&search={{ form.search.value }}{% endif %}{% if form.category.value %}&category={{ form.category.value }}{% endif %}{% if form.availability.value %}&availability={{ form.availability.value }}{% endif %}{% if form.language.value %}&language={{ form.language.value }}{% endif %}" class="pagination-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                    Previous
+                </a>
+                {% endif %}
+                
+                <div class="pagination-numbers">
+                    {% for num in page_obj.paginator.page_range %}
+                        {% if page_obj.number == num %}
+                        <span class="page-num active">{{ num }}</span>
+                        {% elif num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                        <a href="?page={{ num }}{% if form.search.value %}&search={{ form.search.value }}{% endif %}{% if form.category.value %}&category={{ form.category.value }}{% endif %}{% if form.availability.value %}&availability={{ form.availability.value }}{% endif %}{% if form.language.value %}&language={{ form.language.value }}{% endif %}" class="page-num">{{ num }}</a>
+                        {% elif num == 1 or num == page_obj.paginator.num_pages %}
+                        <a href="?page={{ num }}{% if form.search.value %}&search={{ form.search.value }}{% endif %}{% if form.category.value %}&category={{ form.category.value }}{% endif %}{% if form.availability.value %}&availability={{ form.availability.value }}{% endif %}{% if form.language.value %}&language={{ form.language.value }}{% endif %}" class="page-num">{{ num }}</a>
+                        {% elif num == page_obj.number|add:'-3' or num == page_obj.number|add:'3' %}
+                        <span class="pagination-ellipsis">...</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                
+                {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if form.search.value %}&search={{ form.search.value }}{% endif %}{% if form.category.value %}&category={{ form.category.value }}{% endif %}{% if form.availability.value %}&availability={{ form.availability.value }}{% endif %}{% if form.language.value %}&language={{ form.language.value }}{% endif %}" class="pagination-btn">
+                    Next
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                </a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if form.search.value %}&search={{ form.search.value }}{% endif %}{% if form.category.value %}&category={{ form.category.value }}{% endif %}{% if form.availability.value %}&availability={{ form.availability.value }}{% endif %}{% if form.language.value %}&language={{ form.language.value }}{% endif %}" class="pagination-btn">
+                    Last
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="13 17 18 12 13 7"></polyline>
+                        <polyline points="6 17 11 12 6 7"></polyline>
+                    </svg>
+                </a>
+                {% endif %}
+            </div>
+            {% endif %}
+        </div>
+    </main>
+    <!-- JavaScript -->
+    <script>
+        // View Toggle Functionality
+        const gridViewBtn = document.getElementById('gridViewBtn');
+        const listViewBtn = document.getElementById('listViewBtn');
+        const booksGrid = document.getElementById('booksGrid');
+        
+        if (gridViewBtn && listViewBtn && booksGrid) {
+            // Load saved view preference
+            const savedView = localStorage.getItem('bookViewPreference') || 'grid';
+            if (savedView === 'list') {
+                switchToListView();
+            }
+            
+            gridViewBtn.addEventListener('click', () => {
+                switchToGridView();
+                localStorage.setItem('bookViewPreference', 'grid');
+            });
+            
+            listViewBtn.addEventListener('click', () => {
+                switchToListView();
+                localStorage.setItem('bookViewPreference', 'list');
+            });
+            
+            function switchToGridView() {
+                booksGrid.classList.remove('books-catalog-list');
+                booksGrid.classList.add('books-catalog-grid');
+                gridViewBtn.classList.add('active');
+                listViewBtn.classList.remove('active');
+            }
+            
+            function switchToListView() {
+                booksGrid.classList.remove('books-catalog-grid');
+                booksGrid.classList.add('books-catalog-list');
+                listViewBtn.classList.add('active');
+                gridViewBtn.classList.remove('active');
+            }
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ctrl/Cmd + K to focus search
+            if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+                e.preventDefault();
+                searchInput?.focus();
+            }
+            
+            // Escape to close dropdowns and menus
+            if (e.key === 'Escape') {
+                profileDropdown?.classList.remove('open');
+                mobileMenu?.classList.remove('open');
+            }
+        });
+        
+        // Add visual feedback for button clicks
+        document.querySelectorAll('.btn, .icon-btn, .book-action-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                // Create ripple effect
+                const ripple = document.createElement('span');
+                const rect = this.getBoundingClientRect();
+                const size = Math.max(rect.width, rect.height);
+                const x = e.clientX - rect.left - size / 2;
+                const y = e.clientY - rect.top - size / 2;
+                
+                ripple.style.cssText = `
+                    position: absolute;
+                    width: ${size}px;
+                    height: ${size}px;
+                    border-radius: 50%;
+                    background: rgba(255, 255, 255, 0.5);
+                    left: ${x}px;
+                    top: ${y}px;
+                    pointer-events: none;
+                    transform: scale(0);
+                    animation: ripple 0.6s ease-out;
+                `;
+                
+                this.style.position = 'relative';
+                this.style.overflow = 'hidden';
+                this.appendChild(ripple);
+                
+                setTimeout(() => ripple.remove(), 600);
+            });
+        });
+        
+        // Add ripple animation
+        const rippleStyle = document.createElement('style');
+        rippleStyle.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(rippleStyle);
+        
+        // Lazy load book cover images
+        if ('IntersectionObserver' in window) {
+            const imageObserver = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        const img = entry.target;
+                        if (img.dataset.src) {
+                            img.src = img.dataset.src;
+                            img.removeAttribute('data-src');
+                            observer.unobserve(img);
+                        }
+                    }
+                });
+            });
+            
+            document.querySelectorAll('img[data-src]').forEach(img => {
+                imageObserver.observe(img);
+            });
+        }
+        
+        // Update results count dynamically
+        const updateResultsCount = () => {
+            const visibleCards = document.querySelectorAll('.book-catalog-card:not([style*="display: none"])').length;
+            const resultsCount = document.getElementById('resultsCount');
+            if (resultsCount) {
+                resultsCount.textContent = visibleCards;
+            }
+        };
+        
+        // Initialize
+        updateResultsCount();
+        
+        // Console welcome message
+        console.log('%c" SmartLibrary System', 'color: #10b981; font-size: 20px; font-weight: bold;');
+        console.log('%cWelcome to the Book Catalog!', 'color: #64748b; font-size: 14px;');
+        console.log('%cKeyboard Shortcuts:', 'color: #0ea5e9; font-size: 12px; font-weight: bold;');
+        console.log('%c  • Ctrl/Cmd + K: Focus search', 'color: #64748b; font-size: 12px;');
+        console.log('%c  • Escape: Close menus', 'color: #64748b; font-size: 12px;');
+    </script>
+
+    <!-- Include Enhanced Navigation Scripts -->
+    {% include 'includes/enhanced_nav_scripts.html' %}
+    
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

@@ -1,0 +1,22 @@
+Hello {{ user.get_full_name|default:user.username }},
+
+We're sorry, but your payment could not be processed.
+
+PAYMENT DETAILS:
+Amount: {{ amount }} {{ currency }}
+Payment Method: {{ payment_method }}
+
+BOOK DETAILS:
+Title: {{ book.title }}
+Author: {{ book.author }}
+
+Please try again or contact us if you continue to experience issues.
+
+You can retry the payment by visiting your borrowed books page:
+{{ site_url }}/borrow/my-books/
+
+If you need assistance, please contact our support team.
+
+Best regards,
+{{ site_name }} Team
+{{ site_url }}

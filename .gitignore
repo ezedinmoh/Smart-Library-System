@@ -1,0 +1,109 @@
+# Kiro IDE files
+.kiro/
+
+# Environment variables
+.env*.local
+.env
+.env.local
+.env.production
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Virtual Environment
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# Django
+*.log
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+# /media  - keep media files for deployment
+/staticfiles
+/static
+celerybeat-schedule
+celerybeat.pid
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+.project
+.pydevproject
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# Testing
+.tox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+htmlcov/
+
+# Debugging
+.debug
+debug/
+*.pdb
+.ipynb_checkpoints
+
+# Common ignores
+node_modules
+.next/
+.DS_Store
+
+# OS
+Thumbs.db
+*.manifest
+*.spec
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.orig
+*.rej
+
+# Backups
+/backup/
+/backups/
+*.sql
+*.dump
+
+# Uploads
+/uploads/
+/downloads/

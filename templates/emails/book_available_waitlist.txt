@@ -1,0 +1,52 @@
+Hi {{ user.get_full_name|default:user.username }},
+
+🎉 GREAT NEWS! 🎉
+
+The book you requested is now available!
+
+Book Details:
+-------------
+Title: {{ book.title }}
+Author: {{ book.author }}
+Category: {{ book.category.name|default:'N/A' }}
+ISBN: {{ book.isbn }}
+
+WAITLIST STATUS:
+----------------
+Your Position: #{{ position_in_queue }} of {{ total_in_queue }}
+Status: Pending Approval
+
+{% if position_in_queue == 1 %}
+🌟 You're FIRST in line! Your request will be reviewed and approved soon.
+{% elif position_in_queue == 2 %}
+You're second in line! Your request will be reviewed shortly.
+{% else %}
+You're in the queue! Your request will be reviewed in order.
+{% endif %}
+
+WHAT HAPPENS NEXT:
+------------------
+1. A librarian will review your request
+2. You'll receive an approval notification via email
+3. You can then read the book online or pick up the physical copy
+
+Your request is currently pending approval and will be processed soon based on your position in the queue.
+
+IMPORTANT NOTES:
+----------------
+- Requests are approved in order (first come, first served)
+- You'll receive another email when your request is approved
+- The book will be reserved for you once approved
+- Make sure to check your email regularly
+
+Need to Cancel?
+If you no longer need this book, you can cancel your request from the "My Books" page to free up your borrowing slot.
+
+Questions?
+Contact the library if you have any questions about your request.
+
+Thank you for using {{ site_name }}!
+
+Best regards,
+{{ site_name }} Team
+{{ site_url }}

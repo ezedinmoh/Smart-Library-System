@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Created - Verification Email Sent</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {% include 'includes/enhanced_nav_styles.html' %}
+    <style>
+        body { font-family: 'Inter', sans-serif; background: #f9fafb; }
+        .success-container { max-width: 600px; margin: 100px auto; padding: 40px; background: white; border-radius: 16px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); text-align: center; }
+        .success-icon { width: 80px; height: 80px; margin: 0 auto 24px; background: linear-gradient(135deg, #10b981, #059669); border-radius: 50%; display: flex; align-items: center; justify-content: center; }
+        .success-icon svg { width: 40px; height: 40px; color: white; }
+        h1 { color: #1f2937; margin-bottom: 16px; font-size: 28px; }
+        .user-info { background: #f3f4f6; padding: 20px; border-radius: 12px; margin: 24px 0; text-align: left; }
+        .user-info-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb; }
+        .user-info-item:last-child { border-bottom: none; }
+        .user-info-label { font-weight: 600; color: #6b7280; }
+        .user-info-value { color: #1f2937; }
+        .info-box { background: #dbeafe; border-left: 4px solid #3b82f6; padding: 16px; border-radius: 8px; margin: 24px 0; text-align: left; }
+        .info-box strong { color: #1e40af; }
+        .btn { display: inline-block; padding: 12px 32px; background: linear-gradient(135deg, #10b981, #059669); color: white; text-decoration: none; border-radius: 8px; font-weight: 600; margin-top: 24px; transition: transform 0.2s; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn-secondary { background: #6b7280; margin-left: 12px; }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <div class="success-container">
+        <div class="success-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+            </svg>
+        </div>
+        
+        <h1>✅ User Created Successfully!</h1>
+        <p style="color: #6b7280; font-size: 16px;">A verification email has been sent to the user.</p>
+        
+        <div class="user-info">
+            <div class="user-info-item">
+                <span class="user-info-label">Username:</span>
+                <span class="user-info-value">{{ created_user.username }}</span>
+            </div>
+            <div class="user-info-item">
+                <span class="user-info-label">Email:</span>
+                <span class="user-info-value">{{ verification_email }}</span>
+            </div>
+            <div class="user-info-item">
+                <span class="user-info-label">Role:</span>
+                <span class="user-info-value">{{ created_user.get_role_display }}</span>
+            </div>
+            <div class="user-info-item">
+                <span class="user-info-label">Status:</span>
+                <span class="user-info-value" style="color: #f59e0b;">⏳ Pending Verification</span>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <strong>📧 Next Steps:</strong>
+            <ul style="margin: 12px 0 0 20px; color: #1f2937;">
+                <li>The user will receive a verification email at <strong>{{ verification_email }}</strong></li>
+                <li>They must click the verification link to activate their account</li>
+                <li>Once verified, they can log in with their credentials</li>
+                <li>The verification link expires in 3 days</li>
+            </ul>
+        </div>
+        
+        <div style="margin-top: 32px;">
+            <a href="{% url 'users:detail' pk=created_user.pk %}" class="btn">View User Profile</a>
+            <a href="{% url 'users:create' %}" class="btn btn-secondary">Create Another User</a>
+        </div>
+        
+        <p style="margin-top: 24px; color: #9ca3af; font-size: 14px;">
+            <a href="{% url 'users:list' %}" style="color: #10b981; text-decoration: none;">← Back to Users List</a>
+        </p>
+    </div>
+</body>
+</html>

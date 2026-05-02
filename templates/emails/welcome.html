@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+    <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 28px;">🎉 Welcome to {{ site_name }}!</h1>
+    </div>
+    
+    <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <h2 style="color: #1f2937; margin-top: 0;">Hello {{ user.get_full_name|default:user.username }},</h2>
+        
+        <p style="color: #4b5563; font-size: 16px;">Thank you for verifying your email and joining our library community! 🎊</p>
+        
+        <p style="color: #10b981; font-size: 18px; font-weight: 600; text-align: center; margin: 24px 0;">
+            ✅ Your Account is Now Active!
+        </p>
+        
+        <!-- Account Details -->
+        <div style="background: #f3f4f6; border-left: 4px solid #10b981; padding: 20px; border-radius: 8px; margin: 24px 0;">
+            <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">👤 Your Account Details</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Username:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ user.username }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Email:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ user.email }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Role:</td>
+                    <td style="padding: 8px 0; color: #1f2937;">{{ user.get_role_display }}</td>
+                </tr>
+            </table>
+        </div>
+        
+        <!-- What You Can Do -->
+        <div style="margin: 24px 0;">
+            <h3 style="color: #1f2937; font-size: 18px;">✨ What You Can Do Now:</h3>
+            <div style="background: #d1fae5; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">
+                <p style="margin: 0; color: #065f46;">✓ Browse our extensive book collection</p>
+            </div>
+            <div style="background: #dbeafe; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">
+                <p style="margin: 0; color: #1e40af;">✓ Request books for borrowing</p>
+            </div>
+            <div style="background: #e0e7ff; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">
+                <p style="margin: 0; color: #3730a3;">✓ Read books online (digital library)</p>
+            </div>
+            <div style="background: #fef3c7; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">
+                <p style="margin: 0; color: #92400e;">✓ Track your borrowed books and due dates</p>
+            </div>
+            <div style="background: #fce7f3; padding: 12px 16px; border-radius: 8px; margin-bottom: 8px;">
+                <p style="margin: 0; color: #831843;">✓ Manage your reading history</p>
+            </div>
+            <div style="background: #f3e8ff; padding: 12px 16px; border-radius: 8px;">
+                <p style="margin: 0; color: #6b21a8;">✓ Receive notifications about your books</p>
+            </div>
+        </div>
+        
+        <!-- Getting Started -->
+        <div style="background: #dbeafe; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px; margin: 24px 0;">
+            <h3 style="color: #1e40af; margin-top: 0; font-size: 16px;">🚀 Getting Started:</h3>
+            <ol style="color: #1e40af; padding-left: 20px; margin: 8px 0 0 0;">
+                <li style="margin-bottom: 8px;">Login to your account</li>
+                <li style="margin-bottom: 8px;">Browse available books in the catalog</li>
+                <li style="margin-bottom: 8px;">Request books you want to read</li>
+                <li style="margin-bottom: 8px;">Wait for librarian approval</li>
+                <li style="margin-bottom: 8px;">Start reading!</li>
+            </ol>
+        </div>
+        
+        <!-- Borrowing Limits -->
+        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 16px; border-radius: 8px; margin: 24px 0;">
+            <h4 style="color: #92400e; margin-top: 0; font-size: 14px;">📋 Borrowing Limits:</h4>
+            <ul style="color: #92400e; font-size: 14px; padding-left: 20px; margin: 8px 0 0 0;">
+                <li style="margin-bottom: 6px;">Maximum books you can borrow: <strong>{{ user.profile.max_books_allowed }}</strong></li>
+                <li style="margin-bottom: 6px;">Loan period: <strong>14 days</strong> per book</li>
+                <li style="margin-bottom: 6px;">Late return fine: <strong>ETB 2 per day</strong></li>
+            </ul>
+        </div>
+        
+        <!-- Important Reminders -->
+        <div style="background: #e0e7ff; border-left: 4px solid #6366f1; padding: 16px; border-radius: 8px; margin: 24px 0;">
+            <h4 style="color: #3730a3; margin-top: 0; font-size: 14px;">💡 Important Reminders:</h4>
+            <ul style="color: #3730a3; font-size: 14px; padding-left: 20px; margin: 8px 0 0 0;">
+                <li style="margin-bottom: 6px;">Return books on time to avoid fines</li>
+                <li style="margin-bottom: 6px;">Check your email regularly for notifications</li>
+                <li style="margin-bottom: 6px;">You'll receive reminders when books are due</li>
+                <li style="margin-bottom: 6px;">Contact the library if you need help</li>
+            </ul>
+        </div>
+        
+        <!-- Need Help -->
+        <div style="margin: 24px 0;">
+            <h3 style="color: #1f2937; font-size: 16px;">❓ Need Help?</h3>
+            <p style="color: #4b5563; font-size: 14px;">
+                If you have any questions or need assistance, feel free to:
+            </p>
+            <ul style="color: #4b5563; font-size: 14px; padding-left: 20px;">
+                <li style="margin-bottom: 6px;">Visit the library during opening hours</li>
+                <li style="margin-bottom: 6px;">Contact our support team</li>
+                <li style="margin-bottom: 6px;">Check the help section on our website</li>
+            </ul>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="{{ site_url }}/users/login/" style="background: #10b981; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; margin: 0 8px 8px 8px;">Login Now</a>
+            <a href="{{ site_url }}/books/" style="background: #3b82f6; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px; margin: 0 8px 8px 8px;">Browse Books</a>
+        </div>
+        
+        <p style="color: #10b981; font-size: 16px; text-align: center; margin-top: 24px; font-weight: 600;">
+            We're excited to have you as part of our reading community! 📚
+        </p>
+        
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        
+        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+            Happy reading!<br><br>
+            Best regards,<br>
+            {{ site_name }} Team<br>
+            <a href="{{ site_url }}" style="color: #3b82f6; text-decoration: none;">{{ site_url }}</a>
+        </p>
+        
+        <p style="color: #d1d5db; font-size: 11px; text-align: center; margin-top: 20px;">
+            This email was sent because you successfully verified your account at {{ site_name }}.
+        </p>
+    </div>
+</body>
+</html>

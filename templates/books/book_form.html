@@ -1,0 +1,1176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ action }} Book - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    {% include 'includes/enhanced_nav_styles.html' %}
+    
+    <style>
+        :root {
+            --primary-green: #10b981;
+            --primary-blue: #0ea5e9;
+            --primary-purple: #8b5cf6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --bg-white: #ffffff;
+            --bg-gray: #f9fafb;
+            --bg-light: #f3f4f6;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
+        [data-theme="dark"] {
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-muted: #9ca3af;
+            --bg-white: #1f2937;
+            --bg-gray: #111827;
+            --bg-light: #374151;
+            --border-color: #374151;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-gray);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Page Header */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 2rem;
+            gap: 1.5rem;
+        }
+
+        .header-content {
+            flex: 1;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--primary-green);
+        }
+
+        .breadcrumb svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title svg {
+            width: 32px;
+            height: 32px;
+            color: var(--primary-green);
+        }
+
+        .page-title h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 0.75rem;
+        }
+
+        /* Form Container */
+        .form-container {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        /* Form Sections */
+        .form-section {
+            padding: 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-section:last-child {
+            border-bottom: none;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--primary-green);
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        /* Form Grid */
+        .form-grid {
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .form-grid.two-col {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .form-grid.three-col {
+            grid-template-columns: repeat(3, 1fr);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-label {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .required {
+            color: #ef4444;
+        }
+
+        .label-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.125rem 0.5rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary-green);
+            border-radius: 0.25rem;
+        }
+
+        /* Form Inputs */
+        .form-input,
+        .form-select,
+        .form-textarea {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            background: var(--bg-gray);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            transition: all 0.2s;
+        }
+
+        .form-input:focus,
+        .form-select:focus,
+        .form-textarea:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            background: var(--bg-white);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .form-textarea {
+            min-height: 120px;
+            resize: vertical;
+        }
+
+        .form-input::placeholder,
+        .form-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* File Input */
+        .file-input-wrapper {
+            position: relative;
+        }
+
+        .file-input {
+            width: 100%;
+            padding: 0.75rem 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            background: var(--bg-gray);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-input:hover {
+            border-color: var(--primary-green);
+            background: var(--bg-white);
+        }
+
+        .file-input::file-selector-button {
+            padding: 0.5rem 1rem;
+            margin-right: 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-blue) 100%);
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .file-input::file-selector-button:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        /* Current File Display */
+        .current-file {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: var(--bg-light);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+        }
+
+        .current-cover-image {
+            width: 80px;
+            height: 120px;
+            object-fit: cover;
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .current-file-info {
+            flex: 1;
+        }
+
+        .current-file-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            margin-bottom: 0.25rem;
+        }
+
+        .current-file-name {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .file-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.375rem;
+            padding: 0.375rem 0.75rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--primary-green);
+            border-radius: var(--radius-sm);
+        }
+
+        .file-badge svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        /* Form Help Text */
+        .form-help {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .form-help svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+            margin-top: 0.125rem;
+        }
+
+        /* Error Messages */
+        .form-error {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            padding: 0.625rem 0.875rem;
+            font-size: 0.875rem;
+            color: #ef4444;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: var(--radius-sm);
+        }
+
+        .form-error svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        /* Non-field Errors */
+        .alert {
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.5rem;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .alert-danger {
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border: 1px solid rgba(239, 68, 68, 0.2);
+        }
+
+        .alert svg {
+            width: 20px;
+            height: 20px;
+            flex-shrink: 0;
+        }
+        /* Form Actions */
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            padding: 2rem;
+            background: var(--bg-light);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.75rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-blue) 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--bg-white);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-gray);
+            color: var(--text-primary);
+            border-color: var(--text-muted);
+        }
+
+        .btn-outline {
+            background: transparent;
+            color: var(--text-secondary);
+            border: 2px solid var(--border-color);
+        }
+
+        .btn-outline:hover {
+            border-color: var(--primary-green);
+            color: var(--primary-green);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        /* Loading State */
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Info Box */
+        .info-box {
+            padding: 1.5rem;
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            margin-bottom: 2rem;
+        }
+
+        .info-box-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .info-box-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--primary-purple);
+        }
+
+        .info-box-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .info-box-list {
+            list-style: none;
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .info-box-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .info-box-list li svg {
+            width: 18px;
+            height: 18px;
+            color: var(--primary-green);
+            flex-shrink: 0;
+            margin-top: 0.125rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .form-grid.three-col {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1.5rem 1rem;
+            }
+
+            .page-header {
+                flex-direction: column;
+            }
+
+            .page-title h1 {
+                font-size: 1.5rem;
+            }
+
+            .form-grid.two-col,
+            .form-grid.three-col {
+                grid-template-columns: 1fr;
+            }
+
+            .form-section {
+                padding: 1.5rem;
+            }
+
+            .form-actions {
+                flex-direction: column;
+                padding: 1.5rem;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="header-content">
+                <div class="breadcrumb">
+                    <a href="{% url 'books:list' %}">Books</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 18l6-6-6-6"></path>
+                    </svg>
+                    <span>{{ action }} Book</span>
+                </div>
+                
+                <div class="page-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        {% if action == 'Add' %}
+                        <path d="M12 5v14m-7-7h14"></path>
+                        {% else %}
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        {% endif %}
+                    </svg>
+                    <h1>{{ action }} Book</h1>
+                </div>
+                <p class="page-subtitle">
+                    {% if action == 'Add' %}
+                    Add a new book to the library collection
+                    {% else %}
+                    Update book information and details
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="header-actions">
+                <a href="{% url 'books:list' %}" class="btn btn-outline">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 12H5m7-7l-7 7 7 7"></path>
+                    </svg>
+                    Back to Books
+                </a>
+            </div>
+        </div>
+
+        <!-- Info Box -->
+        <div class="info-box">
+            <div class="info-box-header">
+                <svg class="info-box-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M12 16v-4m0-4h.01"></path>
+                </svg>
+                <h3 class="info-box-title">Book Entry Guidelines</h3>
+            </div>
+            <ul class="info-box-list">
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Ensure ISBN is unique and follows standard format (10 or 13 digits)</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Available copies cannot exceed total copies</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Cover images should be in JPG, PNG, or WebP format (max 5MB)</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>PDF files are optional but recommended for digital access</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Form Container -->
+        <form method="post" enctype="multipart/form-data" id="bookForm">
+            {% csrf_token %}
+
+            <!-- Non-field errors -->
+            {% if form.non_field_errors %}
+            <div class="alert alert-danger">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                </svg>
+                <span>{{ form.non_field_errors.0 }}</span>
+            </div>
+            {% endif %}
+
+            <div class="form-container">
+                <!-- Basic Information Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4m0-4h.01"></path>
+                        </svg>
+                        <h2 class="section-title">Basic Information</h2>
+                    </div>
+
+                    <div class="form-grid two-col">
+                        <div class="form-group full-width">
+                            <label for="id_title" class="form-label">
+                                Book Title<span class="required">*</span>
+                            </label>
+                            <input type="text" name="title" id="id_title" class="form-input" 
+                                   value="{{ form.title.value|default:'' }}" 
+                                   placeholder="Enter the complete book title" 
+                                   pattern="[a-zA-Z0-9\s.,!?:;\'\-&amp;()]+" 
+                                   title="Book title can only contain letters, numbers, spaces, and common punctuation (.,!?:;'-&amp;())" 
+                                   minlength="2" 
+                                   required>
+                            {% if form.title.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.title.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_author" class="form-label">
+                                Author<span class="required">*</span>
+                            </label>
+                            <input type="text" name="author" id="id_author" class="form-input" 
+                                   value="{{ form.author.value|default:'' }}" 
+                                   placeholder="Author name" 
+                                   pattern="[a-zA-Z\s.\'\-]+" 
+                                   title="Author name can only contain letters, spaces, dots, hyphens, and apostrophes" 
+                                   minlength="2" 
+                                   required>
+                            {% if form.author.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.author.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_isbn" class="form-label">
+                                ISBN<span class="required">*</span>
+                                <span class="label-badge">Unique</span>
+                            </label>
+                            <input type="text" name="isbn" id="id_isbn" class="form-input" 
+                                   value="{{ form.isbn.value|default:'' }}" 
+                                   placeholder="978-0-123456-78-9" required>
+                            <div class="form-help">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 16v-4m0-4h.01"></path>
+                                </svg>
+                                <span>10 or 13 digit ISBN number</span>
+                            </div>
+                            {% if form.isbn.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.isbn.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_category" class="form-label">
+                                Category
+                            </label>
+                            {{ form.category }}
+                            {% if form.category.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.category.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group full-width">
+                            <label for="id_description" class="form-label">
+                                Description
+                            </label>
+                            <textarea name="description" id="id_description" class="form-textarea" 
+                                      placeholder="Brief description of the book, its themes, and what readers can expect...">{{ form.description.value|default:'' }}</textarea>
+                            {% if form.description.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.description.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Publication Details Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                            <polyline points="14 2 14 8 20 8"></polyline>
+                        </svg>
+                        <h2 class="section-title">Publication Details</h2>
+                    </div>
+
+                    <div class="form-grid two-col">
+                        <div class="form-group">
+                            <label for="id_publisher" class="form-label">
+                                Publisher
+                            </label>
+                            <input type="text" name="publisher" id="id_publisher" class="form-input" 
+                                   value="{{ form.publisher.value|default:'' }}" 
+                                   placeholder="Publishing company" 
+                                   pattern="[a-zA-Z0-9\s.,&amp;\'\-()]+" 
+                                   title="Publisher name can only contain letters, numbers, spaces, and common punctuation (.,&amp;'-()"
+>
+                            {% if form.publisher.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.publisher.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_publication_date" class="form-label">
+                                Publication Date
+                            </label>
+                            <input type="date" name="publication_date" id="id_publication_date" class="form-input" 
+                                   value="{{ form.publication_date.value|default:'' }}">
+                            {% if form.publication_date.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.publication_date.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_pages" class="form-label">
+                                Number of Pages
+                            </label>
+                            <input type="number" name="pages" id="id_pages" class="form-input" 
+                                   value="{{ form.pages.value|default:'' }}" 
+                                   placeholder="e.g., 350" min="1">
+                            {% if form.pages.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.pages.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_language" class="form-label">
+                                Language
+                            </label>
+                            <input type="text" name="language" id="id_language" class="form-input" 
+                                   value="{{ form.language.value|default:'' }}" 
+                                   placeholder="e.g., English">
+                            {% if form.language.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.language.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stock Management Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path>
+                        </svg>
+                        <h2 class="section-title">Stock Management</h2>
+                    </div>
+
+                    <div class="form-grid two-col">
+                        <div class="form-group">
+                            <label for="id_total_copies" class="form-label">
+                                Total Copies<span class="required">*</span>
+                            </label>
+                            <input type="number" name="total_copies" id="id_total_copies" class="form-input" 
+                                   value="{{ form.total_copies.value|default:'' }}" 
+                                   placeholder="e.g., 10" min="0" required>
+                            <div class="form-help">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 16v-4m0-4h.01"></path>
+                                </svg>
+                                <span>Total number of copies in the library</span>
+                            </div>
+                            {% if form.total_copies.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.total_copies.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_available_copies" class="form-label">
+                                Available Copies<span class="required">*</span>
+                            </label>
+                            <input type="number" name="available_copies" id="id_available_copies" class="form-input" 
+                                   value="{{ form.available_copies.value|default:'' }}" 
+                                   placeholder="e.g., 8" min="0" required>
+                            <div class="form-help">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 16v-4m0-4h.01"></path>
+                                </svg>
+                                <span>Currently available for borrowing</span>
+                            </div>
+                            {% if form.available_copies.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.available_copies.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Media Files Section -->
+                <div class="form-section">
+                    <div class="section-header">
+                        <svg class="section-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                            <polyline points="21 15 16 10 5 21"></polyline>
+                        </svg>
+                        <h2 class="section-title">Media Files</h2>
+                    </div>
+
+                    <div class="form-grid two-col">
+                        <div class="form-group">
+                            <label for="id_cover_image" class="form-label">
+                                Cover Image
+                            </label>
+                            {% if book.cover_image %}
+                            <div class="current-file">
+                                <img src="{{ book.cover_image.url }}" alt="Current cover" class="current-cover-image">
+                                <div class="current-file-info">
+                                    <div class="current-file-label">Current Cover</div>
+                                    <div class="current-file-name">{{ book.cover_image.name|slice:"7:" }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <input type="file" name="cover_image" id="id_cover_image" class="file-input" accept="image/*">
+                            <div class="form-help">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 16v-4m0-4h.01"></path>
+                                </svg>
+                                <span>JPG, PNG, or WebP (max 5MB)</span>
+                            </div>
+                            {% if form.cover_image.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.cover_image.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="form-group">
+                            <label for="id_pdf_file" class="form-label">
+                                PDF File
+                            </label>
+                            {% if book.pdf_file %}
+                            <div class="current-file">
+                                <div class="file-badge">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                        <polyline points="14 2 14 8 20 8"></polyline>
+                                    </svg>
+                                    PDF Uploaded
+                                </div>
+                                <div class="current-file-info">
+                                    <div class="current-file-label">Current PDF</div>
+                                    <div class="current-file-name">{{ book.pdf_file.name|slice:"5:" }}</div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            <input type="file" name="pdf_file" id="id_pdf_file" class="file-input" accept=".pdf">
+                            <div class="form-help">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <path d="M12 16v-4m0-4h.01"></path>
+                                </svg>
+                                <span>PDF format only (optional)</span>
+                            </div>
+                            {% if form.pdf_file.errors %}
+                            <div class="form-error">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                </svg>
+                                <span>{{ form.pdf_file.errors.0 }}</span>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                        {{ action }} Book
+                    </button>
+                    <a href="{% url 'books:list' %}" class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Cancel
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+    {% include 'includes/enhanced_nav_scripts.html' %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('bookForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const totalCopiesInput = document.getElementById('id_total_copies');
+            const availableCopiesInput = document.getElementById('id_available_copies');
+            const coverImageInput = document.getElementById('id_cover_image');
+            const pdfFileInput = document.getElementById('id_pdf_file');
+
+            // Stock validation
+            function validateStock() {
+                const totalCopies = parseInt(totalCopiesInput.value) || 0;
+                const availableCopies = parseInt(availableCopiesInput.value) || 0;
+
+                if (availableCopies > totalCopies) {
+                    availableCopiesInput.setCustomValidity('Available copies cannot exceed total copies');
+                    return false;
+                } else {
+                    availableCopiesInput.setCustomValidity('');
+                    return true;
+                }
+            }
+
+            totalCopiesInput.addEventListener('input', validateStock);
+            availableCopiesInput.addEventListener('input', validateStock);
+
+            // File input preview
+            coverImageInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('Cover image must be less than 5MB');
+                        this.value = '';
+                        return;
+                    }
+                    console.log('Cover image selected:', file.name);
+                }
+            });
+
+            pdfFileInput.addEventListener('change', function(e) {
+                const file = e.target.files[0];
+                if (file) {
+                    if (!file.type.includes('pdf')) {
+                        alert('Please select a PDF file');
+                        this.value = '';
+                        return;
+                    }
+                    console.log('PDF file selected:', file.name);
+                }
+            });
+
+            // Form submission
+            form.addEventListener('submit', function(e) {
+                if (!validateStock()) {
+                    e.preventDefault();
+                    availableCopiesInput.focus();
+                    return false;
+                }
+
+                // Add loading state
+                submitBtn.classList.add('btn-loading');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span style="opacity: 0;">Processing...</span>';
+            });
+
+            // Prevent accidental navigation
+            let formChanged = false;
+            const formInputs = form.querySelectorAll('input, textarea, select');
+
+            formInputs.forEach(input => {
+                input.addEventListener('change', function() {
+                    formChanged = true;
+                });
+            });
+
+            window.addEventListener('beforeunload', function(e) {
+                if (formChanged && !form.classList.contains('submitted')) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                    return '';
+                }
+            });
+
+            form.addEventListener('submit', function() {
+                form.classList.add('submitted');
+                formChanged = false;
+            });
+
+            // Auto-resize textarea
+            const textareas = document.querySelectorAll('.form-textarea');
+            textareas.forEach(textarea => {
+                textarea.addEventListener('input', function() {
+                    this.style.height = 'auto';
+                    this.style.height = (this.scrollHeight) + 'px';
+                });
+            });
+        });
+    </script>
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

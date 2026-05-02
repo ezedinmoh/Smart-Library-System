@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reservation Management - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {% include 'includes/enhanced_nav_styles.html' %}
+    {% include 'includes/responsive_tables_styles.html' %}
+    <style>
+        :root {
+            --primary-green: #10b981; --primary-blue: #0ea5e9;
+            --text-primary: #1f2937; --text-secondary: #6b7280; --text-muted: #9ca3af;
+            --bg-white: #ffffff; --bg-gray: #f9fafb; --bg-light: #f3f4f6; --border-color: #e5e7eb;
+            --error: #ef4444; --warning: #f59e0b; --success: #10b981;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem;
+        }
+        [data-theme="dark"] { --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #9ca3af; --bg-white: #1f2937; --bg-gray: #111827; --bg-light: #374151; --border-color: #374151; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gray); color: var(--text-primary); min-height: 100vh; }
+        .main-container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* Header */
+        .page-header { margin-bottom: 2rem; }
+        .breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--primary-green); }
+        .breadcrumb svg { width: 16px; height: 16px; }
+        .page-title { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.375rem; }
+        .page-title svg { width: 28px; height: 28px; color: var(--primary-green); }
+        .page-title h1 { font-size: 1.875rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-subtitle { color: var(--text-secondary); font-size: 0.9375rem; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1.25rem; font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .btn svg { width: 16px; height: 16px; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-approve { background: rgba(16,185,129,0.1); color: var(--success); border: 1.5px solid rgba(16,185,129,0.3); }
+        .btn-approve:hover { background: var(--success); color: white; }
+        .btn-reject { background: rgba(239,68,68,0.1); color: var(--error); border: 1.5px solid rgba(239,68,68,0.3); }
+        .btn-reject:hover { background: var(--error); color: white; }
+        .btn-ghost { background: var(--bg-light); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .btn-ghost:hover { background: var(--border-color); color: var(--text-primary); }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-bottom: 1.5rem; }
+        .stat-card { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.25rem; text-align: center; box-shadow: var(--shadow-sm); transition: all 0.2s; cursor: pointer; text-decoration: none; display: block; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .stat-card.active-filter { border-color: var(--primary-green); box-shadow: 0 0 0 3px rgba(16,185,129,0.15); }
+        .stat-value { font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: 0.375rem; }
+        .stat-label { font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); }
+        .stat-dot { width: 8px; height: 8px; border-radius: 50%; margin: 0 auto 0.5rem; }
+        .dot-pending { background: var(--warning); }
+        .dot-ready { background: var(--primary-blue); }
+        .dot-fulfilled { background: var(--success); }
+        .dot-cancelled { background: #6b7280; }
+        .dot-rejected { background: var(--error); }
+        .val-pending { color: var(--warning); }
+        .val-ready { color: var(--primary-blue); }
+        .val-fulfilled { color: var(--success); }
+        .val-cancelled { color: #6b7280; }
+        .val-rejected { color: var(--error); }
+
+        /* Filter Bar */
+        .filter-bar { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+        .filter-form { display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap; }
+        .filter-group { display: flex; flex-direction: column; gap: 0.375rem; flex: 1; min-width: 160px; }
+        .filter-label { font-size: 0.8125rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .filter-input, .filter-select { padding: 0.75rem 1rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem; color: var(--text-primary); background: var(--bg-gray); border: 2px solid var(--border-color); border-radius: var(--radius-md); transition: all 0.2s; width: 100%; }
+        .filter-input:focus, .filter-select:focus { outline: none; border-color: var(--primary-green); background: var(--bg-white); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+        .search-wrapper { position: relative; flex: 2; min-width: 220px; }
+        .search-wrapper svg { position: absolute; left: 0.875rem; top: 50%; transform: translateY(-50%); width: 18px; height: 18px; color: var(--text-muted); pointer-events: none; }
+        .search-wrapper .filter-input { padding-left: 2.75rem; }
+        .filter-actions { display: flex; gap: 0.5rem; align-items: flex-end; }
+
+        /* Table */
+        .table-container { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); overflow: hidden; }
+        .table-header { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); }
+        .table-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.75rem; }
+        .table-title svg { width: 20px; height: 20px; color: var(--primary-green); }
+        .res-table { width: 100%; border-collapse: collapse; }
+        .res-table thead { background: var(--bg-light); border-bottom: 2px solid var(--border-color); }
+        .res-table th { padding: 0.875rem 1.25rem; font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); text-align: left; white-space: nowrap; }
+        .res-table tbody tr { border-bottom: 1px solid var(--border-color); transition: background 0.15s; }
+        .res-table tbody tr:last-child { border-bottom: none; }
+        .res-table tbody tr:hover { background: var(--bg-gray); }
+        .res-table td { padding: 1rem 1.25rem; font-size: 0.9375rem; vertical-align: middle; }
+
+        /* Links */
+        .user-link, .book-link { font-weight: 600; text-decoration: none; transition: color 0.2s; }
+        .user-link { color: var(--primary-green); }
+        .user-link:hover { text-decoration: underline; }
+        .book-link { color: var(--primary-blue); }
+        .book-link:hover { text-decoration: underline; }
+        .time-cell { font-size: 0.8125rem; color: var(--text-secondary); white-space: nowrap; font-family: 'Courier New', monospace; }
+
+        /* Status Badges */
+        .status-badge { display: inline-flex; align-items: center; gap: 0.375rem; padding: 0.3rem 0.75rem; font-size: 0.8125rem; font-weight: 700; border-radius: 9999px; }
+        .status-badge::before { content: ''; width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+        .status-pending { background: rgba(245,158,11,0.1); color: var(--warning); }
+        .status-pending::before { background: var(--warning); }
+        .status-ready { background: rgba(14,165,233,0.1); color: var(--primary-blue); }
+        .status-ready::before { background: var(--primary-blue); }
+        .status-fulfilled { background: rgba(16,185,129,0.1); color: var(--success); }
+        .status-fulfilled::before { background: var(--success); }
+        .status-cancelled { background: rgba(107,114,128,0.1); color: #6b7280; }
+        .status-cancelled::before { background: #6b7280; }
+        .status-rejected { background: rgba(239,68,68,0.1); color: var(--error); }
+        .status-rejected::before { background: var(--error); }
+
+        /* Row Actions */
+        .row-actions { display: flex; gap: 0.5rem; }
+
+        /* Empty State */
+        .empty-state { text-align: center; padding: 4rem 2rem; }
+        .empty-state svg { width: 64px; height: 64px; color: var(--text-muted); opacity: 0.4; margin-bottom: 1rem; }
+        .empty-state h4 { font-size: 1.125rem; font-weight: 600; color: var(--text-secondary); margin-bottom: 0.5rem; }
+        .empty-state p { color: var(--text-muted); }
+
+        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (max-width: 768px) { .main-container { padding: 1.5rem 1rem; } .stats-grid { grid-template-columns: repeat(2, 1fr); } .filter-form { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+
+    <div class="main-container">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div class="breadcrumb">
+                <a href="{% url 'dashboard:home' %}">Dashboard</a>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                <span>Reservation Management</span>
+            </div>
+            <div class="page-title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <h1>Reservation Management</h1>
+            </div>
+            <p class="page-subtitle">Manage all book reservations and requests</p>
+        </div>
+
+        <!-- Stats Grid " clickable filters -->
+        <div class="stats-grid">
+            <a href="?status=pending" class="stat-card {% if status_filter == 'pending' %}active-filter{% endif %}">
+                <div class="stat-dot dot-pending"></div>
+                <div class="stat-value val-pending">{{ pending_count }}</div>
+                <div class="stat-label">Pending</div>
+            </a>
+            <a href="?status=ready" class="stat-card {% if status_filter == 'ready' %}active-filter{% endif %}">
+                <div class="stat-dot dot-ready"></div>
+                <div class="stat-value val-ready">{{ ready_count }}</div>
+                <div class="stat-label">Ready</div>
+            </a>
+            <a href="?status=fulfilled" class="stat-card {% if status_filter == 'fulfilled' %}active-filter{% endif %}">
+                <div class="stat-dot dot-fulfilled"></div>
+                <div class="stat-value val-fulfilled">{{ fulfilled_count }}</div>
+                <div class="stat-label">Fulfilled</div>
+            </a>
+            <a href="?status=cancelled" class="stat-card {% if status_filter == 'cancelled' %}active-filter{% endif %}">
+                <div class="stat-dot dot-cancelled"></div>
+                <div class="stat-value val-cancelled">{{ cancelled_count }}</div>
+                <div class="stat-label">Cancelled</div>
+            </a>
+            <a href="?status=rejected" class="stat-card {% if status_filter == 'rejected' %}active-filter{% endif %}">
+                <div class="stat-dot dot-rejected"></div>
+                <div class="stat-value val-rejected">{{ rejected_count }}</div>
+                <div class="stat-label">Rejected</div>
+            </a>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <form method="get" class="filter-form">
+                <div class="filter-group">
+                    <label class="filter-label">Status</label>
+                    <select name="status" class="filter-select">
+                        <option value="">All Statuses</option>
+                        <option value="pending"   {% if status_filter == 'pending'   %}selected{% endif %}>Pending</option>
+                        <option value="ready"     {% if status_filter == 'ready'     %}selected{% endif %}>Ready</option>
+                        <option value="fulfilled" {% if status_filter == 'fulfilled' %}selected{% endif %}>Fulfilled</option>
+                        <option value="cancelled" {% if status_filter == 'cancelled' %}selected{% endif %}>Cancelled</option>
+                        <option value="rejected"  {% if status_filter == 'rejected'  %}selected{% endif %}>Rejected</option>
+                    </select>
+                </div>
+                <div class="search-wrapper">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+                    <input type="text" name="search" class="filter-input" placeholder="Search by user or book title..." value="{{ search }}">
+                </div>
+                <div class="filter-actions">
+                    <button type="submit" class="btn btn-primary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon></svg>
+                        Filter
+                    </button>
+                    {% if status_filter or search %}
+                    <a href="{% url 'dashboard:reservations' %}" class="btn btn-ghost">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        Clear
+                    </a>
+                    {% endif %}
+                </div>
+            </form>
+        </div>
+
+        <!-- Table -->
+        <div class="table-container">
+            <div class="table-header">
+                <div class="table-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    All Reservations
+                </div>
+            </div>
+
+            {% if requests %}
+            <div class="responsive-table-wrapper">
+                <table class="res-table">
+                    <thead>
+                        <tr>
+                            <th>Request Date</th>
+                            <th>User</th>
+                            <th>Book</th>
+                            <th>Status</th>
+                            <th>Approved By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for request in requests %}
+                        <tr>
+                            <td data-label="Request Date"><span class="time-cell">{{ request.request_date|date:"Y-m-d H:i" }}</span></td>
+                            <td data-label="User">
+                                <a href="{% url 'users:detail' request.user.pk %}" class="user-link">
+                                    {{ request.user.get_full_name|default:request.user.username }}
+                                </a>
+                            </td>
+                            <td data-label="Book">
+                                <a href="{% url 'books:detail' request.book.pk %}" class="book-link">
+                                    {{ request.book.title|truncatewords:5 }}
+                                </a>
+                            </td>
+                            <td data-label="Status">
+                                {% if request.status == 'pending' %}
+                                <span class="status-badge status-pending">Pending</span>
+                                {% elif request.status == 'ready' %}
+                                <span class="status-badge status-ready">Ready</span>
+                                {% elif request.status == 'fulfilled' %}
+                                <span class="status-badge status-fulfilled">Fulfilled</span>
+                                {% elif request.status == 'cancelled' %}
+                                <span class="status-badge status-cancelled">Cancelled</span>
+                                {% elif request.status == 'rejected' %}
+                                <span class="status-badge status-rejected">Rejected</span>
+                                {% endif %}
+                            </td>
+                            <td data-label="Approved By" style="color:var(--text-secondary);font-size:0.875rem;">
+                                {{ request.approved_by.username|default:"-" }}
+                            </td>
+                            <td data-label="Actions">
+                                {% if request.status == 'pending' %}
+                                <div class="row-actions">
+                                    <a href="{% url 'borrow:approve_request' request.pk %}" class="btn btn-approve">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                        Approve
+                                    </a>
+                                    <a href="{% url 'borrow:reject_request' request.pk %}" class="btn btn-reject">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                        Reject
+                                    </a>
+                                </div>
+                                {% else %}
+                                <span style="color:var(--text-muted);font-size:0.875rem;">"</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            {% else %}
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                </svg>
+                <h4>No reservations found</h4>
+                <p>{% if status_filter or search %}Try adjusting your filters.{% else %}No book reservations have been made yet.{% endif %}</p>
+            </div>
+            {% endif %}
+        </div>
+
+    </div>
+
+    {% include 'includes/enhanced_nav_scripts.html' %}
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

@@ -1,0 +1,863 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Write Review - {{ book.title }} - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    {% include 'includes/enhanced_nav_styles.html' %}
+    
+    <style>
+        :root {
+            --primary-green: #10b981;
+            --primary-blue: #0ea5e9;
+            --primary-purple: #8b5cf6;
+            --text-primary: #1f2937;
+            --text-secondary: #6b7280;
+            --text-muted: #9ca3af;
+            --bg-white: #ffffff;
+            --bg-gray: #f9fafb;
+            --bg-light: #f3f4f6;
+            --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --radius-sm: 0.375rem;
+            --radius-md: 0.5rem;
+            --radius-lg: 0.75rem;
+            --radius-xl: 1rem;
+        }
+
+        [data-theme="dark"] {
+            --text-primary: #f9fafb;
+            --text-secondary: #d1d5db;
+            --text-muted: #9ca3af;
+            --bg-white: #1f2937;
+            --bg-gray: #111827;
+            --bg-light: #374151;
+            --border-color: #374151;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg-gray);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* Main Container */
+        .main-container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem 1.5rem;
+        }
+
+        /* Page Header */
+        .page-header {
+            margin-bottom: 2rem;
+        }
+
+        .breadcrumb {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .breadcrumb a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .breadcrumb a:hover {
+            color: var(--primary-green);
+        }
+
+        .breadcrumb svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .page-title {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .page-title h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-blue) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .page-subtitle {
+            color: var(--text-secondary);
+            font-size: 1rem;
+        }
+
+        /* Book Info Card */
+        .book-info-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            gap: 1.5rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .book-cover-small {
+            width: 80px;
+            height: 120px;
+            border-radius: var(--radius-md);
+            object-fit: cover;
+            box-shadow: var(--shadow-md);
+            flex-shrink: 0;
+        }
+
+        .book-info-content {
+            flex: 1;
+        }
+
+        .book-info-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .book-info-author {
+            color: var(--text-secondary);
+            font-size: 0.9375rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .book-current-rating {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .stars-display {
+            display: flex;
+            gap: 0.125rem;
+        }
+
+        .stars-display svg {
+            width: 16px;
+            height: 16px;
+            fill: #fbbf24;
+            stroke: #fbbf24;
+        }
+
+        .stars-display svg.empty {
+            fill: none;
+            stroke: var(--border-color);
+        }
+
+        .rating-count {
+            color: var(--text-muted);
+        }
+
+        /* Review Form Card */
+        .review-form-card {
+            background: var(--bg-white);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .form-section {
+            margin-bottom: 2rem;
+        }
+
+        .form-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .form-label {
+            display: block;
+            font-weight: 600;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            margin-bottom: 0.75rem;
+        }
+
+        .required {
+            color: #ef4444;
+            margin-left: 0.25rem;
+        }
+
+        /* Rating Section */
+        .rating-container {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.05) 0%, rgba(14, 165, 233, 0.05) 100%);
+            border: 2px dashed var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+        }
+
+        .star-rating {
+            display: inline-flex;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .rating-star {
+            width: 48px;
+            height: 48px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--border-color);
+        }
+
+        .rating-star:hover,
+        .rating-star.active {
+            color: #fbbf24;
+            transform: scale(1.15);
+        }
+
+        .rating-star.active {
+            animation: starPop 0.3s ease;
+        }
+
+        @keyframes starPop {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1.15); }
+        }
+
+        .rating-feedback {
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+
+        .rating-emoji {
+            font-size: 3rem;
+            line-height: 1;
+        }
+
+        .rating-text {
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+
+        .rating-description {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .rating-error {
+            display: none;
+            color: #ef4444;
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            padding: 0.75rem;
+            background: rgba(239, 68, 68, 0.1);
+            border-radius: var(--radius-md);
+        }
+
+        .rating-error.show {
+            display: block;
+        }
+        /* Review Text Area */
+        .review-textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 1rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            color: var(--text-primary);
+            background: var(--bg-gray);
+            border: 2px solid var(--border-color);
+            border-radius: var(--radius-md);
+            resize: vertical;
+            transition: all 0.2s;
+        }
+
+        .review-textarea:focus {
+            outline: none;
+            border-color: var(--primary-green);
+            background: var(--bg-white);
+            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
+        }
+
+        .review-textarea::placeholder {
+            color: var(--text-muted);
+        }
+
+        .form-help {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .form-help svg {
+            width: 16px;
+            height: 16px;
+            flex-shrink: 0;
+        }
+
+        .char-counter {
+            text-align: right;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* Review Tips */
+        .review-tips {
+            background: linear-gradient(135deg, rgba(139, 92, 246, 0.05) 0%, rgba(16, 185, 129, 0.05) 100%);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .tips-header {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+
+        .tips-icon {
+            width: 24px;
+            height: 24px;
+            color: var(--primary-purple);
+        }
+
+        .tips-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .tips-list {
+            list-style: none;
+            display: grid;
+            gap: 0.75rem;
+        }
+
+        .tips-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 0.75rem;
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .tips-list li svg {
+            width: 18px;
+            height: 18px;
+            color: var(--primary-green);
+            flex-shrink: 0;
+            margin-top: 0.125rem;
+        }
+
+        /* Action Buttons */
+        .form-actions {
+            display: flex;
+            gap: 1rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            padding: 0.875rem 1.75rem;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.9375rem;
+            font-weight: 600;
+            border-radius: var(--radius-md);
+            border: none;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-green) 0%, var(--primary-blue) 100%);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-md);
+        }
+
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+
+        .btn-secondary {
+            background: var(--bg-gray);
+            color: var(--text-secondary);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-light);
+            color: var(--text-primary);
+            border-color: var(--text-muted);
+        }
+
+        /* Loading State */
+        .btn-loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            border: 2px solid transparent;
+            border-top-color: currentColor;
+            border-radius: 50%;
+            animation: spin 0.6s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .main-container {
+                padding: 1.5rem 1rem;
+            }
+
+            .page-title h1 {
+                font-size: 1.5rem;
+            }
+
+            .book-info-card {
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+            }
+
+            .review-form-card {
+                padding: 1.5rem;
+            }
+
+            .rating-container {
+                padding: 1.5rem;
+            }
+
+            .star-rating {
+                gap: 0.5rem;
+            }
+
+            .rating-star {
+                width: 40px;
+                height: 40px;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+
+    <div class="main-container">
+        <!-- Page Header -->
+        <div class="page-header">
+            <div class="breadcrumb">
+                <a href="{% url 'books:list' %}">Books</a>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"></path>
+                </svg>
+                <a href="{% url 'books:detail' book.pk %}">{{ book.title|truncatewords:5 }}</a>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 18l6-6-6-6"></path>
+                </svg>
+                <span>Write Review</span>
+            </div>
+            
+            <div class="page-title">
+                <h1>Write Your Review</h1>
+            </div>
+            <p class="page-subtitle">Share your thoughts and help others discover great books</p>
+        </div>
+
+        <!-- Book Info Card -->
+        <div class="book-info-card">
+            {% if book.cover_image %}
+            <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" class="book-cover-small">
+            {% else %}
+            <div class="book-cover-small" style="background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700;">
+                {{ book.title|slice:":1" }}
+            </div>
+            {% endif %}
+            
+            <div class="book-info-content">
+                <h2 class="book-info-title">{{ book.title }}</h2>
+                <p class="book-info-author">by {{ book.author }}</p>
+                <div class="book-current-rating">
+                    <div class="stars-display">
+                        {% for i in "12345" %}
+                            {% if forloop.counter <= book.rating|floatformat:0|add:0 %}
+                                <svg viewBox="0 0 24 24">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                            {% else %}
+                                <svg viewBox="0 0 24 24" class="empty">
+                                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                                </svg>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                    <span class="rating-count">
+                        {% if book.reviews.count > 0 %}
+                            {{ book.rating|floatformat:1 }} ({{ book.reviews.count }} review{{ book.reviews.count|pluralize }})
+                        {% else %}
+                            No reviews yet
+                        {% endif %}
+                    </span>
+                </div>
+            </div>
+        </div>
+        <!-- Review Tips -->
+        <div class="review-tips">
+            <div class="tips-header">
+                <svg class="tips-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                    <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+                <h3 class="tips-title">Tips for Writing a Great Review</h3>
+            </div>
+            <ul class="tips-list">
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Share what you liked or didn't like about the book</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Mention the writing style, characters, or plot</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Keep it respectful and constructive</span>
+                </li>
+                <li>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                    <span>Avoid spoilers - let others discover the story themselves</span>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Review Form -->
+        <div class="review-form-card">
+            <form method="post" id="reviewForm">
+                {% csrf_token %}
+                
+                <!-- Rating Section -->
+                <div class="form-section">
+                    <label class="form-label">
+                        Your Rating<span class="required">*</span>
+                    </label>
+                    <div class="rating-container">
+                        <div class="star-rating" id="starRating">
+                            <svg class="rating-star" data-rating="1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="rating-star" data-rating="2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="rating-star" data-rating="3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="rating-star" data-rating="4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                            <svg class="rating-star" data-rating="5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/>
+                            </svg>
+                        </div>
+                        <div class="rating-feedback">
+                            <div class="rating-emoji" id="ratingEmoji"></div>
+                            <div class="rating-text" id="ratingText"></div>
+                            <div class="rating-description" id="ratingDescription"></div>
+                        </div>
+                        <input type="hidden" name="rating" id="ratingInput" value="">
+                        <div class="rating-error" id="ratingError">
+                            <svg style="width: 16px; height: 16px; display: inline; vertical-align: middle; margin-right: 0.5rem;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="12"></line>
+                                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                            </svg>
+                            Please select a rating before submitting
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Review Text -->
+                <div class="form-section">
+                    <label for="id_review_text" class="form-label">
+                        Your Review
+                    </label>
+                    <textarea 
+                        name="review_text" 
+                        id="id_review_text" 
+                        class="review-textarea"
+                        placeholder="What did you think about this book? Share your experience, favorite moments, or what made it special (or not so special) for you..."
+                        maxlength="2000"
+                    ></textarea>
+                    <div class="form-help">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M12 16v-4m0-4h.01"></path>
+                        </svg>
+                        <span>Optional, but highly recommended to help other readers</span>
+                    </div>
+                    <div class="char-counter">
+                        <span id="charCount">0</span> / 2000 characters
+                    </div>
+                </div>
+
+                <!-- Form Actions -->
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary" id="submitBtn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/>
+                        </svg>
+                        Submit Review
+                    </button>
+                    <a href="{% url 'books:detail' book.pk %}" class="btn btn-secondary">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                            <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                        Cancel
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+    {% include 'includes/enhanced_nav_scripts.html' %}
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const stars = document.querySelectorAll('.rating-star');
+            const ratingInput = document.getElementById('ratingInput');
+            const ratingEmoji = document.getElementById('ratingEmoji');
+            const ratingText = document.getElementById('ratingText');
+            const ratingDescription = document.getElementById('ratingDescription');
+            const ratingError = document.getElementById('ratingError');
+            const form = document.getElementById('reviewForm');
+            const submitBtn = document.getElementById('submitBtn');
+            const reviewTextarea = document.getElementById('id_review_text');
+            const charCount = document.getElementById('charCount');
+            
+            const ratingData = {
+                1: { 
+                    emoji: '😞', 
+                    text: 'Poor', 
+                    description: 'Not recommended',
+                    color: '#ef4444' 
+                },
+                2: { 
+                    emoji: '😕', 
+                    text: 'Fair', 
+                    description: 'It was okay',
+                    color: '#f97316' 
+                },
+                3: { 
+                    emoji: '😊', 
+                    text: 'Good', 
+                    description: 'Worth reading',
+                    color: '#eab308' 
+                },
+                4: { 
+                    emoji: '😄', 
+                    text: 'Very Good', 
+                    description: 'Highly recommend',
+                    color: '#22c55e' 
+                },
+                5: { 
+                    emoji: '🤩', 
+                    text: 'Excellent!', 
+                    description: 'Absolutely loved it!',
+                    color: '#10b981' 
+                }
+            };
+            
+            let selectedRating = 0;
+            
+            // Character counter
+            reviewTextarea.addEventListener('input', function() {
+                charCount.textContent = this.value.length;
+            });
+            
+            // Star hover effect
+            stars.forEach(star => {
+                star.addEventListener('mouseenter', function() {
+                    const rating = parseInt(this.dataset.rating);
+                    highlightStars(rating);
+                    showFeedback(rating);
+                });
+                
+                star.addEventListener('click', function() {
+                    selectedRating = parseInt(this.dataset.rating);
+                    ratingInput.value = selectedRating;
+                    ratingError.classList.remove('show');
+                    
+                    // Make selected stars active
+                    stars.forEach(s => s.classList.remove('active'));
+                    for (let i = 0; i < selectedRating; i++) {
+                        stars[i].classList.add('active');
+                    }
+                });
+            });
+            
+            // Reset on mouse leave
+            document.querySelector('.star-rating').addEventListener('mouseleave', function() {
+                if (selectedRating > 0) {
+                    highlightStars(selectedRating);
+                    showFeedback(selectedRating);
+                } else {
+                    resetStars();
+                    ratingEmoji.textContent = '';
+                    ratingText.textContent = '';
+                    ratingDescription.textContent = '';
+                }
+            });
+            
+            function highlightStars(rating) {
+                stars.forEach((star, index) => {
+                    if (index < rating) {
+                        star.style.fill = '#fbbf24';
+                        star.style.color = '#fbbf24';
+                    } else {
+                        star.style.fill = 'none';
+                        star.style.color = 'var(--border-color)';
+                    }
+                });
+            }
+            
+            function resetStars() {
+                stars.forEach(star => {
+                    if (!star.classList.contains('active')) {
+                        star.style.fill = 'none';
+                        star.style.color = 'var(--border-color)';
+                    }
+                });
+            }
+            
+            function showFeedback(rating) {
+                const data = ratingData[rating];
+                ratingEmoji.textContent = data.emoji;
+                ratingText.textContent = data.text;
+                ratingText.style.color = data.color;
+                ratingDescription.textContent = data.description;
+            }
+            
+            // Form validation
+            form.addEventListener('submit', function(e) {
+                if (!ratingInput.value) {
+                    e.preventDefault();
+                    ratingError.classList.add('show');
+                    document.querySelector('.rating-container').scrollIntoView({ 
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
+                    return false;
+                }
+                
+                // Add loading state
+                submitBtn.classList.add('btn-loading');
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<span style="opacity: 0;">Submitting...</span>';
+            });
+            
+            // Prevent accidental navigation
+            let formChanged = false;
+            
+            reviewTextarea.addEventListener('input', function() {
+                formChanged = true;
+            });
+            
+            stars.forEach(star => {
+                star.addEventListener('click', function() {
+                    formChanged = true;
+                });
+            });
+            
+            window.addEventListener('beforeunload', function(e) {
+                if (formChanged && !form.classList.contains('submitted')) {
+                    e.preventDefault();
+                    e.returnValue = '';
+                    return '';
+                }
+            });
+            
+            form.addEventListener('submit', function() {
+                form.classList.add('submitted');
+                formChanged = false;
+            });
+        });
+    </script>
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

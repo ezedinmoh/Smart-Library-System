@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analytics - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    {% include 'includes/enhanced_nav_styles.html' %}
+    <style>
+        :root { --primary-green: #10b981; --primary-blue: #0ea5e9; --primary-purple: #8b5cf6; --text-primary: #1f2937; --text-secondary: #6b7280; --text-muted: #9ca3af; --bg-white: #ffffff; --bg-gray: #f9fafb; --bg-light: #f3f4f6; --border-color: #e5e7eb; --error: #ef4444; --warning: #f59e0b; --success: #10b981; --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1); --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem; }
+        [data-theme="dark"] { --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #9ca3af; --bg-white: #1f2937; --bg-gray: #111827; --bg-light: #374151; --border-color: #374151; }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gray); color: var(--text-primary); min-height: 100vh; }
+        .main-container { max-width: 1400px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+        .breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--primary-green); }
+        .breadcrumb svg { width: 16px; height: 16px; }
+        .page-title { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.375rem; }
+        .page-title svg { width: 28px; height: 28px; color: var(--primary-green); }
+        .page-title h1 { font-size: 1.875rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-subtitle { color: var(--text-secondary); font-size: 0.9375rem; }
+
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .btn svg { width: 18px; height: 18px; }
+        .btn-outline { background: transparent; color: var(--text-secondary); border: 2px solid var(--border-color); }
+        .btn-outline:hover { border-color: var(--primary-green); color: var(--primary-green); }
+
+        /* Stats Grid */
+        .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-lg); padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-sm); transition: all 0.2s; }
+        .stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .stat-icon { width: 52px; height: 52px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .stat-icon svg { width: 24px; height: 24px; }
+        .stat-icon.blue { background: rgba(14,165,233,0.1); color: var(--primary-blue); }
+        .stat-icon.green { background: rgba(16,185,129,0.1); color: var(--success); }
+        .stat-icon.red { background: rgba(239,68,68,0.1); color: var(--error); }
+        .stat-icon.orange { background: rgba(245,158,11,0.1); color: var(--warning); }
+        .stat-value { font-size: 1.75rem; font-weight: 800; line-height: 1; margin-bottom: 0.25rem; }
+        .stat-label { font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; }
+
+        /* Cards */
+        .card { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); overflow: hidden; }
+        .card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; gap: 0.75rem; }
+        .card-header-title { font-size: 1rem; font-weight: 700; color: var(--text-primary); display: flex; align-items: center; gap: 0.625rem; }
+        .card-header-title svg { width: 20px; height: 20px; color: var(--primary-green); }
+        .card-body { padding: 1.5rem; }
+
+        /* Chart Grid */
+        .charts-row { display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+        .charts-row-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 1.5rem; }
+
+        /* Lists */
+        .rank-list { list-style: none; }
+        .rank-item { display: flex; align-items: center; justify-content: space-between; padding: 0.875rem 1.5rem; border-bottom: 1px solid var(--border-color); transition: background 0.15s; }
+        .rank-item:last-child { border-bottom: none; }
+        .rank-item:hover { background: var(--bg-gray); }
+        .rank-left { display: flex; align-items: center; gap: 0.875rem; }
+        .rank-num { width: 28px; height: 28px; border-radius: 50%; background: var(--bg-light); display: flex; align-items: center; justify-content: center; font-size: 0.8125rem; font-weight: 700; color: var(--text-secondary); flex-shrink: 0; }
+        .rank-num.top { background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); color: white; }
+        .rank-title { font-weight: 600; font-size: 0.9375rem; color: var(--text-primary); }
+        .rank-sub { font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.125rem; }
+        .rank-badge { display: inline-flex; padding: 0.25rem 0.75rem; font-size: 0.8125rem; font-weight: 700; background: rgba(16,185,129,0.1); color: var(--primary-green); border-radius: 9999px; white-space: nowrap; }
+        .rank-badge.secondary { background: rgba(107,114,128,0.1); color: var(--text-secondary); }
+
+        @media (max-width: 1024px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .charts-row { grid-template-columns: 1fr; } .charts-row-equal { grid-template-columns: 1fr; } }
+        @media (max-width: 640px) { .main-container { padding: 1.5rem 1rem; } .stats-grid { grid-template-columns: repeat(2, 1fr); } }
+    </style>
+</head>
+<body>
+    {% include 'includes/enhanced_nav.html' %}
+    
+    <!-- Include Toast Notifications -->
+    {% include 'includes/toast_notifications.html' %}
+
+    <div class="main-container">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <div class="breadcrumb">
+                    <a href="{% url 'dashboard:home' %}">Dashboard</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                    <span>Analytics</span>
+                </div>
+                <div class="page-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"></line>
+                        <line x1="12" y1="20" x2="12" y2="4"></line>
+                        <line x1="6" y1="20" x2="6" y2="14"></line>
+                    </svg>
+                    <h1>Analytics</h1>
+                </div>
+                <p class="page-subtitle">Library usage statistics and trends</p>
+            </div>
+            <a href="{% url 'dashboard:reports' %}" class="btn btn-outline">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                View Reports
+            </a>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
+                <div><div class="stat-value" style="color:var(--primary-blue);">{{ role_stats.student }}</div><div class="stat-label">Students</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                </div>
+                <div><div class="stat-value" style="color:var(--success);">{{ available_books }}</div><div class="stat-label">Available Books</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+                <div><div class="stat-value" style="color:var(--error);">ETB {{ unpaid_fines|floatformat:0 }}</div><div class="stat-label">Unpaid Fines</div></div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
+                <div><div class="stat-value" style="color:var(--warning);">ETB {{ total_fines|floatformat:0 }}</div><div class="stat-label">Total Fines</div></div>
+            </div>
+        </div>
+
+        <!-- Charts Row 1: Monthly Trend + Availability -->
+        <div class="charts-row">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-header-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                        Monthly Borrow Trend (Last 12 Months)
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="monthlyChart" height="100"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-header-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        Book Availability
+                    </div>
+                </div>
+                <div class="card-body" style="display:flex;align-items:center;justify-content:center;">
+                    <canvas id="availabilityChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Row 2: Daily Activity + User Roles -->
+        <div class="charts-row">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-header-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        Last 7 Days Activity
+                    </div>
+                </div>
+                <div class="card-body">
+                    <canvas id="dailyChart" height="100"></canvas>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-header-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87m-4-12a4 4 0 0 1 0 7.75"></path></svg>
+                        User Roles
+                    </div>
+                </div>
+                <div class="card-body" style="display:flex;align-items:center;justify-content:center;">
+                    <canvas id="rolesChart" height="220"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Books + Categories -->
+        <div class="charts-row-equal">
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-header-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                        Top 10 Most Borrowed Books
+                    </div>
+                </div>
+                <ul class="rank-list">
+                    {% for book in top_books %}
+                    <li class="rank-item">
+                        <div class="rank-left">
+                            <div class="rank-num {% if forloop.counter <= 3 %}top{% endif %}">{{ forloop.counter }}</div>
+                            <div>
+                                <div class="rank-title">{{ book.title|truncatewords:5 }}</div>
+                                <div class="rank-sub">{{ book.author|truncatewords:3 }}</div>
+                            </div>
+                        </div>
+                        <span class="rank-badge">{{ book.times_borrowed }}x</span>
+                    </li>
+                    {% empty %}
+                    <li style="text-align:center;padding:3rem;color:var(--text-muted);">No data yet</li>
+                    {% endfor %}
+                </ul>
+            </div>
+
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-header-title">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                        Category Distribution
+                    </div>
+                </div>
+                <ul class="rank-list">
+                    {% for cat in category_stats %}
+                    <li class="rank-item">
+                        <div class="rank-left">
+                            <div class="rank-num {% if forloop.counter <= 3 %}top{% endif %}">{{ forloop.counter }}</div>
+                            <div>
+                                <div class="rank-title">{{ cat.name }}</div>
+                                <div class="rank-sub">{{ cat.book_count }} book{{ cat.book_count|pluralize }}</div>
+                            </div>
+                        </div>
+                        <span class="rank-badge secondary">{{ cat.borrow_count }} borrows</span>
+                    </li>
+                    {% empty %}
+                    <li style="text-align:center;padding:3rem;color:var(--text-muted);">No data yet</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+
+    </div>
+    {% include 'includes/enhanced_nav_scripts.html' %}
+
+    <script>
+        const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+        const gridColor  = isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.06)';
+        const labelColor = isDark ? '#9ca3af' : '#6b7280';
+
+        const monthlyLabels = {{ monthly_labels_json|safe }};
+        const monthlyData   = {{ monthly_data_json|safe }};
+        const dailyLabels   = {{ daily_labels_json|safe }};
+        const dailyBorrows  = {{ daily_borrows_json|safe }};
+        const dailyReturns  = {{ daily_returns_json|safe }};
+
+        Chart.defaults.font.family = 'Inter';
+        Chart.defaults.color = labelColor;
+
+        // Monthly Trend
+        new Chart(document.getElementById('monthlyChart'), {
+            type: 'line',
+            data: {
+                labels: monthlyLabels,
+                datasets: [{
+                    label: 'Borrows',
+                    data: monthlyData,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16,185,129,0.1)',
+                    fill: true,
+                    tension: 0.4,
+                    pointBackgroundColor: '#10b981',
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                }]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: labelColor } },
+                    y: { grid: { color: gridColor }, ticks: { color: labelColor }, beginAtZero: true }
+                }
+            }
+        });
+
+        // Availability Doughnut
+        new Chart(document.getElementById('availabilityChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Available', 'Unavailable'],
+                datasets: [{ data: [{{ available_books }}, {{ unavailable_books }}], backgroundColor: ['#10b981', '#ef4444'], borderWidth: 0 }]
+            },
+            options: { responsive: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } } } }
+        });
+
+        // Daily Activity Bar
+        new Chart(document.getElementById('dailyChart'), {
+            type: 'bar',
+            data: {
+                labels: dailyLabels,
+                datasets: [
+                    { label: 'Borrows', data: dailyBorrows, backgroundColor: 'rgba(16,185,129,0.8)', borderRadius: 4 },
+                    { label: 'Returns', data: dailyReturns, backgroundColor: 'rgba(14,165,233,0.8)', borderRadius: 4 }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: { legend: { position: 'top', labels: { usePointStyle: true } } },
+                scales: {
+                    x: { grid: { color: gridColor }, ticks: { color: labelColor } },
+                    y: { grid: { color: gridColor }, ticks: { color: labelColor }, beginAtZero: true }
+                }
+            }
+        });
+
+        // User Roles Doughnut
+        new Chart(document.getElementById('rolesChart'), {
+            type: 'doughnut',
+            data: {
+                labels: ['Admins', 'Librarians', 'Students'],
+                datasets: [{ data: [{{ role_stats.admin }}, {{ role_stats.librarian }}, {{ role_stats.student }}], backgroundColor: ['#ef4444', '#f59e0b', '#0ea5e9'], borderWidth: 0 }]
+            },
+            options: { responsive: true, cutout: '65%', plugins: { legend: { position: 'bottom', labels: { padding: 16, usePointStyle: true } } } }
+        });
+
+        // Re-render charts on theme toggle
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            setTimeout(() => location.reload(), 300);
+        });
+    </script>
+    <!-- Back to Previous Page Button -->
+    {% include 'includes/back_button.html' %}
+</body>
+</html>

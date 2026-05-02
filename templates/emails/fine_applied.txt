@@ -1,0 +1,67 @@
+Hi {{ user.get_full_name|default:user.username }},
+
+💰 FINE APPLIED NOTICE
+
+A fine has been applied to your library account for an overdue book.
+
+Book Details:
+-------------
+Title: {{ book.title }}
+Author: {{ book.author }}
+Due Date: {{ due_date|date:"F d, Y" }}
+Days Overdue: {{ days_overdue }} day{{ days_overdue|pluralize }}
+
+FINE DETAILS:
+-------------
+Fine Amount: ETB {{ fine_amount }}
+Fine Rate: ETB 2 per day
+Status: {% if fine_paid %}PAID{% else %}UNPAID{% endif %}
+
+{% if not fine_paid %}
+PAYMENT REQUIRED:
+-----------------
+Your fine of ETB {{ fine_amount }} must be paid before you can:
+- Borrow new books
+- Renew existing books
+- Access certain library services
+
+How to Pay:
+1. Visit the library during opening hours
+2. Pay at the circulation desk
+3. Keep your payment receipt
+
+IMPORTANT: Fines continue to accumulate until the book is returned!
+{% else %}
+PAYMENT RECEIVED:
+-----------------
+Thank you! Your fine of ETB {{ fine_amount }} has been paid.
+
+Please remember to return books on time to avoid future fines.
+{% endif %}
+
+Current Status:
+- Book: {% if days_overdue > 0 %}Still overdue - please return immediately{% else %}Returned{% endif %}
+- Fine: {% if fine_paid %}Paid{% else %}Unpaid - payment required{% endif %}
+
+{% if not fine_paid %}
+Next Steps:
+1. Return the book immediately (if not already returned)
+2. Pay the fine at the library
+3. Resume normal borrowing privileges
+{% endif %}
+
+Tips to Avoid Future Fines:
+- Set reminders for due dates
+- Return books on time
+- Request extensions before the due date
+- Check your email regularly for notifications
+
+Questions or Issues?
+If you believe this fine was applied in error, or if you've already returned the book, please contact the library immediately.
+
+Contact Us:
+Visit {{ site_name }} or come to the library during opening hours.
+
+Best regards,
+{{ site_name }} Team
+{{ site_url }}
