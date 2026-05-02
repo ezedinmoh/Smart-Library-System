@@ -184,14 +184,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 
 # ============================================================================
-# CLOUDINARY - Media Storage (for production)
+# CLOUDINARY - Media Storage (for production only)
 # ============================================================================
 CLOUDINARY_CLOUD_NAME = config('CLOUDINARY_CLOUD_NAME', default='')
 CLOUDINARY_API_KEY = config('CLOUDINARY_API_KEY', default='')
 CLOUDINARY_API_SECRET = config('CLOUDINARY_API_SECRET', default='')
 
-# Use Cloudinary only when credentials are set (production)
-if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+# Use Cloudinary only when RENDER env is set (production only)
+# Locally always use local file storage
+if config('RENDER', default=False, cast=bool) and CLOUDINARY_CLOUD_NAME:
     import cloudinary
     cloudinary.config(
         cloud_name=CLOUDINARY_CLOUD_NAME,
@@ -199,6 +200,12 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
         api_secret=CLOUDINARY_API_SECRET,
         secure=True
     )
+    # Required by django-cloudinary-storage
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+        'API_KEY': CLOUDINARY_API_KEY,
+        'API_SECRET': CLOUDINARY_API_SECRET,
+    }
     INSTALLED_APPS += ['cloudinary_storage', 'cloudinary']
     STORAGES = {
         "default": {
