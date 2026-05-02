@@ -48,7 +48,8 @@ db.sqlite3-journal
 # Media files - served via Cloudinary in production
 /media
 /staticfiles
-/static
+# Keep static source files - needed for collectstatic
+# /static
 celerybeat-schedule
 celerybeat.pid
 

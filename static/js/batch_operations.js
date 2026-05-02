@@ -1,0 +1,361 @@
+// Batch Operations JavaScript
+let selectedUsers = new Set();
+let currentSingleUser = null;
+
+// Dropdown functionality
+function toggleDropdown(event, button) {
+    event.stopPropagation();
+    const dropdown = button.closest('.dropdown');
+    const isOpen = dropdown.classList.contains('show');
+    
+    // Close all dropdowns
+    document.querySelectorAll('.dropdown.show').forEach(d => {
+        d.classList.remove('show');
+    });
+    
+    // Toggle current dropdown
+    if (!isOpen) {
+        dropdown.classList.add('show');
+    }
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', function(event) {
+    if (!event.target.closest('.dropdown')) {
+        document.querySelectorAll('.dropdown.show').forEach(d => {
+            d.classList.remove('show');
+        });
+    }
+});
+
+// Close modals when clicking outside
+document.querySelectorAll('.modal-overlay').forEach(modal => {
+    modal.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeAllModals();
+        }
+    });
+});
+
+function closeAllModals() {
+    document.querySelectorAll('.modal-overlay').forEach(modal => {
+        modal.classList.remove('show');
+    });
+}
+
+function updateBatchActions() {
+    const batchActions = document.getElementById('batchActions');
+    const batchCount = document.getElementById('batchCount');
+    const count = selectedUsers.size;
+    
+    if (count > 0) {
+        batchActions.classList.add('show');
+        batchCount.textContent = `${count} selected`;
+    } else {
+        batchActions.classList.remove('show');
+    }
+}
+
+function toggleUserSelection(checkbox, userId) {
+    if (checkbox.checked) {
+        selectedUsers.add(userId);
+    } else {
+        selectedUsers.delete(userId);
+    }
+    updateBatchActions();
+}
+
+function toggleSelectAll(checkbox) {
+    const checkboxes = document.querySelectorAll('.user-checkbox');
+    checkboxes.forEach(cb => {
+        cb.checked = checkbox.checked;
+        const userId = cb.dataset.userId;
+        if (checkbox.checked) {
+            selectedUsers.add(userId);
+        } else {
+            selectedUsers.delete(userId);
+        }
+    });
+    updateBatchActions();
+}
+
+function clearSelection() {
+    selectedUsers.clear();
+    document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
+    const selectAll = document.getElementById('selectAll');
+    if (selectAll) selectAll.checked = false;
+    updateBatchActions();
+}
+
+function getCSRFToken() {
+    const token = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (token) return token.value;
+    
+    // Fallback: get from cookie
+    const name = 'csrftoken';
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+// ===== SINGLE USER MODALS =====
+
+function openSingleDeleteModal(userId, username, email) {
+    console.log('openSingleDeleteModal called', userId, username, email);
+    currentSingleUser = { id: userId, username: username, email: email };
+    document.getElementById('singleDeleteUserInfo').innerHTML = `
+        <p class="user-info-item"><strong>Username:</strong> ${username}</p>
+        <p class="user-info-item"><strong>Email:</strong> ${email}</p>
+    `;
+    document.getElementById('singleDeleteUsernameInput').value = '';
+    document.getElementById('singleDeleteSubmitBtn').disabled = true;
+    document.getElementById('singleDeleteModal').classList.add('show');
+    console.log('Modal should be visible now');
+}
+
+function closeSingleDeleteModal() {
+    document.getElementById('singleDeleteModal').classList.remove('show');
+    currentSingleUser = null;
+}
+
+document.getElementById('singleDeleteUsernameInput')?.addEventListener('input', function() {
+    const submitBtn = document.getElementById('singleDeleteSubmitBtn');
+    submitBtn.disabled = this.value !== currentSingleUser?.username;
+});
+
+async function confirmSingleDelete() {
+    if (!currentSingleUser) return;
+    
+    try {
+        const response = await fetch(`/users/${currentSingleUser.id}/delete/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `confirmation=${encodeURIComponent(currentSingleUser.username)}`
+        });
+        
+        if (response.redirected) {
+            window.location.href = response.url;
+        } else {
+            const text = await response.text();
+            if (text.includes('success') || response.ok) {
+                window.location.reload();
+            } else {
+                alert('Error deleting user');
+            }
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+function openSingleDeactivateModal(userId, username, email) {
+    currentSingleUser = { id: userId, username: username, email: email };
+    document.getElementById('singleDeactivateUserInfo').innerHTML = `
+        <p class="user-info-item"><strong>Username:</strong> ${username}</p>
+        <p class="user-info-item"><strong>Email:</strong> ${email}</p>
+    `;
+    document.getElementById('singleDeactivateModal').classList.add('show');
+}
+
+function closeSingleDeactivateModal() {
+    document.getElementById('singleDeactivateModal').classList.remove('show');
+    currentSingleUser = null;
+}
+
+async function confirmSingleDeactivate() {
+    if (!currentSingleUser) return;
+    
+    try {
+        const response = await fetch(`/users/${currentSingleUser.id}/deactivate/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+            }
+        });
+        
+        if (response.redirected) {
+            window.location.href = response.url;
+        } else {
+            window.location.reload();
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+function openSingleActivateModal(userId, username, email) {
+    currentSingleUser = { id: userId, username: username, email: email };
+    document.getElementById('singleActivateUserInfo').innerHTML = `
+        <p class="user-info-item"><strong>Username:</strong> ${username}</p>
+        <p class="user-info-item"><strong>Email:</strong> ${email}</p>
+    `;
+    document.getElementById('singleActivateModal').classList.add('show');
+}
+
+function closeSingleActivateModal() {
+    document.getElementById('singleActivateModal').classList.remove('show');
+    currentSingleUser = null;
+}
+
+async function confirmSingleActivate() {
+    if (!currentSingleUser) return;
+    
+    try {
+        const response = await fetch(`/users/${currentSingleUser.id}/activate/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+            }
+        });
+        
+        if (response.redirected) {
+            window.location.href = response.url;
+        } else {
+            window.location.reload();
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+// ===== BATCH OPERATIONS =====
+
+function batchActivate() {
+    if (selectedUsers.size === 0) return;
+    
+    // Open modal instead of confirm
+    document.getElementById('batchActivateCount').textContent = selectedUsers.size;
+    document.getElementById('batchActivateModal').classList.add('show');
+}
+
+function closeBatchActivateModal() {
+    document.getElementById('batchActivateModal').classList.remove('show');
+}
+
+async function confirmBatchActivate() {
+    if (selectedUsers.size === 0) return;
+    
+    try {
+        const formData = new FormData();
+        selectedUsers.forEach(id => formData.append('user_ids[]', id));
+        
+        const response = await fetch('/users/batch/activate/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+function batchDeactivate() {
+    if (selectedUsers.size === 0) return;
+    
+    // Open modal instead of confirm
+    document.getElementById('batchDeactivateCount').textContent = selectedUsers.size;
+    document.getElementById('batchDeactivateModal').classList.add('show');
+}
+
+function closeBatchDeactivateModal() {
+    document.getElementById('batchDeactivateModal').classList.remove('show');
+}
+
+async function confirmBatchDeactivate() {
+    if (selectedUsers.size === 0) return;
+    
+    try {
+        const formData = new FormData();
+        selectedUsers.forEach(id => formData.append('user_ids[]', id));
+        
+        const response = await fetch('/users/batch/deactivate/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
+
+function batchDelete() {
+    if (selectedUsers.size === 0) return;
+    
+    // Open modal for batch delete
+    document.getElementById('batchDeleteCount').textContent = selectedUsers.size;
+    document.getElementById('batchDeleteInput').value = '';
+    document.getElementById('batchDeleteSubmitBtn').disabled = true;
+    document.getElementById('batchDeleteModal').classList.add('show');
+}
+
+function closeBatchDeleteModal() {
+    document.getElementById('batchDeleteModal').classList.remove('show');
+}
+
+document.getElementById('batchDeleteInput')?.addEventListener('input', function() {
+    const submitBtn = document.getElementById('batchDeleteSubmitBtn');
+    submitBtn.disabled = this.value !== 'DELETE';
+});
+
+async function confirmBatchDelete() {
+    if (selectedUsers.size === 0) return;
+    
+    try {
+        const formData = new FormData();
+        selectedUsers.forEach(id => formData.append('user_ids[]', id));
+        formData.append('confirmation', 'DELETE');
+        
+        const response = await fetch('/users/batch/delete/', {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken()
+            },
+            body: formData
+        });
+        
+        const data = await response.json();
+        
+        if (data.success) {
+            alert(data.message);
+            location.reload();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    } catch (error) {
+        alert('Error: ' + error.message);
+    }
+}
