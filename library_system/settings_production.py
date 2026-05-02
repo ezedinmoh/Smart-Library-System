@@ -235,7 +235,7 @@ CHAPA_WEBHOOK_SECRET = config('CHAPA_WEBHOOK_SECRET', default='')
 # ============================================================================
 
 SITE_NAME = config('SITE_NAME', default='Smart Library Management System')
-SITE_URL = config('SITE_URL', default='https://smartlibrary.onrender.com')
+SITE_URL = config('SITE_URL', default='https://smart-library-system-dy3a.onrender.com')
 
 # ============================================================================
 # CLOUDINARY - Media Storage

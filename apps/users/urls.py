@@ -56,6 +56,7 @@ urlpatterns = [
          auth_views.PasswordResetView.as_view(
              template_name='users/password_reset.html',
              email_template_name='users/password_reset_email.html',
+             html_email_template_name='users/password_reset_email_html.html',
              subject_template_name='users/password_reset_subject.txt',
              success_url='/users/password-reset/done/',
              form_class=CustomPasswordResetForm  # Use custom form for inactive users
