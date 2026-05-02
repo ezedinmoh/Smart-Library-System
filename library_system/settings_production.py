@@ -291,10 +291,17 @@ MANAGERS = ADMINS
 SESSION_COOKIE_AGE = 1209600  # 2 weeks
 SESSION_COOKIE_HTTPONLY = True
 SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # DB-backed sessions survive restarts
+SESSION_SAVE_EVERY_REQUEST = True  # Refresh session on every request
 
 # CSRF cookie settings
 CSRF_COOKIE_HTTPONLY = True
 CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Allauth social login state tolerance
+SOCIALACCOUNT_LOGIN_ON_GET = False
+# Allow state to survive across cold starts by storing in DB session
+SOCIALACCOUNT_STORE_TOKENS = True
 
 # ============================================================================
 # PERFORMANCE SETTINGS
