@@ -46,8 +46,8 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def save_user(self, request, sociallogin, form=None):
         """
         Save a newly signed-up social login.
-        Assign default role of student and activate immediately
-        (social accounts are pre-verified by the OAuth provider).
+        Assign default role of student, activate immediately,
+        and send a welcome email (social accounts are pre-verified by OAuth provider).
         """
         user = super().save_user(request, sociallogin, form)
         # Assign default role if not set
@@ -56,6 +56,18 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         # Social accounts are verified by the OAuth provider — activate immediately
         user.is_active = True
         user.save()
+
+        # Send welcome email to new social login users
+        try:
+            from apps.users.notifications import send_welcome_email
+            send_welcome_email(user)
+        except Exception:
+            pass
+
+        # Create UserProfile if it doesn't exist
+        from apps.users.models import UserProfile
+        UserProfile.objects.get_or_create(user=user)
+
         return user
 
     def is_auto_signup_allowed(self, request, sociallogin):
