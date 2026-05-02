@@ -266,22 +266,14 @@ if CLOUDINARY_CLOUD_NAME:
 # ADMIN CONFIGURATION
 # ============================================================================
 
-# Admin email for error notifications
-# Dynamically load all admin emails from database
+# Admin email for error notifications - all 5 real admins
 ADMINS = [
-    ('Admin', config('ADMIN_EMAIL', default='smartlibrarysupport@gmail.com')),
+    ('Ezedin Mohammed', 'ezedinmoh1@gmail.com'),
+    ('Mahlet Belete', 'Mahletbelete4@gmail.com'),
+    ('Wubet Lema', 'Wubelema121@gmail.com'),
+    ('Hanamariyam Sebsbew', 'hanamariamsebsbew1@gmail.com'),
+    ('Mubarek Ali', 'mubarekali974@gmail.com'),
 ]
-
-# Try to add all admin users from database
-try:
-    from django.db import connection
-    with connection.cursor() as cursor:
-        cursor.execute("SELECT username, email FROM users_user WHERE role='admin' AND is_active=true AND email NOT LIKE '%@library.com'")
-        db_admins = cursor.fetchall()
-        if db_admins:
-            ADMINS = [(username, email) for username, email in db_admins]
-except Exception:
-    pass  # Fall back to default ADMIN_EMAIL
 
 MANAGERS = ADMINS
 
