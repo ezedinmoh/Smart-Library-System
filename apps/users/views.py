@@ -1159,68 +1159,69 @@ def download_user_import_template(request):
 
 
 @login_required
+@login_required
 @admin_required
 def bulk_email_users(request):
     """Send bulk email to selected users"""
     if request.method == 'POST':
-        subject = request.POST.get('subject', '').strip()
-        message = request.POST.get('message', '').strip()
-        recipient_type = request.POST.get('recipient_type', 'all')
-        
-        if not subject or not message:
-            messages.error(request, 'Subject and message are required.')
-            return redirect('users:bulk_email')
-        
-        # Get recipients based on type
-        if recipient_type == 'all':
-            recipients = User.objects.filter(is_active=True)
-        elif recipient_type == 'students':
-            recipients = User.objects.filter(role='student', is_active=True)
-        elif recipient_type == 'librarians':
-            recipients = User.objects.filter(role='librarian', is_active=True)
-        elif recipient_type == 'admins':
-            recipients = User.objects.filter(role='admin', is_active=True)
-        else:
-            messages.error(request, 'Invalid recipient type.')
-            return redirect('users:bulk_email')
-        
-        # Send emails
-        from django.core.mail import send_mass_mail
-        from django.conf import settings
-        
-        email_messages = []
-        sent_count = 0
-        
-        for user in recipients:
-            if user.email:
-                # Personalize message
-                personalized_message = message.replace('{name}', user.get_full_name() or user.username)
-                personalized_message = personalized_message.replace('{username}', user.username)
-                
-                email_messages.append((
-                    subject,
-                    personalized_message,
-                    settings.DEFAULT_FROM_EMAIL,
-                    [user.email]
-                ))
-                sent_count += 1
-        
         try:
-            send_mass_mail(email_messages, fail_silently=False)
-            
+            subject = request.POST.get('subject', '').strip()
+            message_body = request.POST.get('message', '').strip()
+            recipient_type = request.POST.get('recipient_type', 'all')
+
+            if not subject or not message_body:
+                messages.error(request, 'Subject and message are required.')
+                return redirect('users:bulk_email')
+
+            # Get recipients based on type
+            if recipient_type == 'all':
+                recipients = User.objects.filter(is_active=True)
+            elif recipient_type == 'students':
+                recipients = User.objects.filter(role='student', is_active=True)
+            elif recipient_type == 'librarians':
+                recipients = User.objects.filter(role='librarian', is_active=True)
+            elif recipient_type == 'admins':
+                recipients = User.objects.filter(role='admin', is_active=True)
+            else:
+                messages.error(request, 'Invalid recipient type.')
+                return redirect('users:bulk_email')
+
+            from django.core.mail import send_mass_mail
+            from django.conf import settings as django_settings
+
+            email_messages = []
+            sent_count = 0
+
+            for user in recipients:
+                if user.email:
+                    personalized = message_body.replace('{name}', user.get_full_name() or user.username)
+                    personalized = personalized.replace('{username}', user.username)
+                    email_messages.append((
+                        subject,
+                        personalized,
+                        django_settings.DEFAULT_FROM_EMAIL,
+                        [user.email]
+                    ))
+                    sent_count += 1
+
+            if email_messages:
+                send_mass_mail(email_messages, fail_silently=False)
+
             # Log activity
             from apps.dashboard.utils import log_activity
-            log_activity(
-                request.user, 
-                'other', 
-                f'Sent bulk email to {sent_count} users: "{subject}"', 
-                request
-            )
-            
-            messages.success(request, f'Successfully sent email to {sent_count} user(s).')
+            log_activity(request.user, 'other',
+                         f'Sent bulk email to {sent_count} users: "{subject}"', request)
+
+            if sent_count > 0:
+                messages.success(request, f'Successfully sent email to {sent_count} user(s).')
+            else:
+                messages.warning(request, 'No users with email addresses found for the selected group.')
+
         except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f'Bulk email error: {str(e)}')
             messages.error(request, f'Error sending emails: {str(e)}')
-        
+
         return redirect('users:bulk_email')
     
     # GET request - show form
