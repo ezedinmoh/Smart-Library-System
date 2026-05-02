@@ -30,22 +30,42 @@ def notify_book_returned(request, borrow_record):
         )
 
 
+def _send_email_async(subject, text_content, html_content, from_email, to_email):
+    """Send email in a background thread to avoid blocking the request."""
+    import threading
+    from django.core.mail import EmailMultiAlternatives
+
+    def _send():
+        try:
+            email = EmailMultiAlternatives(
+                subject=subject,
+                body=text_content,
+                from_email=from_email,
+                to=[to_email]
+            )
+            email.attach_alternative(html_content, "text/html")
+            email.send(fail_silently=True)
+        except Exception as e:
+            import logging
+            logging.getLogger(__name__).error(f"Async email failed to {to_email}: {str(e)}")
+
+    thread = threading.Thread(target=_send, daemon=True)
+    thread.start()
+
+
 def notify_request_approved(request, book_request):
-    """Notify when book request is approved - sends email only"""
-    # Email notification
+    """Notify when book request is approved - sends email in background thread"""
     try:
-        from django.core.mail import EmailMultiAlternatives
         from django.conf import settings
         from django.template.loader import render_to_string
-        
-        # Get due date from the borrow record
         from apps.borrow.models import BorrowRecord
+
         borrow_record = BorrowRecord.objects.filter(
             book_request=book_request,
             user=book_request.user
         ).first()
-        
-        if borrow_record:
+
+        if borrow_record and book_request.user.email:
             context = {
                 'user': book_request.user,
                 'book': book_request.book,
@@ -53,36 +73,25 @@ def notify_request_approved(request, book_request):
                 'site_name': settings.SITE_NAME,
                 'site_url': settings.SITE_URL,
             }
-            
-            # Render email templates
             subject = f'Book Request Approved - {book_request.book.title}'
             text_content = render_to_string('emails/book_request_approved.txt', context)
             html_content = render_to_string('emails/book_request_approved.html', context)
-            
-            # Send email
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_content,
-                from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[book_request.user.email]
-            )
-            email.attach_alternative(html_content, "text/html")
-            email.send(fail_silently=True)
+            _send_email_async(subject, text_content, html_content,
+                              settings.DEFAULT_FROM_EMAIL, book_request.user.email)
     except Exception as e:
-        # Log error but don't fail the notification
         import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send book request approved email: {str(e)}")
+        logging.getLogger(__name__).error(f"Failed to queue approved email: {str(e)}")
 
 
 def notify_request_rejected(request, book_request, reason=""):
-    """Notify when book request is rejected - sends email only"""
-    # Email notification
+    """Notify when book request is rejected - sends email in background thread"""
     try:
-        from django.core.mail import EmailMultiAlternatives
         from django.conf import settings
         from django.template.loader import render_to_string
-        
+
+        if not book_request.user.email:
+            return
+
         context = {
             'user': book_request.user,
             'book': book_request.book,
@@ -90,217 +99,112 @@ def notify_request_rejected(request, book_request, reason=""):
             'site_name': settings.SITE_NAME,
             'site_url': settings.SITE_URL,
         }
-        
-        # Render email templates
         subject = f'Book Request Rejected - {book_request.book.title}'
         text_content = render_to_string('emails/book_request_rejected.txt', context)
         html_content = render_to_string('emails/book_request_rejected.html', context)
-        
-        # Send email
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[book_request.user.email]
-        )
-        email.attach_alternative(html_content, "text/html")
-        email.send(fail_silently=True)
+        _send_email_async(subject, text_content, html_content,
+                          settings.DEFAULT_FROM_EMAIL, book_request.user.email)
     except Exception as e:
-        # Log error but don't fail the notification
         import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send book request rejected email: {str(e)}")
+        logging.getLogger(__name__).error(f"Failed to queue rejected email: {str(e)}")
 
 
 def notify_book_due_soon(borrow_record):
-    """Notify user when book is due soon (3 days before due date)"""
+    """Notify user when book is due soon - sends in background thread"""
     try:
-        from django.core.mail import EmailMultiAlternatives
         from django.conf import settings
         from django.template.loader import render_to_string
-        
+        if not borrow_record.user.email:
+            return
         days_remaining = (borrow_record.due_date - timezone.now().date()).days
-        
-        context = {
-            'user': borrow_record.user,
-            'book': borrow_record.book,
-            'due_date': borrow_record.due_date,
-            'days_remaining': days_remaining,
-            'site_name': settings.SITE_NAME,
-            'site_url': settings.SITE_URL,
-        }
-        
-        # Render email templates
+        ctx = {'user': borrow_record.user, 'book': borrow_record.book,
+               'due_date': borrow_record.due_date, 'days_remaining': days_remaining,
+               'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Book Due Soon - {borrow_record.book.title}'
-        text_content = render_to_string('emails/book_due_soon.txt', context)
-        html_content = render_to_string('emails/book_due_soon.html', context)
-        
-        # Send email
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[borrow_record.user.email]
-        )
-        email.attach_alternative(html_content, "text/html")
-        email.send(fail_silently=True)
+        _send_email_async(subject,
+                          render_to_string('emails/book_due_soon.txt', ctx),
+                          render_to_string('emails/book_due_soon.html', ctx),
+                          settings.DEFAULT_FROM_EMAIL, borrow_record.user.email)
     except Exception as e:
-        # Log error but don't fail the notification
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send book due soon email: {str(e)}")
+        import logging; logging.getLogger(__name__).error(f"Failed to queue due-soon email: {e}")
 
 
 def notify_book_overdue(borrow_record):
-    """Notify user when book becomes overdue"""
+    """Notify user when book becomes overdue - sends in background thread"""
     try:
-        from django.core.mail import EmailMultiAlternatives
         from django.conf import settings
         from django.template.loader import render_to_string
-        
+        if not borrow_record.user.email:
+            return
         days_overdue = (timezone.now().date() - borrow_record.due_date).days
-        
-        context = {
-            'user': borrow_record.user,
-            'book': borrow_record.book,
-            'due_date': borrow_record.due_date,
-            'days_overdue': days_overdue,
-            'fine_amount': borrow_record.fine_amount,
-            'site_name': settings.SITE_NAME,
-            'site_url': settings.SITE_URL,
-        }
-        
-        # Render email templates
+        ctx = {'user': borrow_record.user, 'book': borrow_record.book,
+               'due_date': borrow_record.due_date, 'days_overdue': days_overdue,
+               'fine_amount': borrow_record.fine_amount,
+               'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Overdue Book - {borrow_record.book.title}'
-        text_content = render_to_string('emails/book_overdue.txt', context)
-        html_content = render_to_string('emails/book_overdue.html', context)
-        
-        # Send email
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[borrow_record.user.email]
-        )
-        email.attach_alternative(html_content, "text/html")
-        email.send(fail_silently=True)
+        _send_email_async(subject,
+                          render_to_string('emails/book_overdue.txt', ctx),
+                          render_to_string('emails/book_overdue.html', ctx),
+                          settings.DEFAULT_FROM_EMAIL, borrow_record.user.email)
     except Exception as e:
-        # Log error but don't fail the notification
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send book overdue email: {str(e)}")
+        import logging; logging.getLogger(__name__).error(f"Failed to queue overdue email: {e}")
 
 
 def notify_fine_applied(borrow_record):
-    """Notify user when fine is applied or updated"""
+    """Notify user when fine is applied - sends in background thread"""
     try:
-        from django.core.mail import EmailMultiAlternatives
         from django.conf import settings
         from django.template.loader import render_to_string
-        
+        if not borrow_record.user.email:
+            return
         days_overdue = (timezone.now().date() - borrow_record.due_date).days
-        
-        context = {
-            'user': borrow_record.user,
-            'book': borrow_record.book,
-            'due_date': borrow_record.due_date,
-            'days_overdue': days_overdue,
-            'fine_amount': borrow_record.fine_amount,
-            'fine_paid': borrow_record.fine_paid,
-            'site_name': settings.SITE_NAME,
-            'site_url': settings.SITE_URL,
-        }
-        
-        # Render email templates
+        ctx = {'user': borrow_record.user, 'book': borrow_record.book,
+               'due_date': borrow_record.due_date, 'days_overdue': days_overdue,
+               'fine_amount': borrow_record.fine_amount, 'fine_paid': borrow_record.fine_paid,
+               'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Fine Applied - {borrow_record.book.title}'
-        text_content = render_to_string('emails/fine_applied.txt', context)
-        html_content = render_to_string('emails/fine_applied.html', context)
-        
-        # Send email
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[borrow_record.user.email]
-        )
-        email.attach_alternative(html_content, "text/html")
-        email.send(fail_silently=True)
+        _send_email_async(subject,
+                          render_to_string('emails/fine_applied.txt', ctx),
+                          render_to_string('emails/fine_applied.html', ctx),
+                          settings.DEFAULT_FROM_EMAIL, borrow_record.user.email)
     except Exception as e:
-        # Log error but don't fail the notification
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send fine applied email: {str(e)}")
+        import logging; logging.getLogger(__name__).error(f"Failed to queue fine email: {e}")
 
 
 def notify_book_available_waitlist(book_request, position_in_queue, total_in_queue):
-    """Notify user when a book they requested becomes available"""
+    """Notify waitlist user when book becomes available - sends in background thread"""
     try:
-        from django.core.mail import EmailMultiAlternatives
         from django.conf import settings
         from django.template.loader import render_to_string
-        
-        context = {
-            'user': book_request.user,
-            'book': book_request.book,
-            'position_in_queue': position_in_queue,
-            'total_in_queue': total_in_queue,
-            'site_name': settings.SITE_NAME,
-            'site_url': settings.SITE_URL,
-        }
-        
-        # Render email templates
+        if not book_request.user.email:
+            return
+        ctx = {'user': book_request.user, 'book': book_request.book,
+               'position_in_queue': position_in_queue, 'total_in_queue': total_in_queue,
+               'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Book Available - {book_request.book.title}'
-        text_content = render_to_string('emails/book_available_waitlist.txt', context)
-        html_content = render_to_string('emails/book_available_waitlist.html', context)
-        
-        # Send email
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[book_request.user.email]
-        )
-        email.attach_alternative(html_content, "text/html")
-        email.send(fail_silently=True)
+        _send_email_async(subject,
+                          render_to_string('emails/book_available_waitlist.txt', ctx),
+                          render_to_string('emails/book_available_waitlist.html', ctx),
+                          settings.DEFAULT_FROM_EMAIL, book_request.user.email)
     except Exception as e:
-        # Log error but don't fail the notification
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send book available waitlist email: {str(e)}")
+        import logging; logging.getLogger(__name__).error(f"Failed to queue waitlist email: {e}")
 
 
 def send_welcome_email(user):
-    """Send welcome email to newly verified users"""
+    """Send welcome email to newly verified users - sends in background thread"""
     try:
-        from django.core.mail import EmailMultiAlternatives
         from django.conf import settings
         from django.template.loader import render_to_string
-        
-        context = {
-            'user': user,
-            'site_name': settings.SITE_NAME,
-            'site_url': settings.SITE_URL,
-        }
-        
-        # Render email templates
+        if not user.email:
+            return
+        ctx = {'user': user, 'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Welcome to {settings.SITE_NAME}!'
-        text_content = render_to_string('emails/welcome.txt', context)
-        html_content = render_to_string('emails/welcome.html', context)
-        
-        # Send email
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[user.email]
-        )
-        email.attach_alternative(html_content, "text/html")
-        email.send(fail_silently=True)
+        _send_email_async(subject,
+                          render_to_string('emails/welcome.txt', ctx),
+                          render_to_string('emails/welcome.html', ctx),
+                          settings.DEFAULT_FROM_EMAIL, user.email)
     except Exception as e:
-        # Log error but don't fail the verification process
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send welcome email: {str(e)}")
+        import logging; logging.getLogger(__name__).error(f"Failed to queue welcome email: {e}")
 
 
 def get_user_notifications(user, include_deleted=False):
@@ -711,79 +615,43 @@ def clear_all_notifications(user):
 
 
 def notify_payment_success(payment):
-    """Send email notification when payment is successful"""
+    """Send payment success email in background thread"""
     try:
-        from django.core.mail import EmailMultiAlternatives
         from django.conf import settings
         from django.template.loader import render_to_string
-        
-        context = {
-            'user': payment.user,
-            'payment': payment,
-            'book': payment.borrow_record.book,
-            'amount': payment.amount,
-            'currency': payment.currency,
-            'payment_method': payment.get_payment_method_display(),
-            'transaction_id': payment.transaction_id,
-            'site_name': settings.SITE_NAME,
-            'site_url': settings.SITE_URL,
-        }
-        
-        # Render email templates
+        if not payment.user.email:
+            return
+        ctx = {'user': payment.user, 'payment': payment,
+               'book': payment.borrow_record.book, 'amount': payment.amount,
+               'currency': payment.currency,
+               'payment_method': payment.get_payment_method_display(),
+               'transaction_id': payment.transaction_id,
+               'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Payment Successful - {settings.SITE_NAME}'
-        text_content = render_to_string('emails/payment_success.txt', context)
-        html_content = render_to_string('emails/payment_success.html', context)
-        
-        # Send email
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[payment.user.email]
-        )
-        email.attach_alternative(html_content, "text/html")
-        email.send(fail_silently=True)
+        _send_email_async(subject,
+                          render_to_string('emails/payment_success.txt', ctx),
+                          render_to_string('emails/payment_success.html', ctx),
+                          settings.DEFAULT_FROM_EMAIL, payment.user.email)
     except Exception as e:
-        # Log error but don't fail the payment process
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send payment success email: {str(e)}")
+        import logging; logging.getLogger(__name__).error(f"Failed to queue payment success email: {e}")
 
 
 def notify_payment_failure(payment):
-    """Send email notification when payment fails"""
+    """Send payment failure email in background thread"""
     try:
-        from django.core.mail import EmailMultiAlternatives
         from django.conf import settings
         from django.template.loader import render_to_string
-        
-        context = {
-            'user': payment.user,
-            'payment': payment,
-            'book': payment.borrow_record.book,
-            'amount': payment.amount,
-            'currency': payment.currency,
-            'payment_method': payment.get_payment_method_display(),
-            'site_name': settings.SITE_NAME,
-            'site_url': settings.SITE_URL,
-        }
-        
-        # Render email templates
+        if not payment.user.email:
+            return
+        ctx = {'user': payment.user, 'payment': payment,
+               'book': payment.borrow_record.book, 'amount': payment.amount,
+               'currency': payment.currency,
+               'payment_method': payment.get_payment_method_display(),
+               'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Payment Failed - {settings.SITE_NAME}'
-        text_content = render_to_string('emails/payment_failure.txt', context)
-        html_content = render_to_string('emails/payment_failure.html', context)
-        
-        # Send email
-        email = EmailMultiAlternatives(
-            subject=subject,
-            body=text_content,
-            from_email=settings.DEFAULT_FROM_EMAIL,
-            to=[payment.user.email]
-        )
-        email.attach_alternative(html_content, "text/html")
-        email.send(fail_silently=True)
+        _send_email_async(subject,
+                          render_to_string('emails/payment_failure.txt', ctx),
+                          render_to_string('emails/payment_failure.html', ctx),
+                          settings.DEFAULT_FROM_EMAIL, payment.user.email)
     except Exception as e:
-        # Log error but don't fail the payment process
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Failed to send payment failure email: {str(e)}")
+        import logging; logging.getLogger(__name__).error(f"Failed to queue payment failure email: {e}")
