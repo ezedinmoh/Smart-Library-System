@@ -99,44 +99,16 @@ def register(request):
             from django.conf import settings as django_settings
 
             subject = f'Verify your email for {settings.SITE_NAME}'
-            text_content = f"""
-================================================================================
-EMAIL VERIFICATION - {settings.SITE_NAME}
-================================================================================
-
-Hello {user.username},
-
-Thank you for registering at {settings.SITE_NAME}!
-
-VERIFICATION LINK (copy and paste this entire URL):
-{activate_url}
-
-This link will expire in 3 days.
-
-Best regards,
-{settings.SITE_NAME} Team
-================================================================================
-"""
-            html_content = f"""<!DOCTYPE html>
-<html>
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"></head>
-<body style="font-family:Arial,sans-serif;line-height:1.6;color:#333;max-width:600px;margin:0 auto;padding:20px;">
-    <div style="background:linear-gradient(135deg,#10b981,#059669);padding:30px;border-radius:10px 10px 0 0;text-align:center;">
-        <h1 style="color:white;margin:0;font-size:24px;">Email Verification</h1>
-    </div>
-    <div style="background:#f9fafb;padding:30px;border-radius:0 0 10px 10px;">
-        <h2 style="color:#1f2937;margin-top:0;">Hello {user.username},</h2>
-        <p style="color:#4b5563;font-size:16px;">Thank you for registering at <strong>{settings.SITE_NAME}</strong>!</p>
-        <p style="color:#4b5563;font-size:16px;">Please verify your email address by clicking the button below:</p>
-        <div style="text-align:center;margin:40px 0;">
-            <a href="{activate_url}" style="background:#10b981;color:white;padding:14px 40px;text-decoration:none;border-radius:8px;display:inline-block;font-weight:600;font-size:16px;">Verify Email Address</a>
-        </div>
-        <p style="color:#6b7280;font-size:14px;"><strong>Note:</strong> This link will expire in 3 days.</p>
-        <hr style="margin:30px 0;border:none;border-top:1px solid #d1d5db;">
-        <p style="color:#9ca3af;font-size:12px;text-align:center;">Best regards,<br>{settings.SITE_NAME} Team</p>
-    </div>
-</body>
-</html>"""
+            from django.template.loader import render_to_string
+            ctx = {
+                'username': user.username,
+                'activate_url': activate_url,
+                'site_name': settings.SITE_NAME,
+                'site_url': settings.SITE_URL,
+                'admin_created': False,
+            }
+            text_content = render_to_string('emails/email_verification.txt', ctx)
+            html_content = render_to_string('emails/email_verification.html', ctx)
 
             email_sent = False
             email_error = None
@@ -578,62 +550,16 @@ def user_create(request):
             
             # Email content
             subject = f'Verify your email for {settings.SITE_NAME}'
-            plain_message = f"""
-================================================================================
-EMAIL VERIFICATION - {settings.SITE_NAME}
-================================================================================
-
-Hello {user.username},
-
-An account has been created for you at {settings.SITE_NAME}!
-
-VERIFICATION LINK (copy and paste this entire URL):
-{activate_url}
-
-This link will expire in 3 days.
-
-If you didn't expect this account, please ignore this email.
-
-Best regards,
-{settings.SITE_NAME} Team
-
-================================================================================
-"""
-            
-            html_message = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-        <h1 style="color: white; margin: 0; font-size: 24px;">Email Verification</h1>
-    </div>
-    
-    <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-        <h2 style="color: #1f2937; margin-top: 0;">Hello {user.username},</h2>
-        
-        <p style="color: #4b5563; font-size: 16px;">An account has been created for you at <strong>{settings.SITE_NAME}</strong>!</p>
-        
-        <p style="color: #4b5563; font-size: 16px;">Please verify your email address by clicking the button below:</p>
-        
-        <div style="text-align: center; margin: 40px 0;">
-            <a href="{activate_url}" style="background: #10b981; color: white; padding: 14px 40px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Verify Email Address</a>
-        </div>
-        
-        <p style="color: #6b7280; font-size: 14px; margin-top: 30px;"><strong>Note:</strong> This link will expire in 3 days.</p>
-        
-        <p style="color: #6b7280; font-size: 14px;">If you didn't expect this account, please ignore this email.</p>
-        
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #d1d5db;">
-        
-        <p style="color: #9ca3af; font-size: 12px; text-align: center;">Best regards,<br>{settings.SITE_NAME} Team</p>
-    </div>
-</body>
-</html>
-"""
+            from django.template.loader import render_to_string
+            ctx = {
+                'username': user.username,
+                'activate_url': activate_url,
+                'site_name': settings.SITE_NAME,
+                'site_url': settings.SITE_URL,
+                'admin_created': True,
+            }
+            plain_message = render_to_string('emails/email_verification.txt', ctx)
+            html_message  = render_to_string('emails/email_verification.html', ctx)
             
             # Send email
             try:

@@ -1,0 +1,20 @@
+EMAIL VERIFICATION - {{ site_name }}
+================================================================================
+
+Hello {{ username }},
+
+{% if admin_created %}An account has been created for you at {{ site_name }}!{% else %}Thank you for registering at {{ site_name }}!{% endif %}
+
+Please verify your email address by visiting this link:
+
+{{ activate_url }}
+
+This link will expire in 3 days.
+{% if admin_created %}
+If you didn't expect this account, please ignore this email.
+{% endif %}
+
+Best regards,
+{{ site_name }} Team
+
+================================================================================
