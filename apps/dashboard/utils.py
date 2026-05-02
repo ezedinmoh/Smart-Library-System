@@ -500,43 +500,77 @@ def generate_top_members_report_pdf():
 
 
 def create_database_backup():
-    """Create a backup of the SQLite database and media files"""
+    """
+    Create a PostgreSQL database backup using Django's dumpdata.
+    Returns a BytesIO buffer containing the JSON dump — no disk writes.
+    Works on both local PostgreSQL and Render/Supabase.
+    """
+    import subprocess
+    import json
+    from io import BytesIO
     from django.conf import settings
-    import zipfile
-    
-    db_path = settings.DATABASES['default']['NAME']
-    media_root = settings.MEDIA_ROOT
-    
-    backup_dir = settings.BASE_DIR / 'backups'
-    backup_dir.mkdir(exist_ok=True)
-    
-    timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
-    backup_filename = f'db_backup_{timestamp}.zip'
-    backup_path = backup_dir / backup_filename
-    
-    # Create a zip file containing database and media files
-    with zipfile.ZipFile(backup_path, 'w', zipfile.ZIP_DEFLATED) as zipf:
-        # Add database file
-        zipf.write(db_path, 'db.sqlite3')
-        
-        # Add media files (PDFs and covers)
-        media_path = Path(media_root)
-        if media_path.exists():
-            for file_path in media_path.rglob('*'):
-                if file_path.is_file():
-                    # Store with relative path from media root
-                    arcname = f'media/{file_path.relative_to(media_path)}'
-                    zipf.write(file_path, arcname)
-    
-    # Keep only last 10 backups
-    backups = sorted(backup_dir.glob('db_backup_*.zip'), key=os.path.getmtime, reverse=True)
-    for old_backup in backups[10:]:
-        old_backup.unlink()
-    
-    # Also keep old .sqlite3 backups for compatibility
-    old_backups = sorted(backup_dir.glob('db_backup_*.sqlite3'), key=os.path.getmtime, reverse=True)
-    for old_backup in old_backups[10:]:
-        old_backup.unlink()
+
+    db = settings.DATABASES['default']
+    engine = db.get('ENGINE', '')
+
+    buffer = BytesIO()
+
+    if 'postgresql' in engine or 'postgis' in engine:
+        # PostgreSQL: use pg_dump for a proper SQL backup
+        import os
+        env = os.environ.copy()
+
+        # Build connection string from settings or DATABASE_URL
+        database_url = db.get('OPTIONS', {}).get('DATABASE_URL') or os.environ.get('DATABASE_URL')
+
+        if database_url:
+            cmd = ['pg_dump', '--no-owner', '--no-acl', '-F', 'p', database_url]
+        else:
+            env['PGPASSWORD'] = db.get('PASSWORD', '')
+            cmd = [
+                'pg_dump',
+                '--no-owner', '--no-acl',
+                '-F', 'p',
+                '-h', db.get('HOST', 'localhost'),
+                '-p', str(db.get('PORT', '5432')),
+                '-U', db.get('USER', ''),
+                db.get('NAME', ''),
+            ]
+
+        try:
+            result = subprocess.run(
+                cmd, env=env,
+                capture_output=True, timeout=120
+            )
+            if result.returncode == 0:
+                buffer.write(result.stdout)
+                buffer.seek(0)
+                return buffer, 'sql'
+            else:
+                # pg_dump failed — fall back to Django dumpdata
+                pass
+        except (FileNotFoundError, subprocess.TimeoutExpired):
+            # pg_dump not available — fall back to Django dumpdata
+            pass
+
+    # Fallback: Django dumpdata (works everywhere, no pg_dump needed)
+    from django.core.management import call_command
+    import io
+
+    out = io.StringIO()
+    call_command(
+        'dumpdata',
+        '--natural-foreign',
+        '--natural-primary',
+        '--indent', '2',
+        '--exclude', 'contenttypes',
+        '--exclude', 'auth.permission',
+        '--exclude', 'sessions.session',
+        stdout=out
+    )
+    buffer.write(out.getvalue().encode('utf-8'))
+    buffer.seek(0)
+    return buffer, 'json'
     
     return backup_path
 

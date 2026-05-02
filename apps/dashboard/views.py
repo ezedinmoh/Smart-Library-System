@@ -639,20 +639,28 @@ def view_library_card(request, user_id):
 @admin_required
 def download_qr_code(request, book_id):
     """Download QR code for a book"""
-    from django.http import HttpResponse, Http404
+    from django.http import HttpResponse, Http404, HttpResponseRedirect
     from ..books.models import Book
-    
+
     book = get_object_or_404(Book, pk=book_id)
-    
+
     if not book.qr_code:
         # Generate QR code if it doesn't exist
         book.generate_qr_code()
         book.save()
-    
+
     if book.qr_code:
-        response = HttpResponse(book.qr_code.read(), content_type='image/png')
-        response['Content-Disposition'] = f'attachment; filename="qr_code_{book.isbn}.png"'
-        return response
+        storage = book.qr_code.storage
+        is_cloudinary = 'cloudinary' in type(storage).__module__.lower()
+
+        if is_cloudinary:
+            # On Cloudinary: redirect to the remote URL — browser downloads it
+            return HttpResponseRedirect(book.qr_code.url)
+        else:
+            # Local storage: read and serve from disk
+            response = HttpResponse(book.qr_code.read(), content_type='image/png')
+            response['Content-Disposition'] = f'attachment; filename="qr_code_{book.isbn}.png"'
+            return response
     else:
         raise Http404("QR code not available")
 
@@ -751,201 +759,167 @@ def export_top_members_pdf(request):
 @login_required
 @admin_required
 def create_backup(request):
-    """Create database backup"""
+    """
+    Create a database backup and stream it directly to the browser.
+    Works on Render (PostgreSQL/Supabase) — no local disk storage needed.
+    """
     from django.contrib import messages
+    from django.http import HttpResponse
     from .utils import create_database_backup, log_activity
-    
+
     try:
-        backup_path = create_database_backup()
-        messages.success(request, f'Database backup created successfully: {backup_path.name}')
-        log_activity(request.user, 'backup_created', f'Database backup created: {backup_path.name}', request)
+        buffer, fmt = create_database_backup()
+        timestamp = timezone.now().strftime('%Y%m%d_%H%M%S')
+
+        if fmt == 'sql':
+            filename = f'db_backup_{timestamp}.sql'
+            content_type = 'application/sql'
+        else:
+            filename = f'db_backup_{timestamp}.json'
+            content_type = 'application/json'
+
+        response = HttpResponse(buffer.read(), content_type=content_type)
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+
+        log_activity(request.user, 'backup_created', f'Database backup downloaded: {filename}', request)
+        return response
+
     except Exception as e:
         messages.error(request, f'Failed to create backup: {str(e)}')
-    
-    return redirect('dashboard:system_admin')
+        return redirect('dashboard:system_admin')
 
 
 @login_required
 @admin_required
 def restore_backup(request):
-    """Restore database from backup"""
+    """
+    Restore database from an uploaded JSON or SQL backup file.
+    Works on Render (PostgreSQL/Supabase) — no local disk storage.
+    """
     from django.contrib import messages
     from .utils import log_activity
-    import shutil
-    from pathlib import Path
-    from django.conf import settings
-    
+
     if request.method == 'POST':
-        backup_file = request.POST.get('backup_file')
-        
-        if not backup_file:
-            messages.error(request, 'Please select a backup file to restore.')
+        uploaded_file = request.FILES.get('backup_file')
+
+        if not uploaded_file:
+            messages.error(request, 'Please upload a backup file (.json or .sql).')
             return redirect('dashboard:system_admin')
-        
-        try:
-            import zipfile
-            backup_path = Path('backups') / backup_file
-            
-            if not backup_path.exists():
-                messages.error(request, 'Backup file not found.')
-                return redirect('dashboard:system_admin')
-            
-            # Get the database path
-            db_path = Path(settings.DATABASES['default']['NAME'])
-            media_root = Path(settings.MEDIA_ROOT)
-            
-            # Create a backup of current database before restoring
-            from datetime import datetime
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            current_backup = Path('backups') / f'db_backup_before_restore_{timestamp}.sqlite3'
-            current_backup.parent.mkdir(exist_ok=True)
-            shutil.copy2(db_path, current_backup)
-            
-            # Check if it's a zip file (new format) or sqlite3 file (old format)
-            if backup_file.endswith('.zip'):
-                # Extract zip file
-                with zipfile.ZipFile(backup_path, 'r') as zipf:
-                    # Extract database
-                    zipf.extract('db.sqlite3', path=Path('backups') / 'temp')
-                    temp_db = Path('backups') / 'temp' / 'db.sqlite3'
-                    shutil.copy2(temp_db, db_path)
-                    temp_db.unlink()
-                    
-                    # Extract media files
-                    for file_info in zipf.namelist():
-                        if file_info.startswith('media/'):
-                            zipf.extract(file_info, path=Path('backups') / 'temp')
-                            source = Path('backups') / 'temp' / file_info
-                            dest = media_root / file_info.replace('media/', '')
-                            dest.parent.mkdir(parents=True, exist_ok=True)
-                            shutil.copy2(source, dest)
-                    
-                    # Clean up temp directory
-                    temp_dir = Path('backups') / 'temp'
-                    if temp_dir.exists():
-                        shutil.rmtree(temp_dir)
-                
-                messages.success(request, f'Database and media files restored successfully from {backup_file}. Current database backed up to {current_backup.name}')
-            else:
-                # Old format - just restore database
-                shutil.copy2(backup_path, db_path)
-                messages.success(request, f'Database restored successfully from {backup_file}. Current database backed up to {current_backup.name}')
-            
-            log_activity(request.user, 'backup_restored', f'Database restored from: {backup_file}', request)
-            
-        except Exception as e:
-            messages.error(request, f'Failed to restore backup: {str(e)}')
-        
-        return redirect('dashboard:system_admin')
-    
+
+        filename = uploaded_file.name.lower()
+
+        if filename.endswith('.json'):
+            # Django dumpdata JSON format — use loaddata
+            try:
+                import tempfile, os
+                from django.core.management import call_command
+
+                # Write to a temp file (loaddata needs a file path)
+                with tempfile.NamedTemporaryFile(
+                    mode='wb', suffix='.json', delete=False
+                ) as tmp:
+                    for chunk in uploaded_file.chunks():
+                        tmp.write(chunk)
+                    tmp_path = tmp.name
+
+                call_command('loaddata', tmp_path, verbosity=0)
+                os.unlink(tmp_path)
+
+                messages.success(request, 'Database restored successfully from JSON backup.')
+                log_activity(request.user, 'backup_restored', f'Database restored from JSON: {uploaded_file.name}', request)
+
+            except Exception as e:
+                messages.error(request, f'Failed to restore from JSON: {str(e)}')
+
+        elif filename.endswith('.sql'):
+            # PostgreSQL SQL dump — use psql
+            try:
+                import subprocess, os, tempfile
+                from django.conf import settings
+
+                db = settings.DATABASES['default']
+                database_url = os.environ.get('DATABASE_URL')
+
+                with tempfile.NamedTemporaryFile(
+                    mode='wb', suffix='.sql', delete=False
+                ) as tmp:
+                    for chunk in uploaded_file.chunks():
+                        tmp.write(chunk)
+                    tmp_path = tmp.name
+
+                env = os.environ.copy()
+
+                if database_url:
+                    cmd = ['psql', database_url, '-f', tmp_path]
+                else:
+                    env['PGPASSWORD'] = db.get('PASSWORD', '')
+                    cmd = [
+                        'psql',
+                        '-h', db.get('HOST', 'localhost'),
+                        '-p', str(db.get('PORT', '5432')),
+                        '-U', db.get('USER', ''),
+                        '-d', db.get('NAME', ''),
+                        '-f', tmp_path,
+                    ]
+
+                result = subprocess.run(cmd, env=env, capture_output=True, timeout=120)
+                os.unlink(tmp_path)
+
+                if result.returncode == 0:
+                    messages.success(request, 'Database restored successfully from SQL backup.')
+                    log_activity(request.user, 'backup_restored', f'Database restored from SQL: {uploaded_file.name}', request)
+                else:
+                    messages.error(request, f'psql restore failed: {result.stderr.decode()[:500]}')
+
+            except FileNotFoundError:
+                messages.error(request, 'psql command not found. Use JSON backup format instead.')
+            except Exception as e:
+                messages.error(request, f'Failed to restore from SQL: {str(e)}')
+
+        else:
+            messages.error(request, 'Invalid file type. Please upload a .json or .sql backup file.')
+
     return redirect('dashboard:system_admin')
 
 
 @login_required
 @admin_required
+@login_required
+@admin_required
 def download_backup(request, backup_file):
-    """Download a backup file to user's computer"""
-    from django.http import FileResponse, Http404
-    from django.contrib import messages
-    from .utils import log_activity
-    from pathlib import Path
-    
-    try:
-        backup_path = Path('backups') / backup_file
-        
-        if not backup_path.exists():
-            messages.error(request, 'Backup file not found.')
-            return redirect('dashboard:system_admin')
-        
-        # Log the download
-        log_activity(request.user, 'backup_downloaded', f'Downloaded backup: {backup_file}', request)
-        
-        # Return file as download
-        response = FileResponse(open(backup_path, 'rb'), content_type='application/x-sqlite3')
-        response['Content-Disposition'] = f'attachment; filename="{backup_file}"'
-        return response
-        
-    except Exception as e:
-        messages.error(request, f'Failed to download backup: {str(e)}')
-        return redirect('dashboard:system_admin')
+    """
+    Download backup is now handled by create_backup which streams directly.
+    This endpoint is kept for URL compatibility but redirects to create_backup.
+    """
+    messages.info(request, 'Use the "Download Backup" button to generate and download a fresh backup.')
+    return redirect('dashboard:system_admin')
 
 
 @login_required
 @admin_required
 def upload_backup(request):
-    """Upload a backup file from user's computer"""
+    """
+    Upload a backup file and restore it immediately.
+    Accepts .json (Django dumpdata) or .sql (pg_dump) files.
+    No local storage — file is processed in memory and discarded.
+    """
     from django.contrib import messages
-    from .utils import log_activity
-    from pathlib import Path
-    
+
     if request.method == 'POST':
-        uploaded_file = request.FILES.get('backup_file')
-        
-        if not uploaded_file:
-            messages.error(request, 'Please select a backup file to upload.')
-            return redirect('dashboard:system_admin')
-        
-        # Validate file extension
-        if not uploaded_file.name.endswith('.sqlite3'):
-            messages.error(request, 'Invalid file type. Please upload a .sqlite3 file.')
-            return redirect('dashboard:system_admin')
-        
-        try:
-            # Create backups directory if it doesn't exist
-            backup_dir = Path('backups')
-            backup_dir.mkdir(exist_ok=True)
-            
-            # Save the uploaded file
-            backup_path = backup_dir / uploaded_file.name
-            
-            # Check if file already exists
-            if backup_path.exists():
-                messages.warning(request, f'A backup with the name "{uploaded_file.name}" already exists. Please rename your file.')
-                return redirect('dashboard:system_admin')
-            
-            # Write the uploaded file
-            with open(backup_path, 'wb+') as destination:
-                for chunk in uploaded_file.chunks():
-                    destination.write(chunk)
-            
-            messages.success(request, f'Backup file "{uploaded_file.name}" uploaded successfully. You can now restore from it.')
-            log_activity(request.user, 'backup_uploaded', f'Uploaded backup: {uploaded_file.name}', request)
-            
-        except Exception as e:
-            messages.error(request, f'Failed to upload backup: {str(e)}')
-        
-        return redirect('dashboard:system_admin')
-    
+        # Delegate to restore_backup which handles the actual restore
+        return restore_backup(request)
+
     return redirect('dashboard:system_admin')
 
 
 @login_required
 @admin_required
 def delete_backup(request, backup_file):
-    """Delete a backup file"""
-    from django.contrib import messages
-    from .utils import log_activity
-    from pathlib import Path
-    
-    if request.method == 'POST':
-        try:
-            backup_path = Path('backups') / backup_file
-            
-            if not backup_path.exists():
-                messages.error(request, 'Backup file not found.')
-                return redirect('dashboard:system_admin')
-            
-            # Delete the backup file
-            backup_path.unlink()
-            
-            messages.success(request, f'Backup "{backup_file}" deleted successfully.')
-            log_activity(request.user, 'backup_deleted', f'Deleted backup: {backup_file}', request)
-            
-        except Exception as e:
-            messages.error(request, f'Failed to delete backup: {str(e)}')
-        
-        return redirect('dashboard:system_admin')
-    
+    """
+    Backup files are no longer stored on disk (ephemeral on Render).
+    This endpoint is kept for URL compatibility.
+    """
+    messages.info(request, 'Backups are downloaded directly — no stored backups to delete.')
     return redirect('dashboard:system_admin')
 
 
@@ -1096,17 +1070,8 @@ def system_administration(request):
     total_logs = ActivityLog.objects.count()
     recent_logs = ActivityLog.objects.select_related('user').order_by('-created_at')[:10]
     
-    # Get backup information
-    backup_dir = settings.BASE_DIR / 'backups'
-    backups = []
-    if backup_dir.exists():
-        backup_files = sorted(backup_dir.glob('db_backup_*.sqlite3'), key=os.path.getmtime, reverse=True)
-        for backup_file in backup_files[:10]:
-            backups.append({
-                'name': backup_file.name,
-                'size': backup_file.stat().st_size / (1024 * 1024),  # MB
-                'created': datetime.fromtimestamp(backup_file.stat().st_mtime)
-            })
+    # Backup info — on Render backups are generated on-demand, not stored on disk
+    backups = []  # No stored backups — use "Download Backup" to get a fresh one
     
     # Get email statistics
     books_due_soon = BorrowRecord.objects.filter(
