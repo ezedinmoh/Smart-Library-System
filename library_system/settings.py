@@ -67,6 +67,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Serve static files (matches production)
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -238,8 +239,11 @@ REST_FRAMEWORK = {
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
     "http://localhost:8000",
+    "http://localhost:8080",
     "http://127.0.0.1:3000",
     "http://127.0.0.1:8000",
+    "http://127.0.0.1:8080",
+    "https://smart-library.onrender.com",
 ]
 
 # Email Settings - Using environment variables
@@ -302,6 +306,22 @@ SOCIALACCOUNT_PROVIDERS = {
 LOGIN_REDIRECT_URL = 'dashboard:home'
 ACCOUNT_LOGOUT_REDIRECT_URL = 'dashboard:home'  # Redirect to home page after logout
 LOGIN_URL = '/users/login/'
+
+# ============================================================================
+# SESSION & COOKIE SETTINGS (match production)
+# ============================================================================
+SESSION_ENGINE = 'django.contrib.sessions.backends.db'  # DB-backed, survives restarts
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_COOKIE_AGE = 1209600  # 2 weeks
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SAMESITE = 'Lax'
+
+# CSRF
+CSRF_COOKIE_HTTPONLY = True
+CSRF_COOKIE_SAMESITE = 'Lax'
+
+# Social auth token storage (fixes intermittent OAuth errors)
+SOCIALACCOUNT_STORE_TOKENS = True
 
 # Logging
 LOGGING = {

@@ -106,12 +106,8 @@ else:
 # STATIC FILES - PRODUCTION
 # ============================================================================
 
-# Use WhiteNoise for serving static files efficiently
-# Install: pip install whitenoise
-MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
-
-# Static files compression and caching (Django 6 compatible)
-# Cloudinary handles media; WhiteNoise handles static files
+# WhiteNoise is already added in base settings.py middleware.
+# CompressedManifestStaticFilesStorage for production (hashed filenames + gzip)
 STORAGES = {
     "staticfiles": {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
@@ -121,11 +117,8 @@ STORAGES = {
     },
 }
 
-# Static files will be served from /static/
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATIC_URL = '/static/'
-
-# Media files (user uploads)
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
 

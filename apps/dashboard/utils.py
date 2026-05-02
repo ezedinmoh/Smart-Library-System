@@ -89,8 +89,20 @@ def generate_library_card(user):
     profile_img = None
     if hasattr(user, 'profile') and user.profile.profile_picture:
         try:
-            # Open the uploaded profile picture
-            profile_img = Image.open(user.profile.profile_picture.path)
+            storage = user.profile.profile_picture.storage
+            is_cloudinary = 'cloudinary' in type(storage).__module__.lower()
+
+            if is_cloudinary:
+                # Fetch from Cloudinary URL
+                import requests as req_lib
+                response = req_lib.get(user.profile.profile_picture.url, timeout=10)
+                if response.status_code == 200:
+                    from io import BytesIO
+                    profile_img = Image.open(BytesIO(response.content))
+                else:
+                    profile_img = None
+            else:
+                profile_img = Image.open(user.profile.profile_picture.path)
             # Resize to fit rectangle
             profile_img = profile_img.convert('RGB')
             profile_img = profile_img.resize((profile_width, profile_height), Image.Resampling.LANCZOS)

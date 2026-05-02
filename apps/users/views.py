@@ -773,11 +773,15 @@ def upload_avatar(request):
         try:
             profile, created = UserProfile.objects.get_or_create(user=request.user)
             
-            # Delete old profile picture if exists
+            # Delete old profile picture if exists (local storage only)
             if profile.profile_picture:
                 try:
-                    if os.path.isfile(profile.profile_picture.path):
-                        os.remove(profile.profile_picture.path)
+                    storage = profile.profile_picture.storage
+                    is_cloudinary = 'cloudinary' in type(storage).__module__.lower()
+                    if not is_cloudinary:
+                        import os
+                        if os.path.isfile(profile.profile_picture.path):
+                            os.remove(profile.profile_picture.path)
                 except Exception:
                     pass
             

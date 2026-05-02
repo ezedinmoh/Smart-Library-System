@@ -450,15 +450,19 @@ def read_pdf(request, pk):
     if not book.pdf_file:
         messages.warning(request, f'PDF file is not available for "{book.title}". The digital version has not been uploaded yet.')
         return redirect('books:detail', pk=pk)
-    
-    # Check if the file actually exists on disk
-    try:
-        if not book.pdf_file.storage.exists(book.pdf_file.name):
-            messages.error(request, f'PDF file for "{book.title}" is missing from the server. Please contact the librarian.')
+
+    # Check if the file actually exists in storage (skip for Cloudinary — .exists() not reliable)
+    storage = book.pdf_file.storage
+    is_cloudinary = 'cloudinary' in type(storage).__module__.lower()
+
+    if not is_cloudinary:
+        try:
+            if not storage.exists(book.pdf_file.name):
+                messages.error(request, f'PDF file for "{book.title}" is missing from the server. Please contact the librarian.')
+                return redirect('books:detail', pk=pk)
+        except Exception as e:
+            messages.error(request, f'Error accessing PDF file: {str(e)}')
             return redirect('books:detail', pk=pk)
-    except Exception as e:
-        messages.error(request, f'Error accessing PDF file: {str(e)}')
-        return redirect('books:detail', pk=pk)
     
     context = {
         'book': book,
@@ -466,95 +470,81 @@ def read_pdf(request, pk):
     }
     return render(request, 'books/pdf_reader.html', context)
 
-
 @login_required
 def serve_pdf(request, pk):
-    """Serve PDF file with access control and proper error handling"""
-    book = get_object_or_404(Book, pk=pk)
+    """Serve PDF file with access control.
     
-    # Same access control as read_pdf
+    On Cloudinary (production): redirects to the Cloudinary URL.
+    On local storage (development): reads and serves the file from disk.
+    """
+    book = get_object_or_404(Book, pk=pk)
+
+    # Access control
     user = request.user
     can_read = False
-    
+
     if user.is_admin or user.is_librarian:
         can_read = True
     elif user.is_student:
         has_borrowed = user.borrow_records.filter(
-            book=book, 
+            book=book,
             status__in=['borrowed', 'overdue']
         ).exists()
         can_read = has_borrowed
-    
+
     if not can_read:
         logger.warning(
             f"PDF access denied for user {user.username} (ID: {user.id}) "
             f"attempting to access book '{book.title}' (ID: {book.id})"
         )
         return HttpResponse("Access denied. You must borrow this book first.", status=403)
-    
+
     if not book.pdf_file:
         logger.error(
             f"PDF file not configured for book '{book.title}' (ID: {book.id}). "
             f"Requested by user {user.username} (ID: {user.id})"
         )
         return HttpResponse("PDF file not available for this book.", status=404)
-    
+
     try:
-        # Check if file exists in storage
-        if not book.pdf_file.storage.exists(book.pdf_file.name):
+        # Detect if we are using Cloudinary storage (no local .path support)
+        storage = book.pdf_file.storage
+        is_cloudinary = 'cloudinary' in type(storage).__module__.lower()
+
+        if is_cloudinary:
+            # On Cloudinary: redirect directly to the remote URL
+            pdf_url = book.pdf_file.url
+            logger.info(
+                f"PDF redirected to Cloudinary URL for book '{book.title}' (ID: {book.id}) "
+                f"to user {user.username} (ID: {user.id})"
+            )
+            from django.http import HttpResponseRedirect
+            return HttpResponseRedirect(pdf_url)
+
+        # Local storage: check file exists then serve from disk
+        if not storage.exists(book.pdf_file.name):
             logger.error(
-                f"PDF file missing from storage for book '{book.title}' (ID: {book.id}). "
-                f"Expected path: {book.pdf_file.name}. Requested by user {user.username}"
+                f"PDF file missing from local storage for book '{book.title}' (ID: {book.id}). "
+                f"Expected path: {book.pdf_file.name}"
             )
             return HttpResponse("PDF file is missing from the server.", status=404)
-        
-        # Get file path and size
-        try:
-            file_path = book.pdf_file.path
-            file_size = os.path.getsize(file_path)
-        except (AttributeError, OSError) as e:
-            logger.error(
-                f"Error accessing PDF file path for book '{book.title}' (ID: {book.id}): {str(e)}. "
-                f"File field: {book.pdf_file.name}"
-            )
-            return HttpResponse("Error accessing PDF file path.", status=500)
-        
-        # Read and serve the PDF file
-        try:
-            with open(file_path, 'rb') as pdf_file:
-                response = HttpResponse(pdf_file.read(), content_type='application/pdf')
-            
-            # Set response headers
-            response['Content-Disposition'] = f'inline; filename="{book.title}.pdf"'
-            response['Content-Length'] = file_size
-            response['X-Frame-Options'] = 'SAMEORIGIN'
-            response['Content-Security-Policy'] = "default-src 'self'"
-            
-            logger.info(
-                f"PDF served successfully for book '{book.title}' (ID: {book.id}) "
-                f"to user {user.username} (ID: {user.id}). File size: {file_size} bytes"
-            )
-            return response
-            
-        except IOError as e:
-            logger.error(
-                f"IO error reading PDF file for book '{book.title}' (ID: {book.id}): {str(e)}. "
-                f"File path: {file_path}"
-            )
-            return HttpResponse("Error reading PDF file from disk.", status=500)
-        
-    except FileNotFoundError as e:
-        logger.error(
-            f"PDF file not found for book '{book.title}' (ID: {book.id}): {str(e)}. "
-            f"File path: {book.pdf_file.name}"
+
+        file_path = book.pdf_file.path
+        file_size = os.path.getsize(file_path)
+
+        with open(file_path, 'rb') as pdf_file:
+            response = HttpResponse(pdf_file.read(), content_type='application/pdf')
+
+        response['Content-Disposition'] = f'inline; filename="{book.title}.pdf"'
+        response['Content-Length'] = file_size
+        response['X-Frame-Options'] = 'SAMEORIGIN'
+
+        logger.info(
+            f"PDF served from disk for book '{book.title}' (ID: {book.id}) "
+            f"to user {user.username} (ID: {user.id}). Size: {file_size} bytes"
         )
-        return HttpResponse("PDF file not found on server.", status=404)
-    except PermissionError as e:
-        logger.error(
-            f"Permission denied accessing PDF for book '{book.title}' (ID: {book.id}): {str(e)}. "
-            f"File path: {book.pdf_file.name}"
-        )
-        return HttpResponse("Permission denied accessing PDF file.", status=500)
+        return response
+
     except Exception as e:
         logger.exception(
             f"Unexpected error serving PDF for book '{book.title}' (ID: {book.id}): {str(e)}. "

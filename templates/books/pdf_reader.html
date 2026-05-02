@@ -538,7 +538,7 @@
             <!-- PDF Frame -->
             <div class="pdf-frame-container" id="pdfFrameContainer">
                 <iframe
-                    src="{% url 'books:serve_pdf' book.pk %}"
+                    src="{{ pdf_url }}"
                     class="pdf-iframe"
                     id="pdfViewer"
                     allowfullscreen
@@ -549,7 +549,7 @@
                             <polyline points="14 2 14 8 20 8"></polyline>
                         </svg>
                         <p>Your browser does not support inline PDFs.</p>
-                        <a href="{% url 'books:serve_pdf' book.pk %}" class="btn btn-primary">Download PDF</a>
+                        <a href="{{ pdf_url }}" class="btn btn-primary">Download PDF</a>
                     </div>
                 </iframe>
             </div>
