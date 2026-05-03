@@ -263,12 +263,107 @@
             display: block;
         }
 
-        .user-select-toolbar {
+        /* Summary bar — always visible when panel is open */
+        .user-select-summary {
             display: flex;
             align-items: center;
             gap: 0.75rem;
             padding: 0.75rem 1rem;
             background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            user-select: none;
+            flex-wrap: wrap;
+        }
+
+        .user-select-summary:hover {
+            background: var(--surface-hover);
+        }
+
+        .summary-label {
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
+        .summary-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.375rem;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .summary-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            background: var(--primary);
+            color: white;
+            font-size: 0.75rem;
+            font-weight: 500;
+            padding: 0.2rem 0.5rem;
+            border-radius: 20px;
+            max-width: 160px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .summary-chip-remove {
+            cursor: pointer;
+            opacity: 0.8;
+            flex-shrink: 0;
+            line-height: 1;
+            font-size: 0.875rem;
+        }
+
+        .summary-chip-remove:hover { opacity: 1; }
+
+        .summary-empty {
+            font-size: 0.8125rem;
+            color: var(--text-muted);
+            font-style: italic;
+        }
+
+        .summary-toggle {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            gap: 0.375rem;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            color: var(--primary);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .summary-toggle svg {
+            width: 14px;
+            height: 14px;
+            transition: transform 0.2s;
+        }
+
+        .user-select-panel.list-open .summary-toggle svg {
+            transform: rotate(180deg);
+        }
+
+        /* Collapsible list body */
+        .user-select-body {
+            display: none;
+        }
+
+        .user-select-panel.list-open .user-select-body {
+            display: block;
+        }
+
+        .user-select-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-primary);
             border-bottom: 1px solid var(--border);
             flex-wrap: wrap;
         }
@@ -279,16 +374,21 @@
             padding: 0.5rem 0.75rem;
             border: 1px solid var(--border);
             border-radius: 6px;
-            background: var(--bg-primary);
+            background: var(--surface);
             color: var(--text-primary);
             font-size: 0.875rem;
+        }
+
+        .user-select-toolbar input[type="text"]:focus {
+            outline: none;
+            border-color: var(--primary);
         }
 
         .user-select-toolbar select {
             padding: 0.5rem 0.75rem;
             border: 1px solid var(--border);
             border-radius: 6px;
-            background: var(--bg-primary);
+            background: var(--surface);
             color: var(--text-primary);
             font-size: 0.875rem;
         }
@@ -323,7 +423,7 @@
         }
 
         .user-list-scroll {
-            max-height: 320px;
+            max-height: 280px;
             overflow-y: auto;
         }
 
@@ -472,44 +572,64 @@
 
                 <!-- User Picker (shown only when "selected" is chosen) -->
                 <div class="user-select-panel" id="userSelectPanel">
-                    <div class="user-select-toolbar">
-                        <input type="text" id="userSearch" placeholder="🔍 Search by name or email…" autocomplete="off">
-                        <select id="roleFilter">
-                            <option value="">All roles</option>
-                            <option value="student">Students</option>
-                            <option value="librarian">Librarians</option>
-                            <option value="admin">Admins</option>
-                        </select>
-                        <button type="button" class="toolbar-btn" id="selectAllVisible">Select all</button>
-                        <button type="button" class="toolbar-btn" id="clearAll">Clear</button>
-                        <span class="selected-count-badge" id="selectedCountBadge">0 selected</span>
+
+                    <!-- Summary bar: always visible, click to toggle list -->
+                    <div class="user-select-summary" id="userSelectSummary" onclick="toggleUserList()">
+                        <span class="summary-label">Selected:</span>
+                        <div class="summary-chips" id="summaryChips">
+                            <span class="summary-empty" id="summaryEmpty">No users selected — click to open list</span>
+                        </div>
+                        <span class="summary-toggle" id="summaryToggle">
+                            Show list
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                        </span>
                     </div>
 
-                    <div class="user-list-scroll" id="userListScroll">
-                        {% for u in verified_users %}
-                        {% if u.is_verified %}
-                        <label class="user-row"
-                               data-name="{{ u.display_name|lower }}"
-                               data-email="{{ u.email|lower }}"
-                               data-role="{{ u.role }}">
-                            <input type="checkbox" name="selected_user_ids" value="{{ u.id }}"
-                                   class="user-checkbox" onchange="updateSelectedCount()">
-                            <div class="user-avatar"
-                                 style="background: {% if u.role == 'student' %}#2563eb{% elif u.role == 'librarian' %}#d97706{% else %}#db2777{% endif %};">
-                                {{ u.display_name|slice:":1"|upper }}
-                            </div>
-                            <div class="user-info">
-                                <div class="name">{{ u.display_name }}</div>
-                                <div class="email">{{ u.email }}</div>
-                            </div>
-                            <span class="role-badge role-{{ u.role }}">{{ u.role }}</span>
-                            <span class="verified-dot" title="Verified email"></span>
-                        </label>
-                        {% endif %}
-                        {% empty %}
-                        <div class="no-results-msg" style="display:block;">No verified users found.</div>
-                        {% endfor %}
-                        <div class="no-results-msg" id="noResultsMsg">No users match your search.</div>
+                    <!-- Collapsible body -->
+                    <div class="user-select-body" id="userSelectBody">
+                        <div class="user-select-toolbar">
+                            <input type="text" id="userSearch" placeholder="🔍 Search by name or email…" autocomplete="off">
+                            <select id="roleFilter">
+                                <option value="">All roles</option>
+                                <option value="student">Students</option>
+                                <option value="librarian">Librarians</option>
+                                <option value="admin">Admins</option>
+                            </select>
+                            <button type="button" class="toolbar-btn" id="selectAllVisible">Select all</button>
+                            <button type="button" class="toolbar-btn" id="clearAll">Clear all</button>
+                            <span class="selected-count-badge" id="selectedCountBadge">0 selected</span>
+                        </div>
+
+                        <div class="user-list-scroll" id="userListScroll">
+                            {% for u in verified_users %}
+                            {% if u.is_verified %}
+                            <label class="user-row"
+                                   data-name="{{ u.display_name|lower }}"
+                                   data-email="{{ u.email|lower }}"
+                                   data-role="{{ u.role }}"
+                                   data-display="{{ u.display_name }}"
+                                   data-uid="{{ u.id }}">
+                                <input type="checkbox" name="selected_user_ids" value="{{ u.id }}"
+                                       class="user-checkbox" onchange="onCheckboxChange(this)">
+                                <div class="user-avatar"
+                                     style="background: {% if u.role == 'student' %}#2563eb{% elif u.role == 'librarian' %}#d97706{% else %}#db2777{% endif %};">
+                                    {{ u.display_name|slice:":1"|upper }}
+                                </div>
+                                <div class="user-info">
+                                    <div class="name">{{ u.display_name }}</div>
+                                    <div class="email">{{ u.email }}</div>
+                                </div>
+                                <span class="role-badge role-{{ u.role }}">{{ u.role }}</span>
+                                <span class="verified-dot" title="Verified email"></span>
+                            </label>
+                            {% endif %}
+                            {% empty %}
+                            <div class="no-results-msg" style="display:block;">No verified users found.</div>
+                            {% endfor %}
+                            <div class="no-results-msg" id="noResultsMsg">No users match your search.</div>
+                        </div>
                     </div>
                 </div>
                 
@@ -571,41 +691,111 @@
 
     {% include 'includes/enhanced_nav_scripts.html' %}
     <script>
-        // ── Recipient type toggle ──────────────────────────────────────────
-        const recipientType = document.getElementById('recipientType');
-        const userSelectPanel = document.getElementById('userSelectPanel');
+        const recipientType    = document.getElementById('recipientType');
+        const userSelectPanel  = document.getElementById('userSelectPanel');
+        const userSelectBody   = document.getElementById('userSelectBody');
+        const summaryToggle    = document.getElementById('summaryToggle');
+        const summaryChips     = document.getElementById('summaryChips');
+        const summaryEmpty     = document.getElementById('summaryEmpty');
+        const selectedBadge    = document.getElementById('selectedCountBadge');
+        const noResultMsg      = document.getElementById('noResultsMsg');
+        const userSearch       = document.getElementById('userSearch');
+        const roleFilter       = document.getElementById('roleFilter');
 
+        // ── Show / hide the whole panel when recipient type changes ───────
         recipientType.addEventListener('change', function () {
             if (this.value === 'selected') {
                 userSelectPanel.classList.add('visible');
+                // Auto-open the list on first show
+                openUserList();
             } else {
-                userSelectPanel.classList.remove('visible');
-                // uncheck all when switching away
-                document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
-                updateSelectedCount();
+                userSelectPanel.classList.remove('visible', 'list-open');
+                uncheckAll();
             }
         });
 
-        // ── Selected count badge ──────────────────────────────────────────
+        // ── Toggle the collapsible list body ──────────────────────────────
+        function toggleUserList() {
+            if (userSelectPanel.classList.contains('list-open')) {
+                closeUserList();
+            } else {
+                openUserList();
+            }
+        }
+
+        function openUserList() {
+            userSelectPanel.classList.add('list-open');
+            summaryToggle.innerHTML = 'Hide list <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+            // Focus search for quick filtering
+            setTimeout(() => userSearch && userSearch.focus(), 50);
+        }
+
+        function closeUserList() {
+            userSelectPanel.classList.remove('list-open');
+            summaryToggle.innerHTML = 'Show list <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"></polyline></svg>';
+        }
+
+        // ── Checkbox change handler ───────────────────────────────────────
+        function onCheckboxChange(cb) {
+            updateSelectedCount();
+            renderChips();
+        }
+
+        // ── Update count badge ────────────────────────────────────────────
         function updateSelectedCount() {
             const count = document.querySelectorAll('.user-checkbox:checked').length;
-            document.getElementById('selectedCountBadge').textContent =
-                count === 1 ? '1 selected' : count + ' selected';
+            selectedBadge.textContent = count === 1 ? '1 selected' : count + ' selected';
+        }
+
+        // ── Render chips in summary bar ───────────────────────────────────
+        function renderChips() {
+            const checked = document.querySelectorAll('.user-checkbox:checked');
+            // Remove old chips (keep summaryEmpty)
+            summaryChips.querySelectorAll('.summary-chip').forEach(c => c.remove());
+
+            if (checked.length === 0) {
+                summaryEmpty.style.display = '';
+            } else {
+                summaryEmpty.style.display = 'none';
+                const MAX_CHIPS = 8;
+                Array.from(checked).slice(0, MAX_CHIPS).forEach(cb => {
+                    const row   = cb.closest('.user-row');
+                    const label = row ? (row.dataset.display || row.querySelector('.name')?.textContent || 'User') : 'User';
+                    const uid   = cb.value;
+                    const chip  = document.createElement('span');
+                    chip.className = 'summary-chip';
+                    chip.title = label;
+                    chip.innerHTML = `${label.slice(0, 18)}${label.length > 18 ? '…' : ''} <span class="summary-chip-remove" onclick="removeChip(event,'${uid}')" title="Remove">×</span>`;
+                    summaryChips.appendChild(chip);
+                });
+                if (checked.length > MAX_CHIPS) {
+                    const more = document.createElement('span');
+                    more.className = 'summary-chip';
+                    more.style.background = 'var(--text-muted)';
+                    more.textContent = `+${checked.length - MAX_CHIPS} more`;
+                    summaryChips.appendChild(more);
+                }
+            }
+        }
+
+        // ── Remove a user via chip × button ──────────────────────────────
+        function removeChip(event, uid) {
+            event.stopPropagation(); // don't toggle the list
+            const cb = document.querySelector(`.user-checkbox[value="${uid}"]`);
+            if (cb) { cb.checked = false; }
+            updateSelectedCount();
+            renderChips();
         }
 
         // ── Search + role filter ──────────────────────────────────────────
-        const userSearch  = document.getElementById('userSearch');
-        const roleFilter  = document.getElementById('roleFilter');
-        const noResultMsg = document.getElementById('noResultsMsg');
-
         function applyFilters() {
             const q    = userSearch.value.trim().toLowerCase();
             const role = roleFilter.value;
             let visible = 0;
 
             document.querySelectorAll('.user-row[data-name]').forEach(row => {
-                const nameMatch  = !q || row.dataset.name.includes(q) || row.dataset.email.includes(q);
-                const roleMatch  = !role || row.dataset.role === role;
+                const nameMatch = !q || row.dataset.name.includes(q) || row.dataset.email.includes(q);
+                const roleMatch = !role || row.dataset.role === role;
                 if (nameMatch && roleMatch) {
                     row.classList.remove('hidden-row');
                     visible++;
@@ -620,26 +810,34 @@
         userSearch.addEventListener('input', applyFilters);
         roleFilter.addEventListener('change', applyFilters);
 
-        // ── Select all visible / clear ────────────────────────────────────
+        // ── Select all visible ────────────────────────────────────────────
         document.getElementById('selectAllVisible').addEventListener('click', function () {
             document.querySelectorAll('.user-row:not(.hidden-row) .user-checkbox').forEach(cb => {
                 cb.checked = true;
             });
             updateSelectedCount();
+            renderChips();
         });
 
+        // ── Clear all ─────────────────────────────────────────────────────
         document.getElementById('clearAll').addEventListener('click', function () {
+            uncheckAll();
+        });
+
+        function uncheckAll() {
             document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
             updateSelectedCount();
-        });
+            renderChips();
+        }
 
-        // ── Form validation: require at least one user when "selected" ────
+        // ── Form validation ───────────────────────────────────────────────
         document.querySelector('form').addEventListener('submit', function (e) {
             if (recipientType.value === 'selected') {
                 const checked = document.querySelectorAll('.user-checkbox:checked').length;
                 if (checked === 0) {
                     e.preventDefault();
                     alert('Please select at least one user before sending.');
+                    openUserList();
                 }
             }
         });
