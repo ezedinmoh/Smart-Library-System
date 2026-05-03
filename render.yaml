@@ -24,9 +24,9 @@ services:
       - key: EMAIL_BACKEND
         value: library_system.email_backends.BrevoWithResendFallbackBackend
       - key: DEFAULT_FROM_EMAIL
-        value: "Smart Library <smartlibrarysupport@gmail.com>"
+        value: "Smart Library <smartlibrarysupport@11145005.brevosend.com>"
       - key: SERVER_EMAIL
-        value: smartlibrarysupport@gmail.com
+        value: smartlibrarysupport@11145005.brevosend.com
       - key: RESEND_API_KEY
         sync: false
       - key: BREVO_SMTP_USER
@@ -81,7 +81,7 @@ services:
       - key: EMAIL_BACKEND
         value: library_system.email_backends.BrevoWithResendFallbackBackend
       - key: DEFAULT_FROM_EMAIL
-        value: "Smart Library <smartlibrarysupport@gmail.com>"
+        value: "Smart Library <smartlibrarysupport@11145005.brevosend.com>"
       - key: RESEND_API_KEY
         sync: false
       - key: BREVO_SMTP_USER
@@ -108,7 +108,7 @@ services:
       - key: EMAIL_BACKEND
         value: library_system.email_backends.BrevoWithResendFallbackBackend
       - key: DEFAULT_FROM_EMAIL
-        value: "Smart Library <smartlibrarysupport@gmail.com>"
+        value: "Smart Library <smartlibrarysupport@11145005.brevosend.com>"
       - key: RESEND_API_KEY
         sync: false
       - key: BREVO_SMTP_USER
@@ -135,7 +135,7 @@ services:
       - key: EMAIL_BACKEND
         value: library_system.email_backends.BrevoWithResendFallbackBackend
       - key: DEFAULT_FROM_EMAIL
-        value: "Smart Library <smartlibrarysupport@gmail.com>"
+        value: "Smart Library <smartlibrarysupport@11145005.brevosend.com>"
       - key: RESEND_API_KEY
         sync: false
       - key: BREVO_SMTP_USER
