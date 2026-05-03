@@ -16,9 +16,14 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         Called after a user successfully authenticates via a social provider,
         but before the login is actually processed.
         If the email already exists, connect the social account to that user.
+        Also activates inactive users who sign in via social auth.
         """
-        # If the social account already exists, nothing to do
+        # If the social account already exists, check if user is inactive
         if sociallogin.is_existing:
+            user = sociallogin.user
+            if not user.is_active:
+                user.is_active = True
+                user.save(update_fields=['is_active'])
             return
 
         # Get email from social account
@@ -31,6 +36,10 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         try:
             # Check if email address exists in allauth EmailAddress table
             existing = EmailAddress.objects.get(email__iexact=email)
+            # Activate if inactive (social login = verified by OAuth provider)
+            if not existing.user.is_active:
+                existing.user.is_active = True
+                existing.user.save(update_fields=['is_active'])
             # Connect this social account to the existing user
             sociallogin.connect(request, existing.user)
         except EmailAddress.DoesNotExist:
@@ -38,6 +47,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             from apps.users.models import User
             try:
                 user = User.objects.get(email__iexact=email)
+                if not user.is_active:
+                    user.is_active = True
+                    user.save(update_fields=['is_active'])
                 # Create EmailAddress record and connect
                 sociallogin.connect(request, user)
             except User.DoesNotExist:
