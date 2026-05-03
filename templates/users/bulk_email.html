@@ -690,6 +690,12 @@
     </div>
 
     {% include 'includes/enhanced_nav_scripts.html' %}
+
+    {% if messages %}
+        {% for message in messages %}
+        <div class="django-message-data" data-message="{{ message }}" data-tags="{{ message.tags }}" style="display: none;"></div>
+        {% endfor %}
+    {% endif %}
     <script>
         const recipientType    = document.getElementById('recipientType');
         const userSelectPanel  = document.getElementById('userSelectPanel');
