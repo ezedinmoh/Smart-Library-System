@@ -72,7 +72,7 @@ def send_due_reminders():
                     to=[record.user.email]
                 )
                 msg.attach_alternative(html_content, "text/html")
-                msg.send(fail_silently=True)
+                msg.send(fail_silently=False)
 
                 sent_count += 1
                 logger.info(f"Sent due reminder to {record.user.email} for '{record.book.title}'")
@@ -126,7 +126,7 @@ def send_overdue_reminders():
                     to=[record.user.email]
                 )
                 msg.attach_alternative(html_content, "text/html")
-                msg.send(fail_silently=True)
+                msg.send(fail_silently=False)
 
                 sent_count += 1
                 logger.info(f"Sent overdue reminder to {record.user.email} for '{record.book.title}'")
@@ -192,7 +192,7 @@ def check_waitlist_notifications():
                         to=[book_request.user.email]
                     )
                     msg.attach_alternative(html_content, "text/html")
-                    msg.send(fail_silently=True)
+                    msg.send(fail_silently=False)
 
                     book_request.notified = True
                     book_request.save()

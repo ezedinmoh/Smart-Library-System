@@ -44,7 +44,10 @@ def _send_email_async(subject, text_content, html_content, from_email, to_email,
     """
     import threading
     import re
+    import logging
     from django.core.mail import EmailMultiAlternatives
+
+    logger = logging.getLogger(__name__)
 
     # Guard: skip invalid or known-fake emails before even starting a thread
     _fake_domains = {
@@ -56,10 +59,12 @@ def _send_email_async(subject, text_content, html_content, from_email, to_email,
     _valid_email = re.compile(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
 
     if not to_email or not _valid_email.match(to_email.strip().lower()):
-        return  # skip silently — invalid format
+        logger.debug(f"Email skipped — invalid format: {to_email!r}")
+        return
     domain = to_email.strip().lower().split('@')[-1]
     if domain in _fake_domains:
-        return  # skip silently — known fake domain
+        logger.debug(f"Email skipped — fake domain: {to_email}")
+        return
 
     # Skip unverified emails (e.g. test accounts with fake @gmail.com)
     if require_verified:
@@ -68,9 +73,14 @@ def _send_email_async(subject, text_content, html_content, from_email, to_email,
             if not EmailAddress.objects.filter(
                 email__iexact=to_email.strip(), verified=True
             ).exists():
-                return  # skip silently — email not verified
+                logger.warning(
+                    f"Email skipped — address not verified in allauth: {to_email} "
+                    f"(subject: {subject!r}). User must verify their email first."
+                )
+                return
         except Exception:
             pass  # if allauth check fails, allow the send
+
     _subject = subject
     _text = text_content
     _html = html_content
@@ -91,11 +101,11 @@ def _send_email_async(subject, text_content, html_content, from_email, to_email,
                 to=[_to]
             )
             msg.attach_alternative(_html, "text/html")
-            msg.send(fail_silently=True)
+            msg.send(fail_silently=False)  # raise on SMTP error so we can log it
+            logger.info(f"Email sent to {_to}: {_subject!r}")
         except Exception as e:
-            import logging
-            logging.getLogger(__name__).error(
-                f"Async email failed to {_to}: {str(e)}"
+            logger.error(
+                f"Email FAILED to {_to} (subject: {_subject!r}): {type(e).__name__}: {e}"
             )
 
     thread = threading.Thread(target=_send, daemon=True)

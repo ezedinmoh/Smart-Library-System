@@ -1232,16 +1232,30 @@ def bulk_email_users(request):
 
             if email_messages:
                 import threading
+                import logging
                 _msgs = email_messages[:]
+                _subject = subject
+                _logger = logging.getLogger(__name__)
                 def _send():
-                    try:
-                        from django.db import connections
-                        for conn in connections.all():
-                            conn.close()
-                        send_mass_mail(_msgs, fail_silently=True)
-                    except Exception as ex:
-                        import logging
-                        logging.getLogger(__name__).error(f'Bulk email send error: {ex}')
+                    from django.core.mail import EmailMultiAlternatives
+                    from django.db import connections
+                    for conn in connections.all():
+                        conn.close()
+                    ok = 0
+                    fail = 0
+                    for msg_tuple in _msgs:
+                        subj, body, from_addr, to_list = msg_tuple
+                        try:
+                            from django.core.mail import EmailMessage
+                            m = EmailMessage(subj, body, from_addr, to_list)
+                            m.send(fail_silently=False)
+                            ok += 1
+                        except Exception as ex:
+                            fail += 1
+                            _logger.error(
+                                f'Bulk email FAILED to {to_list}: {type(ex).__name__}: {ex}'
+                            )
+                    _logger.info(f'Bulk email "{_subject}": {ok} sent, {fail} failed')
                 threading.Thread(target=_send, daemon=True).start()
 
             # Log activity
