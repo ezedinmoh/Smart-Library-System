@@ -28,6 +28,7 @@ urlpatterns = [
     path('overdue/', views.overdue_management, name='overdue'),
     path('export/csv/', views.export_borrow_records_csv, name='export_csv'),
     path('export/excel/', views.export_borrow_records_excel, name='export_excel'),
+    path('export/excel/', views.export_borrow_records_excel, name='export_excel'),
     
     # Legacy (for backward compatibility)
     path('book/<int:book_pk>/', views.borrow_book, name='borrow_book'),

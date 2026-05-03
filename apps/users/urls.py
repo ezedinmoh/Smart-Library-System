@@ -41,6 +41,7 @@ urlpatterns = [
     
     path('export/csv/', views.export_users_csv, name='export_csv'),
     path('export/excel/', views.export_users_excel, name='export_excel'),
+    path('export/excel/', views.export_users_excel, name='export_excel'),
     
     # Email verification
     path('verify-email/<str:key>/', views.confirm_email, name='confirm_email'),

@@ -94,15 +94,16 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         """
         Redirect to role-specific dashboard after social login.
         """
+        from django.urls import reverse
         user = request.user
         
         if user.is_authenticated:
             if hasattr(user, 'is_admin') and user.is_admin:
-                return '/dashboard/admin/'
+                return reverse('dashboard:admin')
             elif hasattr(user, 'is_librarian') and user.is_librarian:
-                return '/dashboard/librarian/'
+                return reverse('dashboard:librarian')
             elif hasattr(user, 'is_student') and user.is_student:
-                return '/dashboard/student/'
+                return reverse('dashboard:student')
         
         # Fallback to default
         return super().get_login_redirect_url(request)
