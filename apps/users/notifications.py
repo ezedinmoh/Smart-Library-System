@@ -35,9 +35,26 @@ def _send_email_async(subject, text_content, html_content, from_email, to_email)
     Send email in a background thread.
     Templates are pre-rendered before the thread starts (safe for gunicorn).
     The thread only handles the SMTP connection.
+    Skips obviously fake/invalid email addresses to protect Gmail quota.
     """
     import threading
+    import re
     from django.core.mail import EmailMultiAlternatives
+
+    # Guard: skip invalid or known-fake emails before even starting a thread
+    _fake_domains = {
+        'test.com', 'example.com', 'example.org', 'example.net',
+        'fake.com', 'dummy.com', 'noreply.com', 'invalid.com',
+        'mailinator.com', 'guerrillamail.com', 'tempmail.com',
+        'localhost', 'test.local', 'demo.com',
+    }
+    _valid_email = re.compile(r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$')
+
+    if not to_email or not _valid_email.match(to_email.strip().lower()):
+        return  # skip silently — invalid format
+    domain = to_email.strip().lower().split('@')[-1]
+    if domain in _fake_domains:
+        return  # skip silently — known fake domain
 
     # Capture values as local variables for the thread closure
     _subject = subject

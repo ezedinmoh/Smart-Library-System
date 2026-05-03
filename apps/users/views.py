@@ -1163,18 +1163,44 @@ def bulk_email_users(request):
 
             email_messages = []
             sent_count = 0
+            skipped_count = 0
+
+            import re
+            # Basic pattern: must have @, a real-looking domain with a dot, no spaces
+            _valid_email = re.compile(
+                r'^[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}$'
+            )
+            # Known fake/test domain patterns to skip
+            _fake_domains = {
+                'test.com', 'example.com', 'example.org', 'example.net',
+                'fake.com', 'dummy.com', 'noreply.com', 'invalid.com',
+                'mailinator.com', 'guerrillamail.com', 'tempmail.com',
+                'localhost', 'test.local', 'demo.com',
+            }
 
             for user in recipients:
-                if user.email:
-                    personalized = message_body.replace('{name}', user.get_full_name() or user.username)
-                    personalized = personalized.replace('{username}', user.username)
-                    email_messages.append((
-                        subject,
-                        personalized,
-                        django_settings.DEFAULT_FROM_EMAIL,
-                        [user.email]
-                    ))
-                    sent_count += 1
+                if not user.email:
+                    skipped_count += 1
+                    continue
+                email_lower = user.email.strip().lower()
+                # Skip if format is invalid
+                if not _valid_email.match(email_lower):
+                    skipped_count += 1
+                    continue
+                # Skip known fake domains
+                domain = email_lower.split('@')[-1]
+                if domain in _fake_domains:
+                    skipped_count += 1
+                    continue
+                personalized = message_body.replace('{name}', user.get_full_name() or user.username)
+                personalized = personalized.replace('{username}', user.username)
+                email_messages.append((
+                    subject,
+                    personalized,
+                    django_settings.DEFAULT_FROM_EMAIL,
+                    [user.email]
+                ))
+                sent_count += 1
 
             if email_messages:
                 import threading
@@ -1197,7 +1223,9 @@ def bulk_email_users(request):
 
             if sent_count > 0:
                 messages.success(request, f'Successfully sent email to {sent_count} user(s).')
-            else:
+            if skipped_count > 0:
+                messages.info(request, f'Skipped {skipped_count} user(s) with missing or invalid email addresses.')
+            if sent_count == 0 and skipped_count == 0:
                 messages.warning(request, 'No users with email addresses found for the selected group.')
 
         except Exception as e:
