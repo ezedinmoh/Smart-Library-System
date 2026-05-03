@@ -1188,6 +1188,7 @@ def test_email(request):
     the full bulk-email flow.
     """
     import logging
+    import os
     import socket
     from django.core.mail import EmailMessage
     from django.conf import settings as django_settings
@@ -1217,11 +1218,9 @@ def test_email(request):
         'to': to_email,
         'from': django_settings.DEFAULT_FROM_EMAIL,
         'backend': django_settings.EMAIL_BACKEND,
-        'host': django_settings.EMAIL_HOST,
-        'port': django_settings.EMAIL_PORT,
-        'use_ssl': getattr(django_settings, 'EMAIL_USE_SSL', False),
-        'use_tls': getattr(django_settings, 'EMAIL_USE_TLS', False),
-        'host_user': django_settings.EMAIL_HOST_USER,
+        'resend_api_key_set': bool(getattr(django_settings, 'ANYMAIL', {}).get('RESEND_API_KEY')),
+        'brevo_smtp_user_set': bool(os.environ.get('BREVO_SMTP_USER')),
+        'brevo_smtp_password_set': bool(os.environ.get('BREVO_SMTP_PASSWORD')),
         'allauth_verified': is_verified,
     }
 
