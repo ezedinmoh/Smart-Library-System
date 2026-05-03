@@ -13,57 +13,56 @@ services:
         value: 3.11.0
       - key: DEBUG
         value: false
+
+      # ── Secrets — set these manually in Render dashboard ────────────────
       - key: SECRET_KEY
-        value: "axm6s1t9=v%dfupzlj8#08ovx(&v341bbaec-d332-459e-8f2e-c188b8c93e750$5%&*2*#cg$qbsy*j9("
-      - key: ALLOWED_HOSTS
-        value: smart-library-system-dy3a.onrender.com
-
-      # ── Database ────────────────────────────────────────────────────────
+        sync: false
       - key: DATABASE_URL
-        value: postgresql://postgres:Smartlibrary%40123@db.qcjdauhdodnnodlysqon.supabase.co:5432/postgres
+        sync: false
 
-      # ── Email — Resend (primary) + Brevo SMTP (fallback) ────────────────
+      # ── Email ────────────────────────────────────────────────────────────
       - key: EMAIL_BACKEND
         value: library_system.email_backends.ResendWithBrevoFallbackBackend
       - key: DEFAULT_FROM_EMAIL
-        value: "Smart Library <onboarding@resend.dev>"
+        value: "Smart Library <smartlibrarysupport@gmail.com>"
       - key: SERVER_EMAIL
-        value: onboarding@resend.dev
+        value: smartlibrarysupport@gmail.com
       - key: RESEND_API_KEY
-        value: re_5Dm2DGnF_FSXSreuJwbq4v8GRTBzyiy9V
-      # Fill in after creating Brevo account (brevo.com → Settings → SMTP & API)
+        sync: false
       - key: BREVO_SMTP_USER
-        value: ""
+        sync: false
       - key: BREVO_SMTP_PASSWORD
-        value: ""
+        sync: false
 
-      # ── Site ────────────────────────────────────────────────────────────
+      # ── Site ─────────────────────────────────────────────────────────────
+      - key: ALLOWED_HOSTS
+        value: smart-library-system-dy3a.onrender.com
       - key: SITE_NAME
         value: Smart Library Management System
       - key: SITE_URL
         value: https://smart-library-system-dy3a.onrender.com
 
-      # ── Cloudinary ──────────────────────────────────────────────────────
+      # ── Cloudinary ───────────────────────────────────────────────────────
       - key: CLOUDINARY_CLOUD_NAME
-        value: dzni6h38z
+        sync: false
       - key: CLOUDINARY_API_KEY
-        value: "493158917225955"
+        sync: false
       - key: CLOUDINARY_API_SECRET
-        value: nzhpgOmEOWTRx2KbZrtZWBRcstg
+        sync: false
 
-      # ── Stripe ──────────────────────────────────────────────────────────
+      # ── Stripe ───────────────────────────────────────────────────────────
       - key: STRIPE_PUBLIC_KEY
-        value: your_stripe_public_key_here
+        sync: false
       - key: STRIPE_SECRET_KEY
-        value: your_stripe_secret_key_here
+        sync: false
       - key: STRIPE_WEBHOOK_SECRET
-        value: your_stripe_webhook_secret_here
+        sync: false
 
-      # ── Chapa ───────────────────────────────────────────────────────────
+      # ── Chapa ────────────────────────────────────────────────────────────
       - key: CHAPA_SECRET_KEY
-        value: your_chapa_secret_key_here
+        sync: false
       - key: CHAPA_WEBHOOK_SECRET
-        value: your_chapa_webhook_secret_here
+        sync: false
 
   # ── Cron Jobs ─────────────────────────────────────────────────────────────
 
@@ -78,13 +77,17 @@ services:
       - key: RENDER
         value: true
       - key: DATABASE_URL
-        value: postgresql://postgres:Smartlibrary%40123@db.qcjdauhdodnnodlysqon.supabase.co:5432/postgres
+        sync: false
       - key: EMAIL_BACKEND
         value: library_system.email_backends.ResendWithBrevoFallbackBackend
-      - key: RESEND_API_KEY
-        value: re_5Dm2DGnF_FSXSreuJwbq4v8GRTBzyiy9V
       - key: DEFAULT_FROM_EMAIL
-        value: "Smart Library <onboarding@resend.dev>"
+        value: "Smart Library <smartlibrarysupport@gmail.com>"
+      - key: RESEND_API_KEY
+        sync: false
+      - key: BREVO_SMTP_USER
+        sync: false
+      - key: BREVO_SMTP_PASSWORD
+        sync: false
       - key: SITE_NAME
         value: Smart Library Management System
       - key: SITE_URL
@@ -101,13 +104,17 @@ services:
       - key: RENDER
         value: true
       - key: DATABASE_URL
-        value: postgresql://postgres:Smartlibrary%40123@db.qcjdauhdodnnodlysqon.supabase.co:5432/postgres
+        sync: false
       - key: EMAIL_BACKEND
         value: library_system.email_backends.ResendWithBrevoFallbackBackend
-      - key: RESEND_API_KEY
-        value: re_5Dm2DGnF_FSXSreuJwbq4v8GRTBzyiy9V
       - key: DEFAULT_FROM_EMAIL
-        value: "Smart Library <onboarding@resend.dev>"
+        value: "Smart Library <smartlibrarysupport@gmail.com>"
+      - key: RESEND_API_KEY
+        sync: false
+      - key: BREVO_SMTP_USER
+        sync: false
+      - key: BREVO_SMTP_PASSWORD
+        sync: false
       - key: SITE_NAME
         value: Smart Library Management System
       - key: SITE_URL
@@ -124,13 +131,17 @@ services:
       - key: RENDER
         value: true
       - key: DATABASE_URL
-        value: postgresql://postgres:Smartlibrary%40123@db.qcjdauhdodnnodlysqon.supabase.co:5432/postgres
+        sync: false
       - key: EMAIL_BACKEND
         value: library_system.email_backends.ResendWithBrevoFallbackBackend
-      - key: RESEND_API_KEY
-        value: re_5Dm2DGnF_FSXSreuJwbq4v8GRTBzyiy9V
       - key: DEFAULT_FROM_EMAIL
-        value: "Smart Library <onboarding@resend.dev>"
+        value: "Smart Library <smartlibrarysupport@gmail.com>"
+      - key: RESEND_API_KEY
+        sync: false
+      - key: BREVO_SMTP_USER
+        sync: false
+      - key: BREVO_SMTP_PASSWORD
+        sync: false
       - key: SITE_NAME
         value: Smart Library Management System
       - key: SITE_URL
@@ -147,7 +158,7 @@ services:
       - key: RENDER
         value: true
       - key: DATABASE_URL
-        value: postgresql://postgres:Smartlibrary%40123@db.qcjdauhdodnnodlysqon.supabase.co:5432/postgres
+        sync: false
       - key: SITE_NAME
         value: Smart Library Management System
       - key: SITE_URL
