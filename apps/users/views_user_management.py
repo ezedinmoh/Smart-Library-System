@@ -138,7 +138,7 @@ def user_delete(request, pk):
         confirmation = request.POST.get('confirmation', '').strip()
         if confirmation != user.username:
             messages.error(request, 'Username confirmation does not match. Deletion cancelled.')
-            return redirect('users:delete', pk=pk)
+            return redirect('users:detail', pk=pk)
         
         # Collect statistics before deletion
         username = user.username

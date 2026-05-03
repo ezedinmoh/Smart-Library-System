@@ -467,10 +467,18 @@ def user_role_change(request, pk):
     if request.method == 'POST':
         new_role = request.POST.get('role')
         if new_role in dict(User.ROLE_CHOICES):
+            # Prevent removing the last admin
+            if user.role == 'admin' and new_role != 'admin':
+                remaining_admins = User.objects.filter(role='admin', is_active=True).exclude(pk=user.pk).count()
+                if remaining_admins < 1:
+                    messages.error(request, 'Cannot change role: this is the last active admin account.')
+                    return redirect('users:role_change', pk=user.pk)
             user.role = new_role
             user.save()
             messages.success(request, f'{user.username} role changed to {user.get_role_display()}.')
             return redirect('users:detail', pk=user.pk)
+        else:
+            messages.error(request, 'Invalid role selected.')
     
     context = {
         'user': user,

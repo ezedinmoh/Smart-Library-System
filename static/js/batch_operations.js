@@ -135,6 +135,9 @@ document.getElementById('singleDeleteUsernameInput')?.addEventListener('input', 
 async function confirmSingleDelete() {
     if (!currentSingleUser) return;
     
+    const btn = document.getElementById('singleDeleteSubmitBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Deleting…'; }
+
     try {
         const response = await fetch(`/users/${currentSingleUser.id}/delete/`, {
             method: 'POST',
@@ -147,18 +150,15 @@ async function confirmSingleDelete() {
         
         if (response.redirected) {
             // Success — view redirected to users:list
+            closeSingleDeleteModal();
             window.location.href = response.url;
             return;
         }
 
         // Non-redirect: check if it's an error page
-        const contentType = response.headers.get('content-type') || '';
         const text = await response.text();
 
-        if (response.ok && (text.includes('Manage Users') || text.includes('users/list'))) {
-            // Redirected inline (shouldn't happen but handle gracefully)
-            window.location.href = '/users/list/';
-        } else if (response.status === 403) {
+        if (response.status === 403) {
             alert('Permission denied. Please refresh the page and try again.');
         } else {
             // Extract Django message from response if possible
@@ -166,7 +166,10 @@ async function confirmSingleDelete() {
             const msg = match ? match[1].replace(/<[^>]+>/g, '').trim() : 'Error deleting user. Please try again.';
             alert(msg);
         }
+        // Re-enable button on error
+        if (btn) { btn.disabled = false; btn.textContent = 'Delete User'; }
     } catch (error) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Delete User'; }
         alert('Error: ' + error.message);
     }
 }
@@ -188,6 +191,9 @@ function closeSingleDeactivateModal() {
 async function confirmSingleDeactivate() {
     if (!currentSingleUser) return;
     
+    const btn = document.querySelector('#singleDeactivateModal .btn-warning');
+    if (btn) { btn.disabled = true; btn.textContent = 'Deactivating…'; }
+
     try {
         const response = await fetch(`/users/${currentSingleUser.id}/deactivate/`, {
             method: 'POST',
@@ -197,11 +203,17 @@ async function confirmSingleDeactivate() {
         });
         
         if (response.redirected) {
+            // Check if redirected back to detail (means an error message was set)
+            // Either way, follow the redirect so the Django message is visible
+            closeSingleDeactivateModal();
             window.location.href = response.url;
         } else {
+            // Unexpected non-redirect — reload to show any Django messages
+            closeSingleDeactivateModal();
             window.location.reload();
         }
     } catch (error) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Deactivate'; }
         alert('Error: ' + error.message);
     }
 }
@@ -223,6 +235,9 @@ function closeSingleActivateModal() {
 async function confirmSingleActivate() {
     if (!currentSingleUser) return;
     
+    const btn = document.querySelector('#singleActivateModal .btn-success');
+    if (btn) { btn.disabled = true; btn.textContent = 'Activating…'; }
+
     try {
         const response = await fetch(`/users/${currentSingleUser.id}/activate/`, {
             method: 'POST',
@@ -232,11 +247,14 @@ async function confirmSingleActivate() {
         });
         
         if (response.redirected) {
+            closeSingleActivateModal();
             window.location.href = response.url;
         } else {
+            closeSingleActivateModal();
             window.location.reload();
         }
     } catch (error) {
+        if (btn) { btn.disabled = false; btn.textContent = 'Activate'; }
         alert('Error: ' + error.message);
     }
 }
