@@ -1052,7 +1052,6 @@ def bulk_import_users(request):
 
 
 @login_required
-@login_required
 @admin_required
 def download_user_import_template(request):
     """Download CSV or Excel template for bulk user import"""
@@ -1155,7 +1154,6 @@ def download_user_import_template(request):
 
 
 @login_required
-@login_required
 @admin_required
 def bulk_email_users(request):
     """Send bulk email to selected users"""
@@ -1201,7 +1199,18 @@ def bulk_email_users(request):
                     sent_count += 1
 
             if email_messages:
-                send_mass_mail(email_messages, fail_silently=False)
+                import threading
+                _msgs = email_messages[:]
+                def _send():
+                    try:
+                        from django.db import connections
+                        for conn in connections.all():
+                            conn.close()
+                        send_mass_mail(_msgs, fail_silently=True)
+                    except Exception as ex:
+                        import logging
+                        logging.getLogger(__name__).error(f'Bulk email send error: {ex}')
+                threading.Thread(target=_send, daemon=True).start()
 
             # Log activity
             from apps.dashboard.utils import log_activity

@@ -168,7 +168,9 @@ class ActivityLog(models.Model):
         ('user_role_changed', 'User Role Changed'),
         ('review_added', 'Review Added'),
         ('backup_created', 'Backup Created'),
+        ('backup_restored', 'Backup Restored'),
         ('reminder_sent', 'Reminder Sent'),
+        ('settings_updated', 'Settings Updated'),
         ('other', 'Other'),
     )
     
