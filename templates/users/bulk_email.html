@@ -249,6 +249,174 @@
         [data-theme="dark"] .warning-box .content {
             color: var(--text-secondary);
         }
+
+        /* ── Select Users Panel ── */
+        .user-select-panel {
+            display: none;
+            margin-top: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .user-select-panel.visible {
+            display: block;
+        }
+
+        .user-select-toolbar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            background: var(--surface);
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+        }
+
+        .user-select-toolbar input[type="text"] {
+            flex: 1;
+            min-width: 160px;
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .user-select-toolbar select {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            font-size: 0.875rem;
+        }
+
+        .toolbar-btn {
+            padding: 0.5rem 0.875rem;
+            border-radius: 6px;
+            font-size: 0.8125rem;
+            font-weight: 500;
+            border: 1px solid var(--border);
+            background: var(--bg-primary);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.15s;
+            white-space: nowrap;
+        }
+
+        .toolbar-btn:hover {
+            background: var(--surface-hover);
+            color: var(--text-primary);
+        }
+
+        .selected-count-badge {
+            margin-left: auto;
+            background: var(--primary);
+            color: white;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            white-space: nowrap;
+        }
+
+        .user-list-scroll {
+            max-height: 320px;
+            overflow-y: auto;
+        }
+
+        .user-row {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.625rem 1rem;
+            border-bottom: 1px solid var(--border-light);
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .user-row:last-child { border-bottom: none; }
+        .user-row:hover { background: var(--surface-hover); }
+        .user-row.hidden-row { display: none; }
+
+        .user-row input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            accent-color: var(--primary);
+            cursor: pointer;
+            flex-shrink: 0;
+        }
+
+        .user-avatar {
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.8125rem;
+            font-weight: 600;
+            color: white;
+            flex-shrink: 0;
+        }
+
+        .user-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .user-info .name {
+            font-size: 0.875rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .user-info .email {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .role-badge {
+            font-size: 0.6875rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
+            flex-shrink: 0;
+        }
+
+        .role-student   { background: #dbeafe; color: #1d4ed8; }
+        .role-librarian { background: #fef3c7; color: #92400e; }
+        .role-admin     { background: #fce7f3; color: #9d174d; }
+
+        [data-theme="dark"] .role-student   { background: rgba(37,99,235,0.2);  color: #93c5fd; }
+        [data-theme="dark"] .role-librarian { background: rgba(245,158,11,0.2); color: #fcd34d; }
+        [data-theme="dark"] .role-admin     { background: rgba(236,72,153,0.2); color: #f9a8d4; }
+
+        .verified-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #22c55e;
+            flex-shrink: 0;
+        }
+
+        .no-results-msg {
+            padding: 2rem;
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 0.875rem;
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -279,6 +447,10 @@
                 <div class="value" style="color: #DC2626;">{{ total_admins }}</div>
                 <div class="label">Admins</div>
             </div>
+            <div class="stat-card">
+                <div class="value" style="color: #22c55e;">{{ total_verified }}</div>
+                <div class="label">Verified Emails ✓</div>
+            </div>
         </div>
 
         <!-- Email Form -->
@@ -289,12 +461,56 @@
                 <!-- Recipient Type -->
                 <div class="form-group">
                     <label>Recipients</label>
-                    <select name="recipient_type" required>
+                    <select name="recipient_type" id="recipientType" required>
                         <option value="all">All Users ({{ total_users }})</option>
                         <option value="students">Students Only ({{ total_students }})</option>
                         <option value="librarians">Librarians Only ({{ total_librarians }})</option>
                         <option value="admins">Admins Only ({{ total_admins }})</option>
+                        <option value="selected">Select Specific Users…</option>
                     </select>
+                </div>
+
+                <!-- User Picker (shown only when "selected" is chosen) -->
+                <div class="user-select-panel" id="userSelectPanel">
+                    <div class="user-select-toolbar">
+                        <input type="text" id="userSearch" placeholder="🔍 Search by name or email…" autocomplete="off">
+                        <select id="roleFilter">
+                            <option value="">All roles</option>
+                            <option value="student">Students</option>
+                            <option value="librarian">Librarians</option>
+                            <option value="admin">Admins</option>
+                        </select>
+                        <button type="button" class="toolbar-btn" id="selectAllVisible">Select all</button>
+                        <button type="button" class="toolbar-btn" id="clearAll">Clear</button>
+                        <span class="selected-count-badge" id="selectedCountBadge">0 selected</span>
+                    </div>
+
+                    <div class="user-list-scroll" id="userListScroll">
+                        {% for u in verified_users %}
+                        {% if u.is_verified %}
+                        <label class="user-row"
+                               data-name="{{ u.display_name|lower }}"
+                               data-email="{{ u.email|lower }}"
+                               data-role="{{ u.role }}">
+                            <input type="checkbox" name="selected_user_ids" value="{{ u.id }}"
+                                   class="user-checkbox" onchange="updateSelectedCount()">
+                            <div class="user-avatar"
+                                 style="background: {% if u.role == 'student' %}#2563eb{% elif u.role == 'librarian' %}#d97706{% else %}#db2777{% endif %};">
+                                {{ u.display_name|slice:":1"|upper }}
+                            </div>
+                            <div class="user-info">
+                                <div class="name">{{ u.display_name }}</div>
+                                <div class="email">{{ u.email }}</div>
+                            </div>
+                            <span class="role-badge role-{{ u.role }}">{{ u.role }}</span>
+                            <span class="verified-dot" title="Verified email"></span>
+                        </label>
+                        {% endif %}
+                        {% empty %}
+                        <div class="no-results-msg" style="display:block;">No verified users found.</div>
+                        {% endfor %}
+                        <div class="no-results-msg" id="noResultsMsg">No users match your search.</div>
+                    </div>
                 </div>
                 
                 <!-- Subject -->
@@ -354,5 +570,79 @@
     </div>
 
     {% include 'includes/enhanced_nav_scripts.html' %}
+    <script>
+        // ── Recipient type toggle ──────────────────────────────────────────
+        const recipientType = document.getElementById('recipientType');
+        const userSelectPanel = document.getElementById('userSelectPanel');
+
+        recipientType.addEventListener('change', function () {
+            if (this.value === 'selected') {
+                userSelectPanel.classList.add('visible');
+            } else {
+                userSelectPanel.classList.remove('visible');
+                // uncheck all when switching away
+                document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
+                updateSelectedCount();
+            }
+        });
+
+        // ── Selected count badge ──────────────────────────────────────────
+        function updateSelectedCount() {
+            const count = document.querySelectorAll('.user-checkbox:checked').length;
+            document.getElementById('selectedCountBadge').textContent =
+                count === 1 ? '1 selected' : count + ' selected';
+        }
+
+        // ── Search + role filter ──────────────────────────────────────────
+        const userSearch  = document.getElementById('userSearch');
+        const roleFilter  = document.getElementById('roleFilter');
+        const noResultMsg = document.getElementById('noResultsMsg');
+
+        function applyFilters() {
+            const q    = userSearch.value.trim().toLowerCase();
+            const role = roleFilter.value;
+            let visible = 0;
+
+            document.querySelectorAll('.user-row[data-name]').forEach(row => {
+                const nameMatch  = !q || row.dataset.name.includes(q) || row.dataset.email.includes(q);
+                const roleMatch  = !role || row.dataset.role === role;
+                if (nameMatch && roleMatch) {
+                    row.classList.remove('hidden-row');
+                    visible++;
+                } else {
+                    row.classList.add('hidden-row');
+                }
+            });
+
+            noResultMsg.style.display = visible === 0 ? 'block' : 'none';
+        }
+
+        userSearch.addEventListener('input', applyFilters);
+        roleFilter.addEventListener('change', applyFilters);
+
+        // ── Select all visible / clear ────────────────────────────────────
+        document.getElementById('selectAllVisible').addEventListener('click', function () {
+            document.querySelectorAll('.user-row:not(.hidden-row) .user-checkbox').forEach(cb => {
+                cb.checked = true;
+            });
+            updateSelectedCount();
+        });
+
+        document.getElementById('clearAll').addEventListener('click', function () {
+            document.querySelectorAll('.user-checkbox').forEach(cb => cb.checked = false);
+            updateSelectedCount();
+        });
+
+        // ── Form validation: require at least one user when "selected" ────
+        document.querySelector('form').addEventListener('submit', function (e) {
+            if (recipientType.value === 'selected') {
+                const checked = document.querySelectorAll('.user-checkbox:checked').length;
+                if (checked === 0) {
+                    e.preventDefault();
+                    alert('Please select at least one user before sending.');
+                }
+            }
+        });
+    </script>
 </body>
 </html>

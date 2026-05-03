@@ -1154,6 +1154,12 @@ def bulk_email_users(request):
                 recipients = User.objects.filter(role='librarian', is_active=True)
             elif recipient_type == 'admins':
                 recipients = User.objects.filter(role='admin', is_active=True)
+            elif recipient_type == 'selected':
+                selected_ids = request.POST.getlist('selected_user_ids')
+                if not selected_ids:
+                    messages.error(request, 'Please select at least one user.')
+                    return redirect('users:bulk_email')
+                recipients = User.objects.filter(pk__in=selected_ids, is_active=True)
             else:
                 messages.error(request, 'Invalid recipient type.')
                 return redirect('users:bulk_email')
@@ -1249,11 +1255,29 @@ def bulk_email_users(request):
         return redirect('users:bulk_email')
     
     # GET request - show form
+    from allauth.account.models import EmailAddress
+    verified_email_set = set(
+        EmailAddress.objects.filter(verified=True).values_list('email', flat=True)
+    )
+    verified_users = (
+        User.objects.filter(is_active=True)
+        .order_by('role', 'username')
+        .values('id', 'username', 'first_name', 'last_name', 'email', 'role')
+    )
+    # Annotate with verified status
+    verified_users_list = []
+    for u in verified_users:
+        u['is_verified'] = u['email'].strip().lower() in verified_email_set
+        u['display_name'] = f"{u['first_name']} {u['last_name']}".strip() or u['username']
+        verified_users_list.append(u)
+
     context = {
         'total_users': User.objects.filter(is_active=True).count(),
         'total_students': User.objects.filter(role='student', is_active=True).count(),
         'total_librarians': User.objects.filter(role='librarian', is_active=True).count(),
         'total_admins': User.objects.filter(role='admin', is_active=True).count(),
+        'verified_users': verified_users_list,
+        'total_verified': sum(1 for u in verified_users_list if u['is_verified']),
     }
     return render(request, 'users/bulk_email.html', context)
 
@@ -1426,13 +1450,15 @@ def resend_verification_email(request):
             html_message  = render_to_string('emails/email_verification.html', ctx)
 
             # Send asynchronously — non-blocking, prevents slow page loads on Render
+            # require_verified=False because the user is intentionally unverified here
             from apps.users.notifications import _send_email_async
             _send_email_async(
                 subject=subject,
                 text_content=plain_message,
                 html_content=html_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                to_email=user.email
+                to_email=user.email,
+                require_verified=False,
             )
 
             messages.success(request, f'Verification email has been resent to {email}. Please check your inbox.')
