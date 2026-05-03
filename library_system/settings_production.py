@@ -141,19 +141,24 @@ CELERY_TASK_TIME_LIMIT = 30 * 60  # 30 minutes
 CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes
 
 # ============================================================================
-# EMAIL - PRODUCTION
+# EMAIL - PRODUCTION (Resend primary + Brevo SMTP fallback)
 # ============================================================================
 
-# Use real SMTP backend in production
-EMAIL_BACKEND = config('EMAIL_BACKEND', default='django.core.mail.backends.smtp.EmailBackend')
-EMAIL_HOST = config('EMAIL_HOST', default='smtp.gmail.com')
-EMAIL_PORT = config('EMAIL_PORT', default=587, cast=int)
-EMAIL_USE_TLS = config('EMAIL_USE_TLS', default=True, cast=bool)
-EMAIL_USE_SSL = config('EMAIL_USE_SSL', default=False, cast=bool)
-EMAIL_HOST_USER = config('EMAIL_HOST_USER', default='')
-EMAIL_HOST_PASSWORD = config('EMAIL_HOST_PASSWORD', default='')
+EMAIL_BACKEND = config(
+    'EMAIL_BACKEND',
+    default='library_system.email_backends.ResendWithBrevoFallbackBackend'
+)
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@smartlibrary.com')
 SERVER_EMAIL = config('SERVER_EMAIL', default='noreply@smartlibrary.com')
+
+# Anymail — Resend API key
+ANYMAIL = {
+    'RESEND_API_KEY': config('RESEND_API_KEY', default=''),
+    'BREVO_API_KEY':  config('BREVO_API_KEY', default=''),
+}
+
+# Brevo SMTP fallback — read directly from env in the backend
+# Set BREVO_SMTP_USER and BREVO_SMTP_PASSWORD in Render env vars
 
 # ============================================================================
 # LOGGING - PRODUCTION

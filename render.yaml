@@ -11,6 +11,61 @@ services:
         value: library_system.settings_production
       - key: PYTHON_VERSION
         value: 3.11.0
+      - key: DEBUG
+        value: false
+      - key: SECRET_KEY
+        value: "axm6s1t9=v%dfupzlj8#08ovx(&v341bbaec-d332-459e-8f2e-c188b8c93e750$5%&*2*#cg$qbsy*j9("
+      - key: ALLOWED_HOSTS
+        value: smart-library-system-dy3a.onrender.com
+
+      # ── Database ────────────────────────────────────────────────────────
+      - key: DATABASE_URL
+        value: postgresql://postgres:Smartlibrary%40123@db.qcjdauhdodnnodlysqon.supabase.co:5432/postgres
+
+      # ── Email — Resend (primary) + Brevo SMTP (fallback) ────────────────
+      - key: EMAIL_BACKEND
+        value: library_system.email_backends.ResendWithBrevoFallbackBackend
+      - key: DEFAULT_FROM_EMAIL
+        value: "Smart Library <onboarding@resend.dev>"
+      - key: SERVER_EMAIL
+        value: onboarding@resend.dev
+      - key: RESEND_API_KEY
+        value: re_5Dm2DGnF_FSXSreuJwbq4v8GRTBzyiy9V
+      # Fill in after creating Brevo account (brevo.com → Settings → SMTP & API)
+      - key: BREVO_SMTP_USER
+        value: ""
+      - key: BREVO_SMTP_PASSWORD
+        value: ""
+
+      # ── Site ────────────────────────────────────────────────────────────
+      - key: SITE_NAME
+        value: Smart Library Management System
+      - key: SITE_URL
+        value: https://smart-library-system-dy3a.onrender.com
+
+      # ── Cloudinary ──────────────────────────────────────────────────────
+      - key: CLOUDINARY_CLOUD_NAME
+        value: dzni6h38z
+      - key: CLOUDINARY_API_KEY
+        value: "493158917225955"
+      - key: CLOUDINARY_API_SECRET
+        value: nzhpgOmEOWTRx2KbZrtZWBRcstg
+
+      # ── Stripe ──────────────────────────────────────────────────────────
+      - key: STRIPE_PUBLIC_KEY
+        value: your_stripe_public_key_here
+      - key: STRIPE_SECRET_KEY
+        value: your_stripe_secret_key_here
+      - key: STRIPE_WEBHOOK_SECRET
+        value: your_stripe_webhook_secret_here
+
+      # ── Chapa ───────────────────────────────────────────────────────────
+      - key: CHAPA_SECRET_KEY
+        value: your_chapa_secret_key_here
+      - key: CHAPA_WEBHOOK_SECRET
+        value: your_chapa_webhook_secret_here
+
+  # ── Cron Jobs ─────────────────────────────────────────────────────────────
 
   # Daily at midnight - mark overdue books
   - type: cron
@@ -22,6 +77,18 @@ services:
     envVars:
       - key: RENDER
         value: true
+      - key: DATABASE_URL
+        value: postgresql://postgres:Smartlibrary%40123@db.qcjdauhdodnnodlysqon.supabase.co:5432/postgres
+      - key: EMAIL_BACKEND
+        value: library_system.email_backends.ResendWithBrevoFallbackBackend
+      - key: RESEND_API_KEY
+        value: re_5Dm2DGnF_FSXSreuJwbq4v8GRTBzyiy9V
+      - key: DEFAULT_FROM_EMAIL
+        value: "Smart Library <onboarding@resend.dev>"
+      - key: SITE_NAME
+        value: Smart Library Management System
+      - key: SITE_URL
+        value: https://smart-library-system-dy3a.onrender.com
 
   # Daily at 9 AM - send due soon reminders
   - type: cron
@@ -33,6 +100,18 @@ services:
     envVars:
       - key: RENDER
         value: true
+      - key: DATABASE_URL
+        value: postgresql://postgres:Smartlibrary%40123@db.qcjdauhdodnnodlysqon.supabase.co:5432/postgres
+      - key: EMAIL_BACKEND
+        value: library_system.email_backends.ResendWithBrevoFallbackBackend
+      - key: RESEND_API_KEY
+        value: re_5Dm2DGnF_FSXSreuJwbq4v8GRTBzyiy9V
+      - key: DEFAULT_FROM_EMAIL
+        value: "Smart Library <onboarding@resend.dev>"
+      - key: SITE_NAME
+        value: Smart Library Management System
+      - key: SITE_URL
+        value: https://smart-library-system-dy3a.onrender.com
 
   # Daily at 10 AM - send overdue reminders
   - type: cron
@@ -44,6 +123,18 @@ services:
     envVars:
       - key: RENDER
         value: true
+      - key: DATABASE_URL
+        value: postgresql://postgres:Smartlibrary%40123@db.qcjdauhdodnnodlysqon.supabase.co:5432/postgres
+      - key: EMAIL_BACKEND
+        value: library_system.email_backends.ResendWithBrevoFallbackBackend
+      - key: RESEND_API_KEY
+        value: re_5Dm2DGnF_FSXSreuJwbq4v8GRTBzyiy9V
+      - key: DEFAULT_FROM_EMAIL
+        value: "Smart Library <onboarding@resend.dev>"
+      - key: SITE_NAME
+        value: Smart Library Management System
+      - key: SITE_URL
+        value: https://smart-library-system-dy3a.onrender.com
 
   # Daily at 11 PM - calculate fines
   - type: cron
@@ -55,3 +146,9 @@ services:
     envVars:
       - key: RENDER
         value: true
+      - key: DATABASE_URL
+        value: postgresql://postgres:Smartlibrary%40123@db.qcjdauhdodnnodlysqon.supabase.co:5432/postgres
+      - key: SITE_NAME
+        value: Smart Library Management System
+      - key: SITE_URL
+        value: https://smart-library-system-dy3a.onrender.com
