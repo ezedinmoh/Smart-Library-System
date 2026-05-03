@@ -112,18 +112,20 @@ def register(request):
 
             email_sent = False
             email_error = None
-            old_timeout = socket.getdefaulttimeout()
             try:
-                socket.setdefaulttimeout(5)
-                msg = EmailMultiAlternatives(subject, text_content, django_settings.DEFAULT_FROM_EMAIL, [user.email])
-                msg.attach_alternative(html_content, "text/html")
-                msg.send(fail_silently=False)
+                from apps.users.notifications import _send_email_async
+                _send_email_async(
+                    subject=subject,
+                    text_content=text_content,
+                    html_content=html_content,
+                    from_email=django_settings.DEFAULT_FROM_EMAIL,
+                    to_email=user.email,
+                    require_verified=False,  # user is not yet verified — that's the point
+                )
                 email_sent = True
             except Exception as e:
                 email_error = str(e)
                 logging.getLogger(__name__).warning(f"Verification email failed for {user.email}: {e}")
-            finally:
-                socket.setdefaulttimeout(old_timeout)
 
             # Always show verification page - with link visible if email failed
             return render(request, 'account/verification_sent.html', {
