@@ -309,7 +309,7 @@
             color: var(--success); 
         }
         .requirement .x { 
-            display: block; 
+            display: none; /* hidden by default — only show after user starts typing */
             color: var(--error); 
         }
         .requirement.met .check { 
@@ -320,6 +320,10 @@
         }
         .requirement.met { 
             color: var(--success); 
+        }
+        /* Show X only after password field has been touched */
+        .password-touched .requirement:not(.met) .x {
+            display: block;
         }
         .role-selection { 
             display: grid; 
@@ -974,6 +978,13 @@
         function checkPasswordStrength(password) {
             const strengthBars = document.querySelector('.password-strength');
             const strengthText = document.querySelector('.strength-text');
+            const requirementsContainer = document.querySelector('.password-requirements');
+            
+            // Mark as touched so X icons appear
+            if (password.length > 0) {
+                requirementsContainer.classList.add('password-touched');
+            }
+            
             const requirements = {
                 length: password.length >= 8,
                 uppercase: /[A-Z]/.test(password),
@@ -1053,7 +1064,10 @@
             };
         }
         
-        async function validateField(fieldId) {
+        // Track which fields the user has interacted with
+        const touchedFields = new Set();
+        
+        async function validateField(fieldId, showErrorIfEmpty = false) {
             const field = document.getElementById(fieldId);
             const wrapper = field.closest('.input-wrapper');
             const errorMsg = field.closest('.form-group').querySelector('.error-message');
@@ -1063,12 +1077,15 @@
             wrapper.classList.remove('error', 'success');
             errorMsg.textContent = '';
             
+            // If field is empty and user hasn't touched it yet — show nothing
             if (!value) {
-                wrapper.classList.add('error');
-                // Only show error message for username and email
-                if (fieldId === 'id_username' || fieldId === 'id_email') {
-                    errorMsg.textContent = 'This field is required';
+                if (showErrorIfEmpty || touchedFields.has(fieldId)) {
+                    wrapper.classList.add('error');
+                    if (fieldId === 'id_username' || fieldId === 'id_email') {
+                        errorMsg.textContent = 'This field is required';
+                    }
                 }
+                // No state at all if untouched and empty
                 return false;
             }
             
@@ -1167,6 +1184,7 @@
             
             // Validate on input (debounced for username/email)
             field.addEventListener('input', () => {
+                touchedFields.add(fieldId); // mark as touched on first input
                 if (fieldId === 'id_username' || fieldId === 'id_email') {
                     debouncedValidate();
                 } else {
@@ -1175,8 +1193,9 @@
                 }
             });
             
-            // Validate on blur (immediate)
+            // Validate on blur (immediate) — mark as touched when user leaves field
             field.addEventListener('blur', async () => {
+                touchedFields.add(fieldId);
                 await validateField(fieldId);
                 await validateStep1();
             });
@@ -1188,13 +1207,18 @@
             step2Btn.disabled = false;
         }
         
-        // Validate step 1 on page load (but don't show errors initially)
+        // Validate step 1 on page load ONLY for fields that already have values
+        // (e.g. after a failed form submission — values are preserved)
+        // Never show error state on empty fields on first load
         setTimeout(() => {
             step1Fields.forEach(fieldId => {
                 const field = document.getElementById(fieldId);
                 if (field.value.trim()) {
+                    // Field has a value (re-submitted form) — mark as touched and validate
+                    touchedFields.add(fieldId);
                     validateField(fieldId);
                 }
+                // Empty fields: do nothing — no error, no success icon
             });
             validateStep1();
         }, 100);
