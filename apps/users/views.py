@@ -1178,6 +1178,15 @@ def bulk_email_users(request):
                 'localhost', 'test.local', 'demo.com',
             }
 
+            # Only send to users with a verified email address
+            # This filters out test accounts with fake @gmail.com addresses
+            # that were never actually verified
+            from allauth.account.models import EmailAddress
+            verified_emails = set(
+                EmailAddress.objects.filter(verified=True)
+                .values_list('email', flat=True)
+            )
+
             for user in recipients:
                 if not user.email:
                     skipped_count += 1
@@ -1190,6 +1199,10 @@ def bulk_email_users(request):
                 # Skip known fake domains
                 domain = email_lower.split('@')[-1]
                 if domain in _fake_domains:
+                    skipped_count += 1
+                    continue
+                # Skip unverified emails — they may be fake/test accounts
+                if email_lower not in verified_emails:
                     skipped_count += 1
                     continue
                 personalized = message_body.replace('{name}', user.get_full_name() or user.username)

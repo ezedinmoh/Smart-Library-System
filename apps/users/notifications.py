@@ -30,12 +30,17 @@ def notify_book_returned(request, borrow_record):
         )
 
 
-def _send_email_async(subject, text_content, html_content, from_email, to_email):
+def _send_email_async(subject, text_content, html_content, from_email, to_email,
+                      require_verified=True):
     """
     Send email in a background thread.
     Templates are pre-rendered before the thread starts (safe for gunicorn).
     The thread only handles the SMTP connection.
-    Skips obviously fake/invalid email addresses to protect Gmail quota.
+    Skips fake/invalid emails and unverified addresses to protect Gmail quota.
+
+    Args:
+        require_verified: If True (default), skip emails not verified via allauth.
+                          Set False for admin/staff notifications where we trust the email.
     """
     import threading
     import re
@@ -56,7 +61,16 @@ def _send_email_async(subject, text_content, html_content, from_email, to_email)
     if domain in _fake_domains:
         return  # skip silently — known fake domain
 
-    # Capture values as local variables for the thread closure
+    # Skip unverified emails (e.g. test accounts with fake @gmail.com)
+    if require_verified:
+        try:
+            from allauth.account.models import EmailAddress
+            if not EmailAddress.objects.filter(
+                email__iexact=to_email.strip(), verified=True
+            ).exists():
+                return  # skip silently — email not verified
+        except Exception:
+            pass  # if allauth check fails, allow the send
     _subject = subject
     _text = text_content
     _html = html_content
@@ -819,7 +833,8 @@ def notify_admins_new_request(book_request):
                 text_content=text_content,
                 html_content=html_content,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                to_email=staff_member.email
+                to_email=staff_member.email,
+                require_verified=False  # staff emails are always real
             )
     except Exception as e:
         import logging
@@ -865,7 +880,8 @@ def notify_admins_fine_paid(payment):
                 text_content=text_content,
                 html_content=html_content,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                to_email=staff_member.email
+                to_email=staff_member.email,
+                require_verified=False  # staff emails are always real
             )
     except Exception as e:
         import logging
