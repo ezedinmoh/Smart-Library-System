@@ -7,6 +7,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
+from functools import wraps
 from .models import User
 from apps.dashboard.utils import log_activity
 from apps.borrow.models import BorrowRecord, BookRequest
@@ -15,6 +16,21 @@ from apps.borrow.models import BorrowRecord, BookRequest
 def check_admin(user):
     """Check if user is an admin"""
     return user.is_authenticated and user.role == 'admin'
+
+
+def ajax_admin_required(view_func):
+    """
+    Like @login_required + @user_passes_test(check_admin) but returns
+    JSON 403 instead of redirecting — safe for fetch() calls.
+    """
+    @wraps(view_func)
+    def _wrapped(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'success': False, 'message': 'Session expired. Please log in again.'}, status=403)
+        if not check_admin(request.user):
+            return JsonResponse({'success': False, 'message': 'Admin access required.'}, status=403)
+        return view_func(request, *args, **kwargs)
+    return _wrapped
 
 
 @login_required
@@ -187,8 +203,7 @@ def user_delete(request, pk):
     return render(request, 'users/user_delete_confirm.html', context)
 
 
-@login_required
-@user_passes_test(check_admin)
+@ajax_admin_required
 @require_POST
 def batch_deactivate_users(request):
     """
@@ -238,8 +253,7 @@ def batch_deactivate_users(request):
         return JsonResponse({'success': False, 'message': str(e)})
 
 
-@login_required
-@user_passes_test(check_admin)
+@ajax_admin_required
 @require_POST
 def batch_activate_users(request):
     """
@@ -273,8 +287,7 @@ def batch_activate_users(request):
         return JsonResponse({'success': False, 'message': str(e)})
 
 
-@login_required
-@user_passes_test(check_admin)
+@ajax_admin_required
 @require_POST
 def batch_delete_users(request):
     """

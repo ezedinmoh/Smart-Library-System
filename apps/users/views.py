@@ -363,6 +363,7 @@ def check_admin(user):
 
 @login_required
 @user_passes_test(check_admin)
+@ensure_csrf_cookie
 def users_list(request):
     """Admin user management with search, filter, pagination"""
     from django.core.paginator import Paginator

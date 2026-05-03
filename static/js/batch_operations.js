@@ -148,26 +148,29 @@ async function confirmSingleDelete() {
             },
             body: `confirmation=${encodeURIComponent(currentSingleUser.username)}`
         });
-        
+
+        if (response.redirected && response.url.includes('login')) {
+            alert('Your session has expired. Please refresh the page and log in again.');
+            if (btn) { btn.disabled = false; btn.textContent = 'Delete User'; }
+            return;
+        }
+
         if (response.redirected) {
-            // Success — view redirected to users:list
+            // Success → users:list, or error → users:detail with Django message
             closeSingleDeleteModal();
             window.location.href = response.url;
             return;
         }
 
-        // Non-redirect: check if it's an error page
+        // Non-redirect (403 or 500)
         const text = await response.text();
-
         if (response.status === 403) {
-            alert('Permission denied. Please refresh the page and try again.');
+            alert('Session expired or permission denied. Please refresh the page and try again.');
         } else {
-            // Extract Django message from response if possible
             const match = text.match(/class="[^"]*alert[^"]*"[^>]*>([\s\S]*?)<\/div>/);
             const msg = match ? match[1].replace(/<[^>]+>/g, '').trim() : 'Error deleting user. Please try again.';
             alert(msg);
         }
-        // Re-enable button on error
         if (btn) { btn.disabled = false; btn.textContent = 'Delete User'; }
     } catch (error) {
         if (btn) { btn.disabled = false; btn.textContent = 'Delete User'; }
@@ -198,21 +201,18 @@ async function confirmSingleDeactivate() {
     try {
         const response = await fetch(`/users/${currentSingleUser.id}/deactivate/`, {
             method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-            }
+            headers: { 'X-CSRFToken': getCSRFToken() }
         });
-        
-        if (response.redirected) {
-            // Check if redirected back to detail (means an error message was set)
-            // Either way, follow the redirect so the Django message is visible
-            closeSingleDeactivateModal();
-            window.location.href = response.url;
-        } else {
-            // Unexpected non-redirect — reload to show any Django messages
-            closeSingleDeactivateModal();
-            window.location.reload();
+
+        if (response.redirected && response.url.includes('login')) {
+            alert('Your session has expired. Please refresh the page and log in again.');
+            if (btn) { btn.disabled = false; btn.textContent = 'Deactivate'; }
+            return;
         }
+
+        closeSingleDeactivateModal();
+        // Follow the redirect (success → users:list, error → users:detail with message)
+        window.location.href = response.redirected ? response.url : window.location.href;
     } catch (error) {
         if (btn) { btn.disabled = false; btn.textContent = 'Deactivate'; }
         alert('Error: ' + error.message);
@@ -242,18 +242,17 @@ async function confirmSingleActivate() {
     try {
         const response = await fetch(`/users/${currentSingleUser.id}/activate/`, {
             method: 'POST',
-            headers: {
-                'X-CSRFToken': getCSRFToken(),
-            }
+            headers: { 'X-CSRFToken': getCSRFToken() }
         });
-        
-        if (response.redirected) {
-            closeSingleActivateModal();
-            window.location.href = response.url;
-        } else {
-            closeSingleActivateModal();
-            window.location.reload();
+
+        if (response.redirected && response.url.includes('login')) {
+            alert('Your session has expired. Please refresh the page and log in again.');
+            if (btn) { btn.disabled = false; btn.textContent = 'Activate'; }
+            return;
         }
+
+        closeSingleActivateModal();
+        window.location.href = response.redirected ? response.url : window.location.href;
     } catch (error) {
         if (btn) { btn.disabled = false; btn.textContent = 'Activate'; }
         alert('Error: ' + error.message);
