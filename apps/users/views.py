@@ -704,17 +704,21 @@ def upload_avatar(request):
         try:
             profile, created = UserProfile.objects.get_or_create(user=request.user)
             
-            # Delete old profile picture if exists (local storage only)
+            # Delete old profile picture from whatever storage is active
             if profile.profile_picture:
                 try:
+                    old_name = profile.profile_picture.name
                     storage = profile.profile_picture.storage
                     is_cloudinary = 'cloudinary' in type(storage).__module__.lower()
-                    if not is_cloudinary:
-                        import os
+                    if is_cloudinary:
+                        # Delete from Cloudinary to avoid orphaned files
+                        storage.delete(old_name)
+                    else:
+                        # Local storage — delete the file directly
                         if os.path.isfile(profile.profile_picture.path):
                             os.remove(profile.profile_picture.path)
                 except Exception:
-                    pass
+                    pass  # Don't block the upload if deletion fails
             
             # Save new profile picture
             profile.profile_picture = request.FILES['profile_picture']
