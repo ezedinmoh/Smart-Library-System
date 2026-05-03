@@ -62,7 +62,10 @@ def select_payment_method(request, record_id):
         'processing_fee_usd': round(processing_fee, 2),
         'total_usd': round(total_usd, 2),
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
-        'debug': settings.DEBUG,  # Show test card info in debug mode
+        'debug': (
+            settings.STRIPE_PUBLIC_KEY.startswith('pk_test_') or
+            getattr(settings, 'CHAPA_SECRET_KEY', '').startswith('CHASECK_TEST-')
+        ),  # Show test info when using test keys (works on both local and Render)
     }
     
     return render(request, 'payments/select_method.html', context)
