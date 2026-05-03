@@ -58,11 +58,18 @@ class ResendWithBrevoFallbackBackend(BaseEmailBackend):
     def _get_brevo_backend(self):
         import os
         from django.core.mail.backends.smtp import EmailBackend as SmtpBackend
+        user = os.environ.get('BREVO_SMTP_USER', '')
+        password = os.environ.get('BREVO_SMTP_PASSWORD', '')
+        if not user or not password:
+            raise RuntimeError(
+                'Brevo fallback not configured — '
+                'set BREVO_SMTP_USER and BREVO_SMTP_PASSWORD env vars.'
+            )
         return SmtpBackend(
             host='smtp-relay.brevo.com',
             port=587,
-            username=os.environ.get('BREVO_SMTP_USER', ''),
-            password=os.environ.get('BREVO_SMTP_PASSWORD', ''),
+            username=user,
+            password=password,
             use_tls=True,
             use_ssl=False,
             fail_silently=False,
