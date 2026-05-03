@@ -1408,17 +1408,19 @@ def resend_verification_email(request):
                 to=[user.email]
             )
             email_msg.attach_alternative(html_message, "text/html")
-            email_msg.send(fail_silently=False)
-            
+            email_msg.send(fail_silently=True)
+
             messages.success(request, f'Verification email has been resent to {email}. Please check your inbox.')
             return redirect('users:login')
-            
+
         except User.DoesNotExist:
             # Don't reveal if email exists (security)
             messages.success(request, f'If an account exists with this email, a verification link has been sent.')
             return redirect('users:login')
         except Exception as e:
-            messages.error(request, f'Failed to send verification email: {str(e)}')
-            return render(request, 'users/resend_verification.html')
+            import logging
+            logging.getLogger(__name__).error(f'Resend verification error: {str(e)}')
+            messages.success(request, f'If an account exists with this email, a verification link has been sent.')
+            return redirect('users:login')
     
     return render(request, 'users/resend_verification.html')

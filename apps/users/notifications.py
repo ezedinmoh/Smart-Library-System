@@ -31,23 +31,41 @@ def notify_book_returned(request, borrow_record):
 
 
 def _send_email_async(subject, text_content, html_content, from_email, to_email):
-    """Send email in a background thread to avoid blocking the request."""
+    """
+    Send email in a background thread.
+    Templates are pre-rendered before the thread starts (safe for gunicorn).
+    The thread only handles the SMTP connection.
+    """
     import threading
     from django.core.mail import EmailMultiAlternatives
 
+    # Capture values as local variables for the thread closure
+    _subject = subject
+    _text = text_content
+    _html = html_content
+    _from = from_email
+    _to = to_email
+
     def _send():
         try:
-            email = EmailMultiAlternatives(
-                subject=subject,
-                body=text_content,
-                from_email=from_email,
-                to=[to_email]
+            # Close inherited DB connections — threads must not reuse them
+            from django.db import connections
+            for conn in connections.all():
+                conn.close()
+
+            msg = EmailMultiAlternatives(
+                subject=_subject,
+                body=_text,
+                from_email=_from,
+                to=[_to]
             )
-            email.attach_alternative(html_content, "text/html")
-            email.send(fail_silently=True)
+            msg.attach_alternative(_html, "text/html")
+            msg.send(fail_silently=True)
         except Exception as e:
             import logging
-            logging.getLogger(__name__).error(f"Async email failed to {to_email}: {str(e)}")
+            logging.getLogger(__name__).error(
+                f"Async email failed to {_to}: {str(e)}"
+            )
 
     thread = threading.Thread(target=_send, daemon=True)
     thread.start()
