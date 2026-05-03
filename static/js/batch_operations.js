@@ -146,14 +146,25 @@ async function confirmSingleDelete() {
         });
         
         if (response.redirected) {
+            // Success — view redirected to users:list
             window.location.href = response.url;
+            return;
+        }
+
+        // Non-redirect: check if it's an error page
+        const contentType = response.headers.get('content-type') || '';
+        const text = await response.text();
+
+        if (response.ok && (text.includes('Manage Users') || text.includes('users/list'))) {
+            // Redirected inline (shouldn't happen but handle gracefully)
+            window.location.href = '/users/list/';
+        } else if (response.status === 403) {
+            alert('Permission denied. Please refresh the page and try again.');
         } else {
-            const text = await response.text();
-            if (text.includes('success') || response.ok) {
-                window.location.reload();
-            } else {
-                alert('Error deleting user');
-            }
+            // Extract Django message from response if possible
+            const match = text.match(/class="[^"]*alert[^"]*"[^>]*>([\s\S]*?)<\/div>/);
+            const msg = match ? match[1].replace(/<[^>]+>/g, '').trim() : 'Error deleting user. Please try again.';
+            alert(msg);
         }
     } catch (error) {
         alert('Error: ' + error.message);
@@ -259,9 +270,20 @@ async function confirmBatchActivate() {
             body: formData
         });
         
-        const data = await response.json();
+        let data;
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            // Non-JSON response (redirect or HTML error)
+            const text = await response.text();
+            console.error('Non-JSON response from batch activate:', response.status, text.slice(0, 200));
+            alert('Server error activating users. Please refresh and try again.');
+            return;
+        }
         
         if (data.success) {
+            closeBatchActivateModal();
             alert(data.message);
             location.reload();
         } else {
@@ -299,9 +321,19 @@ async function confirmBatchDeactivate() {
             body: formData
         });
         
-        const data = await response.json();
+        let data;
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            const text = await response.text();
+            console.error('Non-JSON response from batch deactivate:', response.status, text.slice(0, 200));
+            alert('Server error deactivating users. Please refresh and try again.');
+            return;
+        }
         
         if (data.success) {
+            closeBatchDeactivateModal();
             alert(data.message);
             location.reload();
         } else {
@@ -347,9 +379,24 @@ async function confirmBatchDelete() {
             body: formData
         });
         
-        const data = await response.json();
+        let data;
+        const contentType = response.headers.get('content-type') || '';
+        if (contentType.includes('application/json')) {
+            data = await response.json();
+        } else {
+            // Server returned HTML — likely a CSRF failure (403) or server error (500)
+            const text = await response.text();
+            console.error('Non-JSON response from batch delete:', response.status, text.slice(0, 200));
+            if (response.status === 403) {
+                alert('Permission denied. Please refresh the page and try again.');
+            } else {
+                alert('Server error deleting users. Please refresh and try again.');
+            }
+            return;
+        }
         
         if (data.success) {
+            closeBatchDeleteModal();
             alert(data.message);
             location.reload();
         } else {
