@@ -1,0 +1,83 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Account Inactive - Smart Library</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root { --primary: #10b981; --warning: #f59e0b; --text-primary: #1f2937; --text-secondary: #6b7280; --bg: #ffffff; --border: #e5e7eb; }
+        [data-theme="dark"] { --text-primary: #f9fafb; --text-secondary: #d1d5db; --bg: #1f2937; --border: #374151; }
+        body { font-family: 'Inter', sans-serif; background: linear-gradient(135deg, #f5f7fa 0%, #e8ecf1 100%); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 80px 20px 40px; }
+        [data-theme="dark"] body { background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); }
+        .top-bar { position: fixed; top: 24px; left: 24px; z-index: 1000; display: flex; gap: 12px; }
+        .top-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 20px; background: rgba(255,255,255,0.95); color: var(--primary); font-weight: 600; font-size: 0.875rem; border-radius: 12px; text-decoration: none; box-shadow: 0 4px 12px rgba(0,0,0,0.1); transition: all 0.3s ease; backdrop-filter: blur(10px); border: none; cursor: pointer; }
+        .top-btn:hover { background: white; transform: translateY(-2px); }
+        .top-btn svg { width: 18px; height: 18px; }
+        .sun-icon { display: block; } .moon-icon { display: none; }
+        [data-theme="dark"] .sun-icon { display: none; } [data-theme="dark"] .moon-icon { display: block; }
+        .card { max-width: 520px; width: 100%; background: var(--bg); border-radius: 24px; box-shadow: 0 20px 60px rgba(0,0,0,0.1); padding: 48px 40px; text-align: center; }
+        .icon { width: 96px; height: 96px; margin: 0 auto 28px; border-radius: 50%; background: rgba(245,158,11,0.12); display: flex; align-items: center; justify-content: center; }
+        .icon svg { width: 48px; height: 48px; color: #f59e0b; }
+        h1 { font-size: 1.75rem; font-weight: 700; color: var(--text-primary); margin-bottom: 12px; }
+        .subtitle { font-size: 1rem; color: var(--text-secondary); line-height: 1.65; margin-bottom: 28px; }
+        .info-box { background: rgba(245,158,11,0.06); border-left: 4px solid #f59e0b; border-radius: 12px; padding: 16px 20px; margin-bottom: 28px; text-align: left; font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; }
+        .btn { width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 10px; padding: 13px 24px; border-radius: 12px; font-size: 0.938rem; font-weight: 600; text-decoration: none; transition: all 0.3s ease; border: none; cursor: pointer; font-family: 'Inter', sans-serif; margin-bottom: 10px; }
+        .btn svg { width: 18px; height: 18px; }
+        .btn-primary { background: linear-gradient(135deg, #10b981, #059669); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 8px 20px rgba(16,185,129,0.35); }
+        .btn-outline { background: transparent; color: var(--text-secondary); border: 2px solid var(--border); }
+        .btn-outline:hover { border-color: var(--primary); color: var(--primary); }
+        @media (max-width: 480px) { .card { padding: 36px 24px; } h1 { font-size: 1.5rem; } }
+    </style>
+</head>
+<body>
+    <div class="top-bar">
+        <a href="{% url 'dashboard:home' %}" class="top-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+            Back to Home
+        </a>
+        <button class="top-btn" id="themeToggle">
+            <svg class="sun-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
+            <svg class="moon-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
+        </button>
+    </div>
+
+    <div class="card">
+        <div class="icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="12"></line>
+                <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+        </div>
+        <h1>Account Inactive</h1>
+        <p class="subtitle">Your account exists but has not been activated yet. This usually means your email address hasn't been verified.</p>
+        <div class="info-box">
+            <strong>What to do:</strong><br>
+            Check your inbox for a verification email and click the link inside.
+            If you signed up with Google or GitHub, try signing in again — social accounts are activated automatically.
+        </div>
+        <a href="{% url 'users:resend_verification' %}" class="btn btn-primary">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
+            Resend Verification Email
+        </a>
+        <a href="{% url 'users:login' %}" class="btn btn-outline">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
+            Back to Login
+        </a>
+    </div>
+
+    <script>
+        const html = document.documentElement;
+        html.setAttribute('data-theme', localStorage.getItem('theme') || 'light');
+        document.getElementById('themeToggle')?.addEventListener('click', () => {
+            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        });
+    </script>
+</body>
+</html>
