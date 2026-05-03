@@ -183,6 +183,12 @@
     {% include 'includes/enhanced_nav.html' %}
     {% include 'includes/toast_notifications.html' %}
 
+    {% if messages %}
+        {% for message in messages %}
+        <div class="django-message-data" data-message="{{ message }}" data-tags="{{ message.tags }}" style="display: none;"></div>
+        {% endfor %}
+    {% endif %}
+
     <div class="container">
         <div class="page-header">
             <h1>👥 Bulk Import Users</h1>

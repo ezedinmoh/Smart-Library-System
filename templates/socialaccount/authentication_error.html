@@ -308,6 +308,12 @@
 <body>
     {% include 'includes/toast_notifications.html' %}
 
+    {% if messages %}
+        {% for message in messages %}
+        <div class="django-message-data" data-message="{{ message }}" data-tags="{{ message.tags }}" style="display: none;"></div>
+        {% endfor %}
+    {% endif %}
+
     <!-- Top bar -->
     <div class="top-bar">
         <a href="{% url 'dashboard:home' %}" class="top-btn">
