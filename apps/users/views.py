@@ -1241,7 +1241,7 @@ def bulk_email_users(request):
                 _subject = subject
                 _logger = logging.getLogger(__name__)
                 def _send():
-                    from django.core.mail import EmailMultiAlternatives
+                    from django.core.mail import EmailMessage
                     from django.db import connections
                     for conn in connections.all():
                         conn.close()
@@ -1250,7 +1250,6 @@ def bulk_email_users(request):
                     for msg_tuple in _msgs:
                         subj, body, from_addr, to_list = msg_tuple
                         try:
-                            from django.core.mail import EmailMessage
                             m = EmailMessage(subj, body, from_addr, to_list)
                             m.send(fail_silently=False)
                             ok += 1
@@ -1268,11 +1267,25 @@ def bulk_email_users(request):
                          f'Sent bulk email to {sent_count} users: "{subject}"', request)
 
             if sent_count > 0:
-                messages.success(request, f'Successfully sent email to {sent_count} user(s).')
+                messages.success(
+                    request,
+                    f'Queued email to {sent_count} verified user(s). '
+                    f'Delivery is in progress — check your inbox in a few minutes.'
+                )
             if skipped_count > 0:
-                messages.info(request, f'Skipped {skipped_count} user(s) with missing or invalid email addresses.')
+                messages.warning(
+                    request,
+                    f'Skipped {skipped_count} user(s): email missing, invalid format, '
+                    f'or address not yet verified in the system.'
+                )
             if sent_count == 0 and skipped_count == 0:
                 messages.warning(request, 'No users with email addresses found for the selected group.')
+            if sent_count == 0 and skipped_count > 0:
+                messages.error(
+                    request,
+                    f'No emails were sent — all {skipped_count} recipient(s) were skipped. '
+                    f'Make sure the selected users have verified their email addresses.'
+                )
 
         except Exception as e:
             import logging

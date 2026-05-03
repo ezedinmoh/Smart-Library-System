@@ -1177,3 +1177,73 @@ def system_settings_view(request):
     }
     
     return render(request, 'dashboard/system_settings.html', context)
+
+
+@login_required
+@admin_required
+def test_email(request):
+    """
+    Admin-only: send a test email directly to the logged-in admin's address.
+    Returns a JSON response with the result so it can be called via fetch.
+    Useful for verifying SMTP credentials and delivery without going through
+    the full bulk-email flow.
+    """
+    import logging
+    from django.core.mail import EmailMessage
+    from django.conf import settings as django_settings
+    from allauth.account.models import EmailAddress
+
+    logger = logging.getLogger(__name__)
+
+    if request.method != 'POST':
+        return JsonResponse({'success': False, 'message': 'POST required'}, status=405)
+
+    to_email = request.user.email
+    if not to_email:
+        return JsonResponse({'success': False, 'message': 'Your account has no email address.'})
+
+    # Check if this admin's email is verified in allauth
+    is_verified = EmailAddress.objects.filter(
+        email__iexact=to_email, verified=True
+    ).exists()
+
+    # Diagnostics to include in response
+    diag = {
+        'to': to_email,
+        'from': django_settings.DEFAULT_FROM_EMAIL,
+        'backend': django_settings.EMAIL_BACKEND,
+        'host': django_settings.EMAIL_HOST,
+        'port': django_settings.EMAIL_PORT,
+        'use_ssl': django_settings.EMAIL_USE_SSL,
+        'use_tls': django_settings.EMAIL_USE_TLS,
+        'host_user': django_settings.EMAIL_HOST_USER,
+        'allauth_verified': is_verified,
+    }
+
+    try:
+        msg = EmailMessage(
+            subject='[SmartLibrary] Test Email',
+            body=(
+                f'This is a test email from Smart Library.\n\n'
+                f'If you received this, SMTP is working correctly.\n\n'
+                f'Sent to: {to_email}\n'
+                f'From: {django_settings.DEFAULT_FROM_EMAIL}\n'
+                f'Backend: {django_settings.EMAIL_BACKEND}\n'
+            ),
+            from_email=django_settings.DEFAULT_FROM_EMAIL,
+            to=[to_email],
+        )
+        msg.send(fail_silently=False)
+        logger.info(f'Test email sent successfully to {to_email}')
+        return JsonResponse({
+            'success': True,
+            'message': f'Test email sent to {to_email}. Check your inbox (and spam folder).',
+            'diagnostics': diag,
+        })
+    except Exception as e:
+        logger.error(f'Test email FAILED to {to_email}: {type(e).__name__}: {e}')
+        return JsonResponse({
+            'success': False,
+            'message': f'SMTP error: {type(e).__name__}: {e}',
+            'diagnostics': diag,
+        })

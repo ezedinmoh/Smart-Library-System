@@ -680,12 +680,32 @@
             <div>
                 <div class="title">Important Notice</div>
                 <div class="content">
+                    • Only users with <strong>verified</strong> email addresses will receive emails<br>
                     • Emails will be sent to all users with valid email addresses in the selected group<br>
                     • Make sure your email configuration is properly set up in settings<br>
                     • Large batches may take some time to process<br>
                     • This action cannot be undone
                 </div>
             </div>
+        </div>
+
+        <!-- SMTP Test -->
+        <div style="margin-top: 1.5rem; background: var(--card-bg); border: 1px solid var(--border); border-radius: 12px; padding: 1.5rem;">
+            <h3 style="font-size: 1rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--text-primary);">🔧 Test Email Delivery</h3>
+            <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                Send a test email to your own address (<strong>{{ request.user.email }}</strong>) to verify SMTP is working before sending bulk emails.
+            </p>
+            <button type="button" id="testEmailBtn" class="btn btn-primary" style="width: auto;" onclick="sendTestEmail()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+                Send Test Email to Me
+            </button>
+            <div id="testEmailResult" style="margin-top: 1rem; display: none; padding: 0.75rem 1rem; border-radius: 8px; font-size: 0.875rem;"></div>
+            <details style="margin-top: 0.75rem;">
+                <summary style="font-size: 0.8125rem; color: var(--text-secondary); cursor: pointer;">Show SMTP diagnostics</summary>
+                <div id="testEmailDiag" style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--text-muted); font-family: monospace; white-space: pre-wrap;"></div>
+            </details>
         </div>
     </div>
 
@@ -847,6 +867,51 @@
                 }
             }
         });
+
+        // ── SMTP test ─────────────────────────────────────────────────────
+        async function sendTestEmail() {
+            const btn = document.getElementById('testEmailBtn');
+            const result = document.getElementById('testEmailResult');
+            const diag = document.getElementById('testEmailDiag');
+
+            btn.disabled = true;
+            btn.textContent = 'Sending…';
+            result.style.display = 'none';
+
+            try {
+                const resp = await fetch('{% url "dashboard:test_email" %}', {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                });
+                const data = await resp.json();
+
+                result.style.display = 'block';
+                if (data.success) {
+                    result.style.background = 'rgba(34,197,94,0.1)';
+                    result.style.border = '1px solid rgba(34,197,94,0.3)';
+                    result.style.color = '#15803d';
+                    result.textContent = '✅ ' + data.message;
+                } else {
+                    result.style.background = 'rgba(239,68,68,0.1)';
+                    result.style.border = '1px solid rgba(239,68,68,0.3)';
+                    result.style.color = '#dc2626';
+                    result.textContent = '❌ ' + data.message;
+                }
+
+                if (data.diagnostics) {
+                    diag.textContent = JSON.stringify(data.diagnostics, null, 2);
+                }
+            } catch (e) {
+                result.style.display = 'block';
+                result.style.background = 'rgba(239,68,68,0.1)';
+                result.style.border = '1px solid rgba(239,68,68,0.3)';
+                result.style.color = '#dc2626';
+                result.textContent = '❌ Network error: ' + e.message;
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send Test Email to Me';
+            }
+        }
     </script>
 </body>
 </html>

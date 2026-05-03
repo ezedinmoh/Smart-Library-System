@@ -34,4 +34,5 @@ urlpatterns = [
     path('system/', views.system_administration, name='system_admin'),
     path('system/update-settings/', views.update_system_settings, name='update_system_settings'),
     path('settings/', views.system_settings_view, name='settings'),
+    path('test-email/', views.test_email, name='test_email'),
 ]
