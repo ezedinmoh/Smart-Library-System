@@ -875,15 +875,35 @@
             const diag = document.getElementById('testEmailDiag');
 
             btn.disabled = true;
-            btn.textContent = 'Sending…';
+            btn.textContent = 'Sending… (up to 20s)';
             result.style.display = 'none';
+
+            // 20-second timeout — SMTP can be slow on first connect
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), 20000);
 
             try {
                 const resp = await fetch('{% url "dashboard:test_email" %}', {
                     method: 'POST',
                     headers: { 'X-CSRFToken': '{{ csrf_token }}' },
+                    signal: controller.signal,
                 });
-                const data = await resp.json();
+                clearTimeout(timer);
+
+                // Always try to parse JSON — view always returns JSON now
+                let data;
+                try {
+                    data = await resp.json();
+                } catch {
+                    const text = await resp.text().catch(() => '');
+                    result.style.display = 'block';
+                    result.style.background = 'rgba(239,68,68,0.1)';
+                    result.style.border = '1px solid rgba(239,68,68,0.3)';
+                    result.style.color = '#dc2626';
+                    result.textContent = `❌ Server returned non-JSON (HTTP ${resp.status}). Check server logs.`;
+                    diag.textContent = text.slice(0, 500);
+                    return;
+                }
 
                 result.style.display = 'block';
                 if (data.success) {
@@ -902,11 +922,16 @@
                     diag.textContent = JSON.stringify(data.diagnostics, null, 2);
                 }
             } catch (e) {
+                clearTimeout(timer);
                 result.style.display = 'block';
                 result.style.background = 'rgba(239,68,68,0.1)';
                 result.style.border = '1px solid rgba(239,68,68,0.3)';
                 result.style.color = '#dc2626';
-                result.textContent = '❌ Network error: ' + e.message;
+                if (e.name === 'AbortError') {
+                    result.textContent = '❌ Request timed out after 20s. SMTP server may be unreachable.';
+                } else {
+                    result.textContent = '❌ Network error: ' + e.message;
+                }
             } finally {
                 btn.disabled = false;
                 btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"></path><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg> Send Test Email to Me';

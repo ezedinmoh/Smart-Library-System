@@ -1180,7 +1180,6 @@ def system_settings_view(request):
 
 
 @login_required
-@admin_required
 def test_email(request):
     """
     Admin-only: send a test email directly to the logged-in admin's address.
@@ -1189,14 +1188,20 @@ def test_email(request):
     the full bulk-email flow.
     """
     import logging
+    import socket
     from django.core.mail import EmailMessage
     from django.conf import settings as django_settings
     from allauth.account.models import EmailAddress
 
     logger = logging.getLogger(__name__)
 
+    # Return JSON for non-POST so fetch() always gets parseable response
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'POST required'}, status=405)
+
+    # Return JSON for auth failures (not HTML redirect)
+    if not request.user.is_authenticated or not request.user.is_admin:
+        return JsonResponse({'success': False, 'message': 'Admin access required.'}, status=403)
 
     to_email = request.user.email
     if not to_email:
@@ -1214,13 +1219,16 @@ def test_email(request):
         'backend': django_settings.EMAIL_BACKEND,
         'host': django_settings.EMAIL_HOST,
         'port': django_settings.EMAIL_PORT,
-        'use_ssl': django_settings.EMAIL_USE_SSL,
-        'use_tls': django_settings.EMAIL_USE_TLS,
+        'use_ssl': getattr(django_settings, 'EMAIL_USE_SSL', False),
+        'use_tls': getattr(django_settings, 'EMAIL_USE_TLS', False),
         'host_user': django_settings.EMAIL_HOST_USER,
         'allauth_verified': is_verified,
     }
 
+    # Use a 15-second socket timeout so the request doesn't hang forever
+    old_timeout = socket.getdefaulttimeout()
     try:
+        socket.setdefaulttimeout(15)
         msg = EmailMessage(
             subject='[SmartLibrary] Test Email',
             body=(
@@ -1240,10 +1248,23 @@ def test_email(request):
             'message': f'Test email sent to {to_email}. Check your inbox (and spam folder).',
             'diagnostics': diag,
         })
+    except socket.timeout:
+        logger.error(f'Test email TIMED OUT connecting to {django_settings.EMAIL_HOST}:{django_settings.EMAIL_PORT}')
+        return JsonResponse({
+            'success': False,
+            'message': (
+                f'Connection timed out after 15s trying to reach '
+                f'{django_settings.EMAIL_HOST}:{django_settings.EMAIL_PORT}. '
+                f'Check that EMAIL_HOST, EMAIL_PORT, EMAIL_USE_SSL are correct.'
+            ),
+            'diagnostics': diag,
+        })
     except Exception as e:
         logger.error(f'Test email FAILED to {to_email}: {type(e).__name__}: {e}')
         return JsonResponse({
             'success': False,
-            'message': f'SMTP error: {type(e).__name__}: {e}',
+            'message': f'{type(e).__name__}: {e}',
             'diagnostics': diag,
         })
+    finally:
+        socket.setdefaulttimeout(old_timeout)
