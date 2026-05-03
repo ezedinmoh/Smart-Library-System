@@ -1226,11 +1226,11 @@ def bulk_email_users(request):
                 if email_lower not in verified_emails:
                     skipped_count += 1
                     continue
-                personalized = message_body.replace('{name}', user.get_full_name() or user.username)
-                personalized = personalized.replace('{username}', user.username)
+                personalized_text = message_body.replace('{name}', user.get_full_name() or user.username)
+                personalized_text = personalized_text.replace('{username}', user.username)
                 email_messages.append((
                     subject,
-                    personalized,
+                    personalized_text,
                     django_settings.DEFAULT_FROM_EMAIL,
                     [user.email]
                 ))
@@ -1239,21 +1239,64 @@ def bulk_email_users(request):
             if email_messages:
                 import threading
                 import logging
+                from django.conf import settings as _settings
                 _msgs = email_messages[:]
                 _subject = subject
+                _site_name = getattr(_settings, 'SITE_NAME', 'Smart Library')
+                _site_url  = getattr(_settings, 'SITE_URL', '')
+                _from      = django_settings.DEFAULT_FROM_EMAIL
                 _logger = logging.getLogger(__name__)
+
                 def _send():
-                    from django.core.mail import EmailMessage
+                    from django.core.mail import EmailMultiAlternatives
                     from django.db import connections
                     for conn in connections.all():
                         conn.close()
                     ok = 0
                     fail = 0
-                    for msg_tuple in _msgs:
-                        subj, body, from_addr, to_list = msg_tuple
+                    for subj, body, from_addr, to_list in _msgs:
                         try:
-                            m = EmailMessage(subj, body, from_addr, to_list)
-                            m.send(fail_silently=False)
+                            # Build a clean HTML version — spam filters prefer HTML
+                            paragraphs = ''.join(
+                                f'<p style="margin:0 0 12px 0;color:#374151;font-size:15px;line-height:1.6;">{line}</p>'
+                                for line in body.split('\n') if line.strip()
+                            )
+                            html_body = f"""<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
+<body style="margin:0;padding:0;background:#f3f4f6;font-family:'Helvetica Neue',Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="background:#f3f4f6;padding:32px 16px;">
+    <tr><td align="center">
+      <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 2px 8px rgba(0,0,0,0.08);max-width:600px;width:100%;">
+        <!-- Header -->
+        <tr><td style="background:linear-gradient(135deg,#10b981,#0ea5e9);padding:28px 32px;">
+          <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;">{_site_name}</h1>
+        </td></tr>
+        <!-- Body -->
+        <tr><td style="padding:32px;">
+          {paragraphs}
+        </td></tr>
+        <!-- Footer -->
+        <tr><td style="background:#f9fafb;padding:20px 32px;border-top:1px solid #e5e7eb;">
+          <p style="margin:0;color:#9ca3af;font-size:12px;text-align:center;">
+            You received this email because you are a member of {_site_name}.<br>
+            &copy; {_site_name}
+            {'&nbsp;&bull;&nbsp;<a href="' + _site_url + '" style="color:#10b981;text-decoration:none;">Visit website</a>' if _site_url else ''}
+          </p>
+        </td></tr>
+      </table>
+    </td></tr>
+  </table>
+</body>
+</html>"""
+                            msg = EmailMultiAlternatives(
+                                subject=subj,
+                                body=body,          # plain text fallback
+                                from_email=from_addr,
+                                to=to_list,
+                            )
+                            msg.attach_alternative(html_body, 'text/html')
+                            msg.send(fail_silently=False)
                             ok += 1
                         except Exception as ex:
                             fail += 1
