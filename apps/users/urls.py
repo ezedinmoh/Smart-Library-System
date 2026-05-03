@@ -52,16 +52,11 @@ urlpatterns = [
     path('bulk-import/template/', views.download_user_import_template, name='import_template'),
     path('bulk-email/', views.bulk_email_users, name='bulk_email'),
     
-    # Password Reset URLs
-    path('password-reset/', 
-         auth_views.PasswordResetView.as_view(
-             template_name='users/password_reset.html',
-             email_template_name='users/password_reset_email.html',
-             html_email_template_name='users/password_reset_email_html.html',
-             subject_template_name='users/password_reset_subject.txt',
-             success_url='/users/password-reset/done/',
-             form_class=CustomPasswordResetForm  # Use custom form for inactive users
-         ), 
+    # Password Reset URLs — uses AsyncPasswordResetView to prevent Render timeout
+    path('password-reset/',
+         views.AsyncPasswordResetView.as_view(
+             form_class=CustomPasswordResetForm
+         ),
          name='password_reset'),
     path('password-reset/done/', 
          auth_views.PasswordResetDoneView.as_view(

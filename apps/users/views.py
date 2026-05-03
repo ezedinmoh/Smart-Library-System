@@ -814,71 +814,49 @@ def change_password_ajax(request):
             # Update session to prevent logout
             update_session_auth_hash(request, user)
             
-            # Send password changed notification email
+            # Send password changed notification email asynchronously — non-blocking
             try:
-                from django.core.mail import EmailMultiAlternatives
+                from apps.users.notifications import _send_email_async
                 from django.conf import settings
-                
+                from django.template.loader import render_to_string
+
                 subject = f'Password Changed - {settings.SITE_NAME}'
-                plain_message = f"""
-================================================================================
-PASSWORD CHANGED - {settings.SITE_NAME}
-================================================================================
-
-Hello {user.get_full_name() or user.username},
-
-Your password was successfully changed on {timezone.now().strftime('%B %d, %Y at %I:%M %p')}.
-
-If you did not make this change, please reset your password immediately and contact support.
-
-Best regards,
-{settings.SITE_NAME} Team
-
-================================================================================
-"""
-                
-                html_message = f"""
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-</head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
-    <div style="background: linear-gradient(135deg, #10b981, #059669); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-        <h1 style="color: white; margin: 0; font-size: 24px;">🔐 Password Changed</h1>
-    </div>
-    
-    <div style="background: #f9fafb; padding: 30px; border-radius: 0 0 10px 10px;">
-        <h2 style="color: #1f2937; margin-top: 0;">Hello {user.get_full_name() or user.username},</h2>
-        
-        <p style="color: #4b5563; font-size: 16px;">Your password was successfully changed on <strong>{timezone.now().strftime('%B %d, %Y at %I:%M %p')}</strong>.</p>
-        
-        <div style="background: #fef3c7; border-left: 4px solid #f59e0b; padding: 15px; margin: 20px 0; border-radius: 4px;">
-            <p style="color: #92400e; margin: 0; font-size: 14px;"><strong>⚠️ Security Notice:</strong> If you did not make this change, please reset your password immediately and contact support.</p>
-        </div>
-        
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #d1d5db;">
-        
-        <p style="color: #9ca3af; font-size: 12px; text-align: center;">Best regards,<br>{settings.SITE_NAME} Team</p>
-    </div>
-</body>
-</html>
-"""
-                
-                email = EmailMultiAlternatives(
-                    subject=subject,
-                    body=plain_message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to=[user.email]
+                ctx = {
+                    'user': user,
+                    'change_time': timezone.now().strftime('%B %d, %Y at %I:%M %p'),
+                    'site_name': settings.SITE_NAME,
+                    'site_url': settings.SITE_URL,
+                }
+                # Inline plain/html since no template exists yet — keep it simple
+                plain_message = (
+                    f"Hello {user.get_full_name() or user.username},\n\n"
+                    f"Your password was successfully changed on "
+                    f"{timezone.now().strftime('%B %d, %Y at %I:%M %p')}.\n\n"
+                    f"If you did not make this change, please reset your password immediately.\n\n"
+                    f"Best regards,\n{settings.SITE_NAME} Team"
                 )
-                email.attach_alternative(html_message, "text/html")
-                email.send(fail_silently=True)
+                html_message = f"""<!DOCTYPE html><html><body style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:20px;">
+<div style="background:linear-gradient(135deg,#10b981,#059669);padding:30px;border-radius:10px 10px 0 0;text-align:center;">
+<h1 style="color:white;margin:0;">🔐 Password Changed</h1></div>
+<div style="background:#f9fafb;padding:30px;border-radius:0 0 10px 10px;">
+<p>Hello <strong>{user.get_full_name() or user.username}</strong>,</p>
+<p>Your password was successfully changed on <strong>{timezone.now().strftime('%B %d, %Y at %I:%M %p')}</strong>.</p>
+<div style="background:#fef3c7;border-left:4px solid #f59e0b;padding:15px;margin:20px 0;border-radius:4px;">
+<p style="color:#92400e;margin:0;"><strong>⚠️ Security Notice:</strong> If you did not make this change, please reset your password immediately.</p>
+</div>
+<p style="color:#9ca3af;font-size:12px;text-align:center;">Best regards,<br>{settings.SITE_NAME} Team</p>
+</div></body></html>"""
+
+                _send_email_async(
+                    subject=subject,
+                    text_content=plain_message,
+                    html_content=html_message,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    to_email=user.email
+                )
             except Exception as e:
-                # Log error but don't fail the password change
                 import logging
-                logger = logging.getLogger(__name__)
-                logger.error(f"Failed to send password change email to {user.email}: {str(e)}")
+                logging.getLogger(__name__).error(f"Failed to queue password change email: {str(e)}")
             
             return JsonResponse({
                 'success': True,
@@ -1430,3 +1408,66 @@ def resend_verification_email(request):
             return redirect('users:login')
     
     return render(request, 'users/resend_verification.html')
+
+
+# ============================================================================
+# CUSTOM PASSWORD RESET VIEW — async email, no blocking on Render
+# ============================================================================
+
+from django.contrib.auth.views import PasswordResetView as DjangoPasswordResetView
+from django.urls import reverse_lazy
+
+
+class AsyncPasswordResetView(DjangoPasswordResetView):
+    """
+    Overrides Django's PasswordResetView to send the reset email
+    in a background thread — prevents Render timeout (white 500 page)
+    when SMTP is slow on cold start.
+    """
+    template_name = 'users/password_reset.html'
+    email_template_name = 'users/password_reset_email.html'
+    html_email_template_name = 'users/password_reset_email_html.html'
+    subject_template_name = 'users/password_reset_subject.txt'
+    success_url = reverse_lazy('users:password_reset_done')
+    form_class = None  # set in urls.py via form_class kwarg
+
+    def form_valid(self, form):
+        """
+        Instead of calling form.save() synchronously (which sends email),
+        we call it in a background thread so the page redirects instantly.
+        """
+        import threading
+        from django.conf import settings as django_settings
+
+        # Capture all options form.save() needs — must be done on main thread
+        opts = {
+            'use_https': self.request.is_secure(),
+            'token_generator': self.token_generator,
+            'from_email': self.from_email,
+            'email_template_name': self.email_template_name,
+            'subject_template_name': self.subject_template_name,
+            'request': self.request,
+            'html_email_template_name': self.html_email_template_name,
+            'extra_email_context': self.extra_email_context,
+        }
+
+        # Capture form data before thread starts
+        _form = form
+
+        def _send():
+            try:
+                from django.db import connections
+                for conn in connections.all():
+                    conn.close()
+                _form.save(**opts)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(
+                    f"Async password reset email failed: {e}"
+                )
+
+        threading.Thread(target=_send, daemon=True).start()
+
+        # Redirect immediately — don't wait for email
+        from django.http import HttpResponseRedirect
+        return HttpResponseRedirect(self.get_success_url())
