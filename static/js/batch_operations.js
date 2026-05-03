@@ -88,10 +88,11 @@ function clearSelection() {
 }
 
 function getCSRFToken() {
+    // 1. Hidden input on the page (most reliable)
     const token = document.querySelector('[name=csrfmiddlewaretoken]');
     if (token) return token.value;
-    
-    // Fallback: get from cookie
+
+    // 2. Cookie fallback
     const name = 'csrftoken';
     let cookieValue = null;
     if (document.cookie && document.cookie !== '') {
@@ -295,8 +296,12 @@ async function confirmBatchActivate() {
         } else {
             // Non-JSON response (redirect or HTML error)
             const text = await response.text();
-            console.error('Non-JSON response from batch activate:', response.status, text.slice(0, 200));
-            alert('Server error activating users. Please refresh and try again.');
+            console.error('Non-JSON response from batch activate:', response.status, text.slice(0, 300));
+            if (response.status === 403) {
+                alert('Session expired or permission denied. Please refresh the page and try again.');
+            } else {
+                alert(`Unexpected server response (${response.status}). Please refresh and try again.`);
+            }
             return;
         }
         
@@ -345,8 +350,12 @@ async function confirmBatchDeactivate() {
             data = await response.json();
         } else {
             const text = await response.text();
-            console.error('Non-JSON response from batch deactivate:', response.status, text.slice(0, 200));
-            alert('Server error deactivating users. Please refresh and try again.');
+            console.error('Non-JSON response from batch deactivate:', response.status, text.slice(0, 300));
+            if (response.status === 403) {
+                alert('Session expired or permission denied. Please refresh the page and try again.');
+            } else {
+                alert(`Unexpected server response (${response.status}). Please refresh and try again.`);
+            }
             return;
         }
         
@@ -404,11 +413,11 @@ async function confirmBatchDelete() {
         } else {
             // Server returned HTML — likely a CSRF failure (403) or server error (500)
             const text = await response.text();
-            console.error('Non-JSON response from batch delete:', response.status, text.slice(0, 200));
+            console.error('Non-JSON response from batch delete:', response.status, text.slice(0, 300));
             if (response.status === 403) {
-                alert('Permission denied. Please refresh the page and try again.');
+                alert('Session expired or permission denied. Please refresh the page and try again.');
             } else {
-                alert('Server error deleting users. Please refresh and try again.');
+                alert(`Unexpected server response (${response.status}). Please refresh and try again.`);
             }
             return;
         }

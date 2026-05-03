@@ -873,6 +873,8 @@
 
     {% include 'includes/enhanced_nav_scripts.html' %}
     {% load static %}
+    {# Embed CSRF token so batch_operations.js can read it via [name=csrfmiddlewaretoken] #}
+    <input type="hidden" name="csrfmiddlewaretoken" value="{{ csrf_token }}">
     <script src="{% static 'js/batch_operations.js' %}"></script>
     <!-- Back to Previous Page Button -->
     {% include 'includes/back_button.html' %}
