@@ -1182,25 +1182,19 @@ def system_settings_view(request):
 @login_required
 def test_email(request):
     """
-    Admin-only: send a test email directly to the logged-in admin's address.
-    Returns a JSON response with the result so it can be called via fetch.
-    Useful for verifying SMTP credentials and delivery without going through
-    the full bulk-email flow.
+    Admin-only: send a test email using the configured dual backend.
+    Returns JSON with result + full diagnostics.
     """
     import logging
     import os
-    import socket
-    from django.core.mail import EmailMessage
     from django.conf import settings as django_settings
     from allauth.account.models import EmailAddress
 
     logger = logging.getLogger(__name__)
 
-    # Return JSON for non-POST so fetch() always gets parseable response
     if request.method != 'POST':
         return JsonResponse({'success': False, 'message': 'POST required'}, status=405)
 
-    # Return JSON for auth failures (not HTML redirect)
     if not request.user.is_authenticated or not request.user.is_admin:
         return JsonResponse({'success': False, 'message': 'Admin access required.'}, status=403)
 
@@ -1208,56 +1202,72 @@ def test_email(request):
     if not to_email:
         return JsonResponse({'success': False, 'message': 'Your account has no email address.'})
 
-    # Check if this admin's email is verified in allauth
     is_verified = EmailAddress.objects.filter(
         email__iexact=to_email, verified=True
     ).exists()
 
-    # Diagnostics to include in response
+    brevo_user = os.environ.get('BREVO_SMTP_USER', '')
+    brevo_pass = os.environ.get('BREVO_SMTP_PASSWORD', '')
+    resend_key = os.environ.get('RESEND_API_KEY', '')
+
     diag = {
         'to': to_email,
         'from': django_settings.DEFAULT_FROM_EMAIL,
-        'backend': django_settings.EMAIL_BACKEND,
-        'resend_api_key_set': bool(getattr(django_settings, 'ANYMAIL', {}).get('RESEND_API_KEY')),
-        'brevo_smtp_user_set': bool(os.environ.get('BREVO_SMTP_USER')),
-        'brevo_smtp_password_set': bool(os.environ.get('BREVO_SMTP_PASSWORD')),
+        'backend_setting': django_settings.EMAIL_BACKEND,
+        'brevo_smtp_user_set': bool(brevo_user),
+        'brevo_smtp_user_preview': brevo_user[:12] + '…' if brevo_user else '(not set)',
+        'brevo_smtp_password_set': bool(brevo_pass),
+        'resend_api_key_set': bool(resend_key),
         'allauth_verified': is_verified,
     }
 
-    # Use a 15-second socket timeout so the request doesn't hang forever
-    old_timeout = socket.getdefaulttimeout()
+    # Always use Brevo SMTP directly — bypasses any backend misconfiguration
+    if not brevo_user or not brevo_pass:
+        return JsonResponse({
+            'success': False,
+            'message': (
+                'Brevo credentials not found in environment. '
+                'Make sure BREVO_SMTP_USER and BREVO_SMTP_PASSWORD are set in Render '
+                'and the service has been redeployed after saving.'
+            ),
+            'diagnostics': diag,
+        })
+
     try:
-        socket.setdefaulttimeout(15)
+        from django.core.mail.backends.smtp import EmailBackend as SmtpBackend
+        from django.core.mail import EmailMessage
+
+        backend = SmtpBackend(
+            host='smtp-relay.brevo.com',
+            port=587,
+            username=brevo_user,
+            password=brevo_pass,
+            use_tls=True,
+            use_ssl=False,
+            fail_silently=False,
+            timeout=15,
+        )
+
         msg = EmailMessage(
             subject='[SmartLibrary] Test Email',
             body=(
                 f'This is a test email from Smart Library.\n\n'
-                f'If you received this, SMTP is working correctly.\n\n'
+                f'SMTP is working correctly via Brevo.\n\n'
                 f'Sent to: {to_email}\n'
                 f'From: {django_settings.DEFAULT_FROM_EMAIL}\n'
-                f'Backend: {django_settings.EMAIL_BACKEND}\n'
             ),
             from_email=django_settings.DEFAULT_FROM_EMAIL,
             to=[to_email],
+            connection=backend,
         )
         msg.send(fail_silently=False)
-        logger.info(f'Test email sent successfully to {to_email}')
+        logger.info(f'Test email sent successfully to {to_email} via Brevo')
         return JsonResponse({
             'success': True,
-            'message': f'Test email sent to {to_email}. Check your inbox (and spam folder).',
+            'message': f'✅ Test email sent to {to_email} via Brevo. Check your inbox (and spam folder).',
             'diagnostics': diag,
         })
-    except socket.timeout:
-        logger.error(f'Test email TIMED OUT connecting to {django_settings.EMAIL_HOST}:{django_settings.EMAIL_PORT}')
-        return JsonResponse({
-            'success': False,
-            'message': (
-                f'Connection timed out after 15s trying to reach '
-                f'{django_settings.EMAIL_HOST}:{django_settings.EMAIL_PORT}. '
-                f'Check that EMAIL_HOST, EMAIL_PORT, EMAIL_USE_SSL are correct.'
-            ),
-            'diagnostics': diag,
-        })
+
     except Exception as e:
         logger.error(f'Test email FAILED to {to_email}: {type(e).__name__}: {e}')
         return JsonResponse({
@@ -1265,5 +1275,3 @@ def test_email(request):
             'message': f'{type(e).__name__}: {e}',
             'diagnostics': diag,
         })
-    finally:
-        socket.setdefaulttimeout(old_timeout)
