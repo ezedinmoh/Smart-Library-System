@@ -1182,8 +1182,8 @@ def system_settings_view(request):
 @login_required
 def test_email(request):
     """
-    Admin-only: send a test email using the configured dual backend.
-    Returns JSON with result + full diagnostics.
+    Admin-only: send a test email via Brevo HTTP API (no SMTP ports needed).
+    Returns JSON with result + diagnostics.
     """
     import logging
     import os
@@ -1206,53 +1206,46 @@ def test_email(request):
         email__iexact=to_email, verified=True
     ).exists()
 
-    brevo_user = os.environ.get('BREVO_SMTP_USER', '')
-    brevo_pass = os.environ.get('BREVO_SMTP_PASSWORD', '')
-    resend_key = os.environ.get('RESEND_API_KEY', '')
+    brevo_api_key = os.environ.get('BREVO_API_KEY', '')
+    resend_key    = os.environ.get('RESEND_API_KEY', '')
 
     diag = {
         'to': to_email,
         'from': django_settings.DEFAULT_FROM_EMAIL,
         'backend_setting': django_settings.EMAIL_BACKEND,
-        'brevo_smtp_user_set': bool(brevo_user),
-        'brevo_smtp_user_preview': brevo_user[:12] + '…' if brevo_user else '(not set)',
-        'brevo_smtp_password_set': bool(brevo_pass),
+        'brevo_api_key_set': bool(brevo_api_key),
+        'brevo_api_key_preview': brevo_api_key[:12] + '...' if brevo_api_key else '(not set)',
         'resend_api_key_set': bool(resend_key),
         'allauth_verified': is_verified,
     }
 
-    # Always use Brevo SMTP directly — bypasses any backend misconfiguration
-    if not brevo_user or not brevo_pass:
+    if not brevo_api_key:
         return JsonResponse({
             'success': False,
             'message': (
-                'Brevo credentials not found in environment. '
-                'Make sure BREVO_SMTP_USER and BREVO_SMTP_PASSWORD are set in Render '
-                'and the service has been redeployed after saving.'
+                'BREVO_API_KEY not found in environment. '
+                'Add it in Render dashboard -> Environment -> BREVO_API_KEY '
+                '(get it from brevo.com -> SMTP & API -> API Keys tab).'
             ),
             'diagnostics': diag,
         })
 
     try:
-        from django.core.mail.backends.smtp import EmailBackend as SmtpBackend
+        # Use Brevo HTTP API directly — no SMTP ports, works on Render free tier
+        from django.conf import settings as s
+        if not hasattr(s, 'ANYMAIL'):
+            s.ANYMAIL = {}
+        s.ANYMAIL['BREVO_API_KEY'] = brevo_api_key
+
+        from anymail.backends.brevo import EmailBackend as BrevoBackend
         from django.core.mail import EmailMessage
 
-        backend = SmtpBackend(
-            host='smtp-relay.brevo.com',
-            port=587,
-            username=brevo_user,
-            password=brevo_pass,
-            use_tls=True,
-            use_ssl=False,
-            fail_silently=False,
-            timeout=15,
-        )
-
+        backend = BrevoBackend(fail_silently=False)
         msg = EmailMessage(
             subject='[SmartLibrary] Test Email',
             body=(
                 f'This is a test email from Smart Library.\n\n'
-                f'SMTP is working correctly via Brevo.\n\n'
+                f'Brevo HTTP API is working correctly.\n\n'
                 f'Sent to: {to_email}\n'
                 f'From: {django_settings.DEFAULT_FROM_EMAIL}\n'
             ),
@@ -1261,10 +1254,10 @@ def test_email(request):
             connection=backend,
         )
         msg.send(fail_silently=False)
-        logger.info(f'Test email sent successfully to {to_email} via Brevo')
+        logger.info(f'Test email sent to {to_email} via Brevo API')
         return JsonResponse({
             'success': True,
-            'message': f'✅ Test email sent to {to_email} via Brevo. Check your inbox (and spam folder).',
+            'message': f'Test email sent to {to_email} via Brevo API. Check your inbox (and spam folder).',
             'diagnostics': diag,
         })
 

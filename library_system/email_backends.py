@@ -1,22 +1,19 @@
 """
 Dual-provider email backend with automatic fallback.
 
-Primary:  Brevo SMTP  (300 emails/day free, port 587 — works on Render now,
-                       sends from smartlibrarysupport@gmail.com to ALL users)
-Fallback: Resend      (3,000 emails/month free, HTTP API — becomes primary
-                       once a custom domain is verified on resend.com)
+Primary:  Brevo API   (HTTP API over port 443 — works on Render free tier,
+                       sends from smartlibrarysupport@gmail.com to ALL users,
+                       300 emails/day free)
+Fallback: Resend API  (HTTP API over port 443 — 3,000 emails/month free,
+                       becomes primary once a custom domain is verified)
 
-How it works:
-  1. Every send attempt goes to Brevo SMTP first.
-  2. If Brevo fails for any reason, automatically retries via Resend API.
-  3. If both fail, the error is logged and re-raised.
-  4. All fallback events are logged at WARNING level.
+Both use HTTP APIs — no SMTP ports (25/465/587) needed at all.
+Render free tier blocks all SMTP ports but never blocks HTTPS.
 
 Configuration (set in Render environment variables):
-  BREVO_SMTP_USER       — your Brevo login (aa0f2d001@smtp-brevo.com)
-  BREVO_SMTP_PASSWORD   — your Brevo SMTP key
-  RESEND_API_KEY        — from resend.com dashboard (fallback)
-  DEFAULT_FROM_EMAIL    — Smart Library <smartlibrarysupport@gmail.com>
+  BREVO_API_KEY      — from brevo.com -> SMTP & API -> API Keys tab
+  RESEND_API_KEY     — from resend.com dashboard (optional fallback)
+  DEFAULT_FROM_EMAIL — Smart Library <smartlibrarysupport@gmail.com>
 
 The backend is selected via:
   EMAIL_BACKEND = library_system.email_backends.BrevoWithResendFallbackBackend
@@ -32,8 +29,8 @@ logger = logging.getLogger(__name__)
 
 class BrevoWithResendFallbackBackend(BaseEmailBackend):
     """
-    Tries Brevo SMTP first (sends to ALL users from your Gmail address).
-    Falls back to Resend API if Brevo fails.
+    Tries Brevo HTTP API first (works on Render free tier — no SMTP ports).
+    Falls back to Resend HTTP API if Brevo fails.
     Thread-safe.
     """
 
@@ -41,33 +38,27 @@ class BrevoWithResendFallbackBackend(BaseEmailBackend):
         super().__init__(fail_silently=fail_silently, **kwargs)
         self._lock = threading.RLock()
 
-    # ── helpers ──────────────────────────────────────────────────────────────
-
     def _get_brevo_backend(self):
         import os
-        from django.core.mail.backends.smtp import EmailBackend as SmtpBackend
-        user = os.environ.get('BREVO_SMTP_USER', '')
-        password = os.environ.get('BREVO_SMTP_PASSWORD', '')
-        if not user or not password:
+        from django.conf import settings
+        from anymail.backends.brevo import EmailBackend as BrevoBackend
+
+        api_key = os.environ.get('BREVO_API_KEY', '')
+        if not api_key:
             raise RuntimeError(
-                'Brevo not configured — '
-                'set BREVO_SMTP_USER and BREVO_SMTP_PASSWORD env vars.'
+                'Brevo not configured — set BREVO_API_KEY env var '
+                '(from brevo.com -> SMTP & API -> API Keys tab).'
             )
-        return SmtpBackend(
-            host='smtp-relay.brevo.com',
-            port=587,
-            username=user,
-            password=password,
-            use_tls=True,
-            use_ssl=False,
-            fail_silently=False,
-        )
+        if not hasattr(settings, 'ANYMAIL'):
+            settings.ANYMAIL = {}
+        settings.ANYMAIL['BREVO_API_KEY'] = api_key
+        return BrevoBackend(fail_silently=False)
 
     def _get_resend_backend(self):
         import os
         from django.conf import settings
         from anymail.backends.resend import EmailBackend as ResendBackend
-        # Inject API key at runtime
+
         api_key = os.environ.get('RESEND_API_KEY', '')
         if not api_key:
             raise RuntimeError(
@@ -78,28 +69,26 @@ class BrevoWithResendFallbackBackend(BaseEmailBackend):
         settings.ANYMAIL['RESEND_API_KEY'] = api_key
         return ResendBackend(fail_silently=False)
 
-    # ── main interface ────────────────────────────────────────────────────────
-
     def send_messages(self, email_messages):
         if not email_messages:
             return 0
 
         with self._lock:
-            # ── Attempt 1: Brevo SMTP (primary) ──────────────────────────
+            # Attempt 1: Brevo HTTP API (primary)
             try:
                 backend = self._get_brevo_backend()
                 backend.open()
                 sent = backend.send_messages(email_messages)
                 backend.close()
-                logger.info(f'[Email] Brevo sent {sent} message(s)')
+                logger.info(f'[Email] Brevo API sent {sent} message(s)')
                 return sent
             except Exception as brevo_exc:
                 logger.warning(
-                    f'[Email] Brevo failed ({type(brevo_exc).__name__}: {brevo_exc}), '
-                    f'falling back to Resend…'
+                    f'[Email] Brevo API failed ({type(brevo_exc).__name__}: {brevo_exc}), '
+                    f'falling back to Resend...'
                 )
 
-            # ── Attempt 2: Resend API (fallback) ─────────────────────────
+            # Attempt 2: Resend HTTP API (fallback)
             try:
                 backend = self._get_resend_backend()
                 backend.open()
