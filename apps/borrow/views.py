@@ -523,6 +523,14 @@ def request_book(request, book_pk):
         return redirect('borrow:request_list')
     
     messages.success(request, f'Your request for "{book.title}" has been submitted successfully.')
+
+    # Notify librarians/admins about the new request
+    try:
+        from apps.users.notifications import notify_admins_new_request
+        notify_admins_new_request(book_request)
+    except Exception:
+        pass
+
     return redirect('borrow:request_list')
 
 

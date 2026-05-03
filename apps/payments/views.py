@@ -159,9 +159,10 @@ def stripe_payment_success(request):
         if StripePaymentHandler.confirm_payment(payment, payment_intent_id):
             messages.success(request, f"Payment of ETB {payment.amount} completed successfully!")
             
-            # Send success email
-            from apps.users.notifications import notify_payment_success
+            # Send success email to student + notify staff
+            from apps.users.notifications import notify_payment_success, notify_admins_fine_paid
             notify_payment_success(payment)
+            notify_admins_fine_paid(payment)
             
             return redirect('payments:payment_receipt', payment_id=payment.id)
         else:
@@ -334,9 +335,10 @@ def chapa_payment_callback(request):
             if ChapaPaymentHandler.confirm_payment(payment, tx_ref):
                 messages.success(request, f"Payment of ETB {payment.amount} completed successfully!")
                 
-                # Send success email
-                from apps.users.notifications import notify_payment_success
+                # Send success email to student + notify staff
+                from apps.users.notifications import notify_payment_success, notify_admins_fine_paid
                 notify_payment_success(payment)
+                notify_admins_fine_paid(payment)
                 
                 return redirect('payments:payment_receipt', payment_id=payment.id)
             else:

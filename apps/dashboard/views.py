@@ -884,8 +884,6 @@ def restore_backup(request):
 
 @login_required
 @admin_required
-@login_required
-@admin_required
 def download_backup(request, backup_file):
     """
     Download backup is now handled by create_backup which streams directly.

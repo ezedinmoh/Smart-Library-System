@@ -571,8 +571,6 @@ def create_database_backup():
     buffer.write(out.getvalue().encode('utf-8'))
     buffer.seek(0)
     return buffer, 'json'
-    
-    return backup_path
 
 
 def send_due_reminder_emails():
@@ -624,7 +622,17 @@ Library Administration
             sent_count += 1
     
     if messages:
-        send_mass_mail(messages, fail_silently=False)
+        import threading
+        def _send():
+            try:
+                from django.db import connections
+                for conn in connections.all():
+                    conn.close()
+                send_mass_mail(messages, fail_silently=True)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"send_due_reminder_emails failed: {e}")
+        threading.Thread(target=_send, daemon=True).start()
     
     return sent_count
 
@@ -673,7 +681,17 @@ Library Administration
             sent_count += 1
     
     if messages:
-        send_mass_mail(messages, fail_silently=False)
+        import threading
+        def _send():
+            try:
+                from django.db import connections
+                for conn in connections.all():
+                    conn.close()
+                send_mass_mail(messages, fail_silently=True)
+            except Exception as e:
+                import logging
+                logging.getLogger(__name__).error(f"send_overdue_notification_emails failed: {e}")
+        threading.Thread(target=_send, daemon=True).start()
     
     return sent_count
 

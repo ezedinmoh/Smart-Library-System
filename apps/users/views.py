@@ -561,25 +561,21 @@ def user_create(request):
             plain_message = render_to_string('emails/email_verification.txt', ctx)
             html_message  = render_to_string('emails/email_verification.html', ctx)
             
-            # Send email
-            try:
-                email = EmailMultiAlternatives(
-                    subject=subject,
-                    body=plain_message,
-                    from_email=settings.DEFAULT_FROM_EMAIL,
-                    to=[user.email]
-                )
-                email.attach_alternative(html_message, "text/html")
-                email.send(fail_silently=False)
-                
-                # Show verification sent page instead of redirecting
-                return render(request, 'users/user_created_verification_sent.html', {
-                    'created_user': user,
-                    'verification_email': user.email
-                })
-            except Exception as e:
-                messages.warning(request, f'User "{user.username}" created, but failed to send verification email: {str(e)}')
-                return redirect('users:detail', pk=user.pk)
+            # Send email asynchronously (non-blocking — prevents 500 on Render)
+            from apps.users.notifications import _send_email_async
+            _send_email_async(
+                subject=subject,
+                text_content=plain_message,
+                html_content=html_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to_email=user.email
+            )
+            
+            # Show verification sent page immediately (don't wait for email)
+            return render(request, 'users/user_created_verification_sent.html', {
+                'created_user': user,
+                'verification_email': user.email
+            })
     else:
         form = AdminUserCreationForm()  # Use AdminUserCreationForm for role selection
     return render(request, 'users/user_create.html', {'form': form})
@@ -1401,14 +1397,15 @@ def resend_verification_email(request):
             plain_message = render_to_string('emails/email_verification.txt', ctx)
             html_message  = render_to_string('emails/email_verification.html', ctx)
 
-            email_msg = EmailMultiAlternatives(
+            # Send asynchronously — non-blocking, prevents slow page loads on Render
+            from apps.users.notifications import _send_email_async
+            _send_email_async(
                 subject=subject,
-                body=plain_message,
+                text_content=plain_message,
+                html_content=html_message,
                 from_email=settings.DEFAULT_FROM_EMAIL,
-                to=[user.email]
+                to_email=user.email
             )
-            email_msg.attach_alternative(html_message, "text/html")
-            email_msg.send(fail_silently=True)
 
             messages.success(request, f'Verification email has been resent to {email}. Please check your inbox.')
             return redirect('users:login')

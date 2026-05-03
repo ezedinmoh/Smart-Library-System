@@ -673,3 +673,183 @@ def notify_payment_failure(payment):
                           settings.DEFAULT_FROM_EMAIL, payment.user.email)
     except Exception as e:
         import logging; logging.getLogger(__name__).error(f"Failed to queue payment failure email: {e}")
+
+
+def notify_admins_new_request(book_request):
+    """
+    Notify all librarians and admins when a student submits a new book request.
+    Sends email in background thread — non-blocking.
+    """
+    try:
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        from apps.users.models import User
+
+        # Get all active librarians and admins
+        staff = User.objects.filter(
+            role__in=['librarian', 'admin'],
+            is_active=True
+        ).exclude(email='')
+
+        if not staff.exists():
+            return
+
+        ctx = {
+            'book_request': book_request,
+            'student': book_request.user,
+            'book': book_request.book,
+            'request_date': book_request.request_date,
+            'site_name': settings.SITE_NAME,
+            'site_url': settings.SITE_URL,
+        }
+        subject = f'New Book Request — {book_request.book.title}'
+        text_content = render_to_string('emails/admin_new_request.txt', ctx)
+        html_content = render_to_string('emails/admin_new_request.html', ctx)
+
+        for staff_member in staff:
+            _send_email_async(
+                subject=subject,
+                text_content=text_content,
+                html_content=html_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to_email=staff_member.email
+            )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Failed to queue admin new-request email: {e}")
+
+
+def notify_admins_fine_paid(payment):
+    """
+    Notify all librarians and admins when a student pays a fine.
+    Sends email in background thread — non-blocking.
+    """
+    try:
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        from apps.users.models import User
+
+        # Get all active librarians and admins
+        staff = User.objects.filter(
+            role__in=['librarian', 'admin'],
+            is_active=True
+        ).exclude(email='')
+
+        if not staff.exists():
+            return
+
+        ctx = {
+            'payment': payment,
+            'student': payment.user,
+            'book': payment.borrow_record.book,
+            'amount': payment.amount,
+            'currency': payment.currency,
+            'payment_method': payment.get_payment_method_display(),
+            'transaction_id': payment.transaction_id,
+            'site_name': settings.SITE_NAME,
+            'site_url': settings.SITE_URL,
+        }
+        subject = f'Fine Paid — {payment.user.get_full_name() or payment.user.username} — {payment.borrow_record.book.title}'
+        text_content = render_to_string('emails/admin_fine_paid.txt', ctx)
+        html_content = render_to_string('emails/admin_fine_paid.html', ctx)
+
+        for staff_member in staff:
+            _send_email_async(
+                subject=subject,
+                text_content=text_content,
+                html_content=html_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to_email=staff_member.email
+            )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Failed to queue admin fine-paid email: {e}")
+
+
+def notify_admins_new_request(book_request):
+    """
+    Notify all librarians and admins when a student submits a new book request.
+    Sends email in background thread — non-blocking.
+    """
+    try:
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        from apps.users.models import User
+
+        staff = User.objects.filter(
+            role__in=['librarian', 'admin'],
+            is_active=True
+        ).exclude(email='')
+
+        if not staff.exists():
+            return
+
+        ctx = {
+            'book_request': book_request,
+            'student': book_request.user,
+            'book': book_request.book,
+            'request_date': book_request.request_date,
+            'site_name': settings.SITE_NAME,
+            'site_url': settings.SITE_URL,
+        }
+        subject = f'New Book Request — {book_request.book.title}'
+        text_content = render_to_string('emails/admin_new_request.txt', ctx)
+        html_content = render_to_string('emails/admin_new_request.html', ctx)
+
+        for staff_member in staff:
+            _send_email_async(
+                subject=subject,
+                text_content=text_content,
+                html_content=html_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to_email=staff_member.email
+            )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Failed to queue admin new-request email: {e}")
+
+
+def notify_admins_fine_paid(payment):
+    """
+    Notify all librarians and admins when a student pays a fine.
+    Sends email in background thread — non-blocking.
+    """
+    try:
+        from django.conf import settings
+        from django.template.loader import render_to_string
+        from apps.users.models import User
+
+        staff = User.objects.filter(
+            role__in=['librarian', 'admin'],
+            is_active=True
+        ).exclude(email='')
+
+        if not staff.exists():
+            return
+
+        ctx = {
+            'payment': payment,
+            'student': payment.user,
+            'book': payment.borrow_record.book,
+            'amount': payment.amount,
+            'currency': payment.currency,
+            'payment_method': payment.get_payment_method_display(),
+            'transaction_id': payment.transaction_id,
+            'site_name': settings.SITE_NAME,
+            'site_url': settings.SITE_URL,
+        }
+        subject = f'Fine Paid — {payment.user.get_full_name() or payment.user.username} — {payment.borrow_record.book.title}'
+        text_content = render_to_string('emails/admin_fine_paid.txt', ctx)
+        html_content = render_to_string('emails/admin_fine_paid.html', ctx)
+
+        for staff_member in staff:
+            _send_email_async(
+                subject=subject,
+                text_content=text_content,
+                html_content=html_content,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                to_email=staff_member.email
+            )
+    except Exception as e:
+        import logging
+        logging.getLogger(__name__).error(f"Failed to queue admin fine-paid email: {e}")
