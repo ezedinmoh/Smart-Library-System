@@ -262,7 +262,7 @@ CORS_ALLOWED_ORIGINS = [
 # Fallback: Brevo   (SMTP port 587 — 300 emails/day free)
 #
 # Set EMAIL_BACKEND in your environment to switch providers:
-#   - Dual (recommended): library_system.email_backends.ResendWithBrevoFallbackBackend
+#   - Dual (recommended): library_system.email_backends.BrevoWithResendFallbackBackend
 #   - Resend only:        anymail.backends.resend.EmailBackend
 #   - Brevo only:         anymail.backends.brevo.EmailBackend  (or smtp)
 #   - Console (dev):      django.core.mail.backends.console.EmailBackend
@@ -270,7 +270,7 @@ CORS_ALLOWED_ORIGINS = [
 
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
-    default='library_system.email_backends.ResendWithBrevoFallbackBackend'
+    default='library_system.email_backends.BrevoWithResendFallbackBackend'
 )
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@smartlibrary.com')
 SERVER_EMAIL = config('SERVER_EMAIL', default='noreply@smartlibrary.com')
@@ -281,7 +281,7 @@ ANYMAIL = {
     'BREVO_API_KEY':  config('BREVO_API_KEY', default=''),  # optional, for Brevo API mode
 }
 
-# Brevo SMTP fallback credentials (used by ResendWithBrevoFallbackBackend)
+# Brevo SMTP fallback credentials (used by BrevoWithResendFallbackBackend)
 # BREVO_SMTP_USER     = your Brevo login email
 # BREVO_SMTP_PASSWORD = your Brevo SMTP key (from Brevo dashboard → SMTP & API)
 # These are read directly from os.environ inside the fallback backend.

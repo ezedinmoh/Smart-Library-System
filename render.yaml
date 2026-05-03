@@ -22,7 +22,7 @@ services:
 
       # ── Email ────────────────────────────────────────────────────────────
       - key: EMAIL_BACKEND
-        value: library_system.email_backends.ResendWithBrevoFallbackBackend
+        value: library_system.email_backends.BrevoWithResendFallbackBackend
       - key: DEFAULT_FROM_EMAIL
         value: "Smart Library <smartlibrarysupport@gmail.com>"
       - key: SERVER_EMAIL
@@ -79,7 +79,7 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: EMAIL_BACKEND
-        value: library_system.email_backends.ResendWithBrevoFallbackBackend
+        value: library_system.email_backends.BrevoWithResendFallbackBackend
       - key: DEFAULT_FROM_EMAIL
         value: "Smart Library <smartlibrarysupport@gmail.com>"
       - key: RESEND_API_KEY
@@ -106,7 +106,7 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: EMAIL_BACKEND
-        value: library_system.email_backends.ResendWithBrevoFallbackBackend
+        value: library_system.email_backends.BrevoWithResendFallbackBackend
       - key: DEFAULT_FROM_EMAIL
         value: "Smart Library <smartlibrarysupport@gmail.com>"
       - key: RESEND_API_KEY
@@ -133,7 +133,7 @@ services:
       - key: DATABASE_URL
         sync: false
       - key: EMAIL_BACKEND
-        value: library_system.email_backends.ResendWithBrevoFallbackBackend
+        value: library_system.email_backends.BrevoWithResendFallbackBackend
       - key: DEFAULT_FROM_EMAIL
         value: "Smart Library <smartlibrarysupport@gmail.com>"
       - key: RESEND_API_KEY

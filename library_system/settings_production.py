@@ -146,7 +146,7 @@ CELERY_TASK_SOFT_TIME_LIMIT = 25 * 60  # 25 minutes
 
 EMAIL_BACKEND = config(
     'EMAIL_BACKEND',
-    default='library_system.email_backends.ResendWithBrevoFallbackBackend'
+    default='library_system.email_backends.BrevoWithResendFallbackBackend'
 )
 DEFAULT_FROM_EMAIL = config('DEFAULT_FROM_EMAIL', default='noreply@smartlibrary.com')
 SERVER_EMAIL = config('SERVER_EMAIL', default='noreply@smartlibrary.com')
