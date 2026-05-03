@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
+    <div style="background: linear-gradient(135deg, #f59e0b, #d97706); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+        <h1 style="color: white; margin: 0; font-size: 24px;">📬 New Book Request</h1>
+    </div>
+
+    <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+        <p style="color: #4b5563; font-size: 16px;">A student has submitted a new book request that requires your attention.</p>
+
+        <!-- Student Info -->
+        <div style="background: #f3f4f6; border-left: 4px solid #f59e0b; padding: 20px; border-radius: 8px; margin: 24px 0;">
+            <h3 style="color: #1f2937; margin-top: 0; font-size: 16px;">👤 Student</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; font-weight: 600; width: 120px;">Name:</td>
+                    <td style="padding: 6px 0; color: #1f2937;">{{ student.get_full_name|default:student.username }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; font-weight: 600;">Username:</td>
+                    <td style="padding: 6px 0; color: #1f2937;">{{ student.username }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; font-weight: 600;">Email:</td>
+                    <td style="padding: 6px 0; color: #1f2937;">{{ student.email }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; font-weight: 600;">Requested:</td>
+                    <td style="padding: 6px 0; color: #1f2937;">{{ request_date|date:'F d, Y \a\t g:i A' }}</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Book Info -->
+        <div style="background: #eff6ff; border-left: 4px solid #3b82f6; padding: 20px; border-radius: 8px; margin: 24px 0;">
+            <h3 style="color: #1f2937; margin-top: 0; font-size: 16px;">📚 Book</h3>
+            <table style="width: 100%; border-collapse: collapse;">
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; font-weight: 600; width: 120px;">Title:</td>
+                    <td style="padding: 6px 0; color: #1f2937;"><strong>{{ book.title }}</strong></td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; font-weight: 600;">Author:</td>
+                    <td style="padding: 6px 0; color: #1f2937;">{{ book.author }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; font-weight: 600;">Category:</td>
+                    <td style="padding: 6px 0; color: #1f2937;">{{ book.category.name|default:'N/A' }}</td>
+                </tr>
+                <tr>
+                    <td style="padding: 6px 0; color: #6b7280; font-weight: 600;">Available:</td>
+                    <td style="padding: 6px 0; color: #1f2937;">{{ book.available_copies }} / {{ book.total_copies }} copies</td>
+                </tr>
+            </table>
+        </div>
+
+        <!-- Action Button -->
+        <div style="text-align: center; margin: 32px 0;">
+            <a href="{{ site_url }}/borrow/pending-requests/" style="background: #f59e0b; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Review Request</a>
+        </div>
+
+        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
+        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
+            {{ site_name }} — Staff Notification
+        </p>
+    </div>
+</body>
+</html>

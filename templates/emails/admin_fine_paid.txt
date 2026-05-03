@@ -1,0 +1,29 @@
+================================================================================
+FINE PAYMENT RECEIVED — {{ site_name }}
+================================================================================
+
+A student has successfully paid an overdue fine.
+
+PAYMENT DETAILS
+---------------
+Amount Paid:    {{ currency }} {{ amount }}
+Payment Method: {{ payment_method }}
+Transaction ID: {{ transaction_id }}
+
+STUDENT
+-------
+Name:     {{ student.get_full_name|default:student.username }}
+Username: {{ student.username }}
+Email:    {{ student.email }}
+
+BOOK
+----
+Title:  {{ book.title }}
+Author: {{ book.author }}
+
+View overdue records at:
+{{ site_url }}/borrow/overdue/
+
+================================================================================
+{{ site_name }} — Staff Notification
+================================================================================

@@ -1,0 +1,26 @@
+================================================================================
+NEW BOOK REQUEST — {{ site_name }}
+================================================================================
+
+A student has submitted a new book request.
+
+STUDENT
+-------
+Name:      {{ student.get_full_name|default:student.username }}
+Username:  {{ student.username }}
+Email:     {{ student.email }}
+Requested: {{ request_date|date:'F d, Y \a\t g:i A' }}
+
+BOOK
+----
+Title:     {{ book.title }}
+Author:    {{ book.author }}
+Category:  {{ book.category.name|default:'N/A' }}
+Available: {{ book.available_copies }} / {{ book.total_copies }} copies
+
+Review this request at:
+{{ site_url }}/borrow/pending-requests/
+
+================================================================================
+{{ site_name }} — Staff Notification
+================================================================================
