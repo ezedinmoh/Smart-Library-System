@@ -113,7 +113,7 @@ class ChapaPaymentHandler:
                 'Authorization': f'Bearer {settings.CHAPA_SECRET_KEY}'
             }
             
-            response = requests.get(url, headers=headers)
+            response = requests.get(url, headers=headers, timeout=15)
             response_data = response.json()
             
             logger.info(f"Chapa verification response for {tx_ref}: {response_data}")
