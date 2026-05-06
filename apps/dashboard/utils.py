@@ -745,12 +745,13 @@ def _send_notification_email(action, rec, custom_to=None, custom_subject=None, c
     if action == 'send_custom':
         to_email  = custom_to
         subject   = custom_subject
-        html_body = (
-            '<div style="font-family:Arial,sans-serif;max-width:600px;'
-            'margin:0 auto;padding:24px;">'
-            + custom_body.replace('\n', '<br>')
-            + '</div>'
-        )
+        # Use bulk_email.html template for custom emails
+        ctx = {
+            'site_name': site_name,
+            'site_url': site_url,
+            'body_html': custom_body.replace('\n', '<br>'),
+        }
+        html_body = render_to_string('emails/bulk_email.html', ctx)
         text_body = custom_body
 
     else:
