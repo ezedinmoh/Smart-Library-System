@@ -142,6 +142,32 @@
             </div>
         </div>
 
+        <!-- Notification Center Card (Admin & Librarian only) -->
+        {% if request.user.is_admin or request.user.is_librarian %}
+        <a href="{% url 'dashboard:notification_center' %}" style="text-decoration:none;display:block;margin-bottom:1.5rem;">
+            <div style="background:linear-gradient(135deg,#f093fb,#f5576c);border-radius:var(--radius-xl);padding:1.5rem 2rem;display:flex;align-items:center;justify-content:space-between;gap:1.5rem;box-shadow:0 4px 20px rgba(240,147,251,0.3);transition:transform 0.2s,box-shadow 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 8px 30px rgba(240,147,251,0.4)'" onmouseout="this.style.transform='';this.style.boxShadow='0 4px 20px rgba(240,147,251,0.3)'">
+                <div style="display:flex;align-items:center;gap:1.25rem;">
+                    <div style="width:56px;height:56px;background:rgba(255,255,255,0.2);border-radius:0.75rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                        </svg>
+                    </div>
+                    <div>
+                        <div style="font-size:1.125rem;font-weight:700;color:white;margin-bottom:0.25rem;">Notification Center</div>
+                        <div style="font-size:0.9375rem;color:rgba(255,255,255,0.85);">Send due-date reminders, overdue alerts &amp; unpaid fine notices to users</div>
+                    </div>
+                </div>
+                <div style="display:flex;align-items:center;gap:0.75rem;flex-shrink:0;">
+                    <div style="text-align:right;">
+                        <div style="font-size:0.8125rem;color:rgba(255,255,255,0.75);margin-bottom:0.25rem;">Staff only</div>
+                        <div style="font-size:0.875rem;font-weight:600;color:white;">Manage &amp; Send →</div>
+                    </div>
+                </div>
+            </div>
+        </a>
+        {% endif %}
+
         <!-- Notifications Card -->
         <div class="card">
             <div class="card-header">

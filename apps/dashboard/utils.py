@@ -719,3 +719,129 @@ def log_activity(user, action, description, request=None):
         ip_address=ip_address,
         user_agent=user_agent
     )
+def _send_notification_email(action, rec, custom_to=None, custom_subject=None, custom_body=None):
+    """
+    Send a real email via Brevo API.
+    action: 'send_due_soon' | 'send_overdue' | 'send_unpaid' | 'send_custom'
+    rec: BorrowRecord instance (None for send_custom)
+    """
+    import os
+    import logging
+    import threading
+    from django.conf import settings as django_settings
+    from django.template.loader import render_to_string
+
+    logger = logging.getLogger(__name__)
+
+    brevo_api_key = os.environ.get('BREVO_API_KEY', '')
+    if not brevo_api_key:
+        logger.error('BREVO_API_KEY not set — cannot send notification center email.')
+        raise RuntimeError('BREVO_API_KEY not configured.')
+
+    from_email = django_settings.DEFAULT_FROM_EMAIL
+    site_name  = getattr(django_settings, 'SITE_NAME', 'SmartLibrary')
+    site_url   = getattr(django_settings, 'SITE_URL', '')
+
+    if action == 'send_custom':
+        to_email  = custom_to
+        subject   = custom_subject
+        html_body = (
+            '<div style="font-family:Arial,sans-serif;max-width:600px;'
+            'margin:0 auto;padding:24px;">'
+            + custom_body.replace('\n', '<br>')
+            + '</div>'
+        )
+        text_body = custom_body
+
+    else:
+        user     = rec.user
+        book     = rec.book
+        to_email = user.email
+        if not to_email:
+            return
+
+        if action == 'send_due_soon':
+            days_remaining = (rec.due_date - timezone.now().date()).days
+            ctx = {
+                'user': user,
+                'book': book,
+                'due_date': rec.due_date,
+                'days_remaining': days_remaining,
+                'site_name': site_name,
+                'site_url': site_url,
+            }
+            subject   = f'[{site_name}] Reminder: "{book.title}" is due in {days_remaining} day(s)'
+            html_body = render_to_string('emails/book_due_soon.html', ctx)
+            text_body = render_to_string('emails/book_due_soon.txt',  ctx)
+
+        elif action == 'send_overdue':
+            days_overdue = (timezone.now().date() - rec.due_date).days
+            ctx = {
+                'user': user,
+                'book': book,
+                'due_date': rec.due_date,
+                'days_overdue': days_overdue,
+                'fine_amount': rec.fine_amount,
+                'site_name': site_name,
+                'site_url': site_url,
+            }
+            subject   = f'[{site_name}] Overdue: "{book.title}" — {days_overdue} day(s) overdue'
+            html_body = render_to_string('emails/book_overdue.html', ctx)
+            text_body = render_to_string('emails/book_overdue.txt',  ctx)
+
+        elif action == 'send_unpaid':
+            days_overdue = max((timezone.now().date() - rec.due_date).days, 0)
+            ctx = {
+                'user': user,
+                'book': book,
+                'due_date': rec.due_date,
+                'days_overdue': days_overdue,
+                'fine_amount': rec.fine_amount,
+                'fine_paid': rec.fine_paid,
+                'site_name': site_name,
+                'site_url': site_url,
+            }
+            subject   = f'[{site_name}] Unpaid Fine: ETB {rec.fine_amount} for "{book.title}"'
+            html_body = render_to_string('emails/fine_applied.html', ctx)
+            text_body = render_to_string('emails/fine_applied.txt',  ctx)
+
+        else:
+            raise ValueError(f'Unknown action: {action}')
+
+    _subject = subject
+    _html    = html_body
+    _text    = text_body
+    _from    = from_email
+    _to      = to_email
+    _key     = brevo_api_key
+
+    def _send():
+        try:
+            from django.db import connections
+            for conn in connections.all():
+                conn.close()
+
+            from django.conf import settings as s
+            if not hasattr(s, 'ANYMAIL'):
+                s.ANYMAIL = {}
+            s.ANYMAIL['BREVO_API_KEY'] = _key
+
+            from anymail.backends.brevo import EmailBackend as BrevoBackend
+            from django.core.mail import EmailMultiAlternatives
+
+            backend = BrevoBackend(fail_silently=False)
+            msg = EmailMultiAlternatives(
+                subject=_subject,
+                body=_text,
+                from_email=_from,
+                to=[_to],
+                connection=backend,
+            )
+            msg.attach_alternative(_html, 'text/html')
+            msg.send(fail_silently=False)
+            logger.info(f'Notification email sent to {_to}: {_subject!r}')
+        except Exception as e:
+            logger.error(f'Notification email FAILED to {_to}: {type(e).__name__}: {e}')
+            raise
+
+    threading.Thread(target=_send, daemon=True).start()

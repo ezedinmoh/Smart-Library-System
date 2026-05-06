@@ -9,7 +9,7 @@ from ..books.models import Book, Category
 from ..borrow.models import BorrowRecord, BookRequest
 from ..users.models import User
 from ..users.permissions import admin_required, librarian_or_admin_required, student_required
-
+from .utils import _send_notification_email
 
 @login_required
 @admin_required
@@ -1269,46 +1269,143 @@ def test_email(request):
             'diagnostics': diag,
         })
 
-
-
 @login_required
 @librarian_or_admin_required
 def notification_center(request):
-    """Notification center showing due soon, overdue, and unpaid fines"""
-    from django.db.models import Q
-    
-    # Books due soon (within 3 days)
+    """Notification center — send due-soon, overdue, unpaid-fine, and custom emails"""
+
+    today = timezone.now().date()
+
+    # Querysets
     due_soon = BorrowRecord.objects.filter(
         status='borrowed',
-        due_date__lte=timezone.now().date() + timedelta(days=3),
-        due_date__gte=timezone.now().date()
+        due_date__lte=today + timedelta(days=3),
+        due_date__gte=today,
     ).select_related('user', 'book').order_by('due_date')
-    
-    # Overdue books
+
     overdue = BorrowRecord.objects.filter(
-        status='overdue'
+        status='overdue',
     ).select_related('user', 'book').order_by('due_date')
-    
-    # Unpaid fines
+
     unpaid_fines = BorrowRecord.objects.filter(
         fine_amount__gt=0,
-        fine_paid=False
+        fine_paid=False,
     ).select_related('user', 'book').order_by('-fine_amount')
-    
-    # Calculate totals
+
     total_due_soon = due_soon.count()
-    total_overdue = overdue.count()
-    total_unpaid = unpaid_fines.aggregate(total=Sum('fine_amount'))['total'] or 0
-    unpaid_count = unpaid_fines.count()
-    
+    total_overdue  = overdue.count()
+    total_unpaid   = unpaid_fines.aggregate(total=Sum('fine_amount'))['total'] or 0
+    unpaid_count   = unpaid_fines.count()
+
+    # Handle POST
+    if request.method == 'POST':
+        from django.contrib import messages as dj_messages
+        action = request.POST.get('action', '')
+
+        # Bulk / single record emails
+        if action in ('send_due_soon', 'send_overdue', 'send_unpaid'):
+            # JS sends multiple inputs named 'record_ids'; empty list = send all
+            ids = [int(i) for i in request.POST.getlist('record_ids') if i.strip().isdigit()]
+
+            if ids:
+                target_records = list(
+                    BorrowRecord.objects.filter(pk__in=ids).select_related('user', 'book')
+                )
+            else:
+                # No IDs = send to everyone in that section
+                if action == 'send_due_soon':
+                    target_records = list(due_soon)
+                elif action == 'send_overdue':
+                    target_records = list(overdue)
+                else:
+                    target_records = list(unpaid_fines)
+
+            sent = skipped = errors = 0
+            for rec in target_records:
+                if not rec.user.email:
+                    skipped += 1
+                    continue
+                try:
+                    _send_notification_email(action, rec)
+                    sent += 1
+                except Exception as e:
+                    import logging
+                    logging.getLogger(__name__).error(
+                        f"notification_center email failed for record {rec.pk}: {e}"
+                    )
+                    errors += 1
+
+            if sent:
+                dj_messages.success(request, f'✓ {sent} email(s) queued successfully.')
+            if skipped:
+                dj_messages.warning(request, f'{skipped} user(s) skipped — no email address.')
+            if errors:
+                dj_messages.error(request, f'{errors} email(s) failed — check server logs.')
+
+        # Custom email
+        elif action == 'send_custom':
+            import logging
+            logger = logging.getLogger(__name__)
+
+            subject        = request.POST.get('subject', '').strip()
+            body           = request.POST.get('body', '').strip()
+            recipient_type = request.POST.get('recipient_type', 'all')
+            selected_ids   = request.POST.getlist('selected_user_ids')
+
+            if not subject or not body:
+                dj_messages.error(request, 'Subject and message are required.')
+                return redirect('dashboard:notification_center')
+
+            if recipient_type == 'specific' and selected_ids:
+                recipients = User.objects.filter(pk__in=selected_ids, is_active=True).exclude(email='')
+            elif recipient_type == 'students':
+                recipients = User.objects.filter(role='student', is_active=True).exclude(email='')
+            elif recipient_type == 'librarians':
+                recipients = User.objects.filter(role='librarian', is_active=True).exclude(email='')
+            else:
+                recipients = User.objects.filter(is_active=True).exclude(email='')
+
+            sent = errors = 0
+            for u in recipients:
+                p_subject = subject.replace('{name}', u.get_full_name() or u.username).replace('{username}', u.username)
+                p_body    = body.replace('{name}', u.get_full_name() or u.username).replace('{username}', u.username)
+                try:
+                    _send_notification_email('send_custom', None,
+                                             custom_to=u.email,
+                                             custom_subject=p_subject,
+                                             custom_body=p_body)
+                    sent += 1
+                except Exception as e:
+                    logger.error(f"Custom email failed for {u.email}: {e}")
+                    errors += 1
+
+            if sent:
+                dj_messages.success(request, f'✓ {sent} custom email(s) queued.')
+            if errors:
+                dj_messages.error(request, f'{errors} email(s) failed — check server logs.')
+
+        return redirect('dashboard:notification_center')
+
+    # Context for GET
+    all_users = User.objects.filter(is_active=True).exclude(email='').order_by('first_name', 'username')
+
     context = {
-        'due_soon': due_soon,
-        'overdue': overdue,
-        'unpaid_fines': unpaid_fines,
-        'total_due_soon': total_due_soon,
-        'total_overdue': total_overdue,
-        'total_unpaid': total_unpaid,
-        'unpaid_count': unpaid_count,
+        'due_soon_records':    due_soon,
+        'overdue_records':     overdue,
+        'unpaid_records':      unpaid_fines,
+        'due_soon_count':      total_due_soon,
+        'overdue_count':       total_overdue,
+        'unpaid_count':        unpaid_count,
+        'total_unpaid_amount': total_unpaid,
+        'today':               today,
+        'all_users':           all_users,
+        # legacy names kept for safety
+        'due_soon':            due_soon,
+        'overdue':             overdue,
+        'unpaid_fines':        unpaid_fines,
+        'total_due_soon':      total_due_soon,
+        'total_overdue':       total_overdue,
+        'total_unpaid':        total_unpaid,
     }
-    
+
     return render(request, 'dashboard/notification_center.html', context)
