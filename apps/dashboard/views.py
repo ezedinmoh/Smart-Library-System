@@ -1268,3 +1268,47 @@ def test_email(request):
             'message': f'{type(e).__name__}: {e}',
             'diagnostics': diag,
         })
+
+
+
+@login_required
+@librarian_or_admin_required
+def notification_center(request):
+    """Notification center showing due soon, overdue, and unpaid fines"""
+    from django.db.models import Q
+    
+    # Books due soon (within 3 days)
+    due_soon = BorrowRecord.objects.filter(
+        status='borrowed',
+        due_date__lte=timezone.now().date() + timedelta(days=3),
+        due_date__gte=timezone.now().date()
+    ).select_related('user', 'book').order_by('due_date')
+    
+    # Overdue books
+    overdue = BorrowRecord.objects.filter(
+        status='overdue'
+    ).select_related('user', 'book').order_by('due_date')
+    
+    # Unpaid fines
+    unpaid_fines = BorrowRecord.objects.filter(
+        fine_amount__gt=0,
+        fine_paid=False
+    ).select_related('user', 'book').order_by('-fine_amount')
+    
+    # Calculate totals
+    total_due_soon = due_soon.count()
+    total_overdue = overdue.count()
+    total_unpaid = unpaid_fines.aggregate(total=Sum('fine_amount'))['total'] or 0
+    unpaid_count = unpaid_fines.count()
+    
+    context = {
+        'due_soon': due_soon,
+        'overdue': overdue,
+        'unpaid_fines': unpaid_fines,
+        'total_due_soon': total_due_soon,
+        'total_overdue': total_overdue,
+        'total_unpaid': total_unpaid,
+        'unpaid_count': unpaid_count,
+    }
+    
+    return render(request, 'dashboard/notification_center.html', context)

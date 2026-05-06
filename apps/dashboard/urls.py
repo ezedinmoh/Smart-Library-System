@@ -35,4 +35,5 @@ urlpatterns = [
     path('system/update-settings/', views.update_system_settings, name='update_system_settings'),
     path('settings/', views.system_settings_view, name='settings'),
     path('test-email/', views.test_email, name='test_email'),
+    path('notifications/', views.notification_center, name='notification_center'),
 ]

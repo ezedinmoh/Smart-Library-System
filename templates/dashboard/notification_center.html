@@ -1,0 +1,720 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notification Center - SmartLibrary</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    {% include 'includes/enhanced_nav_styles.html' %}
+    <style>
+        :root {
+            --primary-green: #10b981; --primary-blue: #0ea5e9;
+            --text-primary: #1f2937; --text-secondary: #6b7280; --text-muted: #9ca3af;
+            --bg-white: #ffffff; --bg-gray: #f9fafb; --bg-light: #f3f4f6; --border-color: #e5e7eb;
+            --shadow-sm: 0 1px 2px 0 rgba(0,0,0,0.05); --shadow-md: 0 4px 6px -1px rgba(0,0,0,0.1);
+            --radius-md: 0.5rem; --radius-lg: 0.75rem; --radius-xl: 1rem;
+            --error: #ef4444; --warning: #f59e0b; --success: #10b981; --info: #0ea5e9;
+        }
+        [data-theme="dark"] {
+            --text-primary: #f9fafb; --text-secondary: #d1d5db; --text-muted: #9ca3af;
+            --bg-white: #1f2937; --bg-gray: #111827; --bg-light: #374151; --border-color: #374151;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg-gray); color: var(--text-primary); min-height: 100vh; }
+        .main-container { max-width: 1300px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+        /* Header */
+        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
+        .breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
+        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
+        .breadcrumb a:hover { color: var(--primary-green); }
+        .breadcrumb svg { width: 16px; height: 16px; }
+        .page-title { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.375rem; }
+        .page-title svg { width: 28px; height: 28px; color: var(--primary-green); }
+        .page-title h1 { font-size: 1.875rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+        .page-subtitle { color: var(--text-secondary); font-size: 0.9375rem; }
+
+        /* Buttons */
+        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.625rem 1.25rem; font-family: 'Inter', sans-serif; font-size: 0.875rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
+        .btn svg { width: 16px; height: 16px; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); color: white; }
+        .btn-primary:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); }
+        .btn-warning { background: #f59e0b; color: white; }
+        .btn-warning:hover { background: #d97706; }
+        .btn-danger { background: #ef4444; color: white; }
+        .btn-danger:hover { background: #dc2626; }
+        .btn-info { background: #0ea5e9; color: white; }
+        .btn-info:hover { background: #0284c7; }
+        .btn-outline { background: transparent; color: var(--text-secondary); border: 2px solid var(--border-color); }
+        .btn-outline:hover { border-color: var(--primary-green); color: var(--primary-green); }
+        .btn-ghost { background: var(--bg-light); color: var(--text-secondary); border: 1px solid var(--border-color); }
+        .btn-ghost:hover { background: var(--border-color); }
+        .btn-sm { padding: 0.4rem 0.875rem; font-size: 0.8125rem; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none !important; }
+
+        /* Summary cards */
+        .summary-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.25rem; margin-bottom: 2rem; }
+        .summary-card { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 1.5rem; display: flex; align-items: center; gap: 1rem; box-shadow: var(--shadow-sm); transition: all 0.2s; }
+        .summary-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+        .summary-icon { width: 52px; height: 52px; border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .summary-icon svg { width: 24px; height: 24px; }
+        .summary-icon.warning { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .summary-icon.danger { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .summary-icon.info { background: rgba(14,165,233,0.1); color: #0ea5e9; }
+        .summary-value { font-size: 2rem; font-weight: 800; line-height: 1; margin-bottom: 0.25rem; }
+        .summary-label { font-size: 0.875rem; color: var(--text-secondary); font-weight: 500; }
+        .summary-sub { font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.125rem; }
+
+        /* Section cards */
+        .section-card { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: var(--shadow-sm); overflow: hidden; margin-bottom: 1.5rem; }
+        .section-header { display: flex; align-items: center; justify-content: space-between; padding: 1.125rem 1.5rem; border-bottom: 1px solid var(--border-color); flex-wrap: wrap; gap: 0.75rem; }
+        .section-title { display: flex; align-items: center; gap: 0.625rem; font-size: 1rem; font-weight: 700; color: var(--text-primary); }
+        .section-title svg { width: 20px; height: 20px; }
+        .section-title.warning svg { color: #f59e0b; }
+        .section-title.danger svg { color: #ef4444; }
+        .section-title.info svg { color: #0ea5e9; }
+        .section-title.success svg { color: #10b981; }
+        .section-actions { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+        .count-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.625rem; font-size: 0.8125rem; font-weight: 700; border-radius: 9999px; }
+        .badge-warning { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .badge-danger { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .badge-info { background: rgba(14,165,233,0.1); color: #0ea5e9; }
+        .badge-success { background: rgba(16,185,129,0.1); color: #10b981; }
+
+        /* Table */
+        .data-table { width: 100%; border-collapse: collapse; }
+        .data-table thead { background: var(--bg-light); border-bottom: 2px solid var(--border-color); }
+        .data-table th { padding: 0.75rem 1.25rem; font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-secondary); text-align: left; white-space: nowrap; }
+        .data-table tbody tr { border-bottom: 1px solid var(--border-color); transition: background 0.15s; }
+        .data-table tbody tr:last-child { border-bottom: none; }
+        .data-table tbody tr:hover { background: var(--bg-gray); }
+        .data-table td { padding: 0.875rem 1.25rem; font-size: 0.9375rem; vertical-align: middle; }
+        .data-table th:first-child, .data-table td:first-child { width: 40px; }
+        .row-checkbox { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-green); }
+        .select-all-cb { width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary-green); }
+
+        /* User cell */
+        .user-cell { display: flex; align-items: center; gap: 0.625rem; }
+        .user-avatar-sm { width: 32px; height: 32px; border-radius: 50%; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); display: flex; align-items: center; justify-content: center; color: white; font-weight: 700; font-size: 0.8125rem; flex-shrink: 0; }
+        .user-name { font-weight: 600; font-size: 0.9375rem; color: var(--text-primary); }
+        .user-email { font-size: 0.8125rem; color: var(--text-muted); }
+
+        /* Status badges */
+        .status-badge { display: inline-flex; align-items: center; padding: 0.2rem 0.625rem; font-size: 0.8125rem; font-weight: 700; border-radius: 9999px; }
+        .status-overdue { background: rgba(239,68,68,0.1); color: #ef4444; }
+        .status-due-soon { background: rgba(245,158,11,0.1); color: #f59e0b; }
+        .status-unpaid { background: rgba(239,68,68,0.1); color: #ef4444; }
+
+        /* Custom email form */
+        .form-group { margin-bottom: 1.25rem; }
+        .form-label { display: block; font-size: 0.875rem; font-weight: 600; color: var(--text-primary); margin-bottom: 0.5rem; }
+        .form-input, .form-select, .form-textarea { width: 100%; padding: 0.75rem 1rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem; color: var(--text-primary); background: var(--bg-gray); border: 2px solid var(--border-color); border-radius: var(--radius-md); transition: all 0.2s; }
+        .form-input:focus, .form-select:focus, .form-textarea:focus { outline: none; border-color: var(--primary-green); background: var(--bg-white); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
+        .form-textarea { resize: vertical; min-height: 120px; }
+        .form-help { font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.375rem; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .card-body { padding: 1.5rem; }
+
+        /* User picker */
+        .user-picker { display: none; border: 2px solid var(--border-color); border-radius: var(--radius-md); max-height: 220px; overflow-y: auto; background: var(--bg-white); }
+        .user-picker.show { display: block; }
+        .user-picker-item { display: flex; align-items: center; gap: 0.75rem; padding: 0.625rem 1rem; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.15s; }
+        .user-picker-item:last-child { border-bottom: none; }
+        .user-picker-item:hover { background: var(--bg-gray); }
+        .user-picker-item input { width: 16px; height: 16px; accent-color: var(--primary-green); flex-shrink: 0; }
+        .user-picker-search { padding: 0.625rem 1rem; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: var(--bg-white); z-index: 1; }
+        .user-picker-search input { width: 100%; padding: 0.5rem 0.75rem; border: 1px solid var(--border-color); border-radius: var(--radius-md); font-size: 0.875rem; background: var(--bg-gray); color: var(--text-primary); }
+        .user-picker-search input:focus { outline: none; border-color: var(--primary-green); }
+
+        /* Empty state */
+        .empty-state { text-align: center; padding: 3rem 2rem; color: var(--text-muted); }
+        .empty-state svg { width: 48px; height: 48px; opacity: 0.35; margin-bottom: 0.875rem; }
+        .empty-state p { font-size: 0.9375rem; }
+
+        /* Floating action bar */
+        .float-bar { position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); box-shadow: 0 10px 40px rgba(0,0,0,0.15); padding: 0.875rem 1.5rem; display: none; align-items: center; gap: 1rem; z-index: 1000; }
+        .float-bar.show { display: flex; }
+        .float-bar-label { font-size: 0.9375rem; font-weight: 600; color: var(--text-primary); white-space: nowrap; }
+
+        @media (max-width: 1024px) { .summary-grid { grid-template-columns: repeat(2, 1fr); } }
+        @media (max-width: 768px) { .summary-grid { grid-template-columns: 1fr; } .form-row { grid-template-columns: 1fr; } .page-header { flex-direction: column; } }
+    </style>
+</head>
+<body>
+    {% include 'includes/toast_notifications.html' %}
+    {% include 'includes/enhanced_nav.html' %}
+    {% if messages %}{% for message in messages %}
+    <div class="django-message-data" data-message="{{ message }}" data-tags="{{ message.tags }}" style="display:none;"></div>
+    {% endfor %}{% endif %}
+
+    <div class="main-container">
+
+        <!-- Header -->
+        <div class="page-header">
+            <div>
+                <div class="breadcrumb">
+                    <a href="{% url 'dashboard:home' %}">Dashboard</a>
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"></path></svg>
+                    <span>Notification Center</span>
+                </div>
+                <div class="page-title">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                        <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                    </svg>
+                    <h1>Notification Center</h1>
+                </div>
+                <p class="page-subtitle">Send email notifications manually — individually or in bulk</p>
+            </div>
+            <div>
+                <a href="{% url 'dashboard:home' %}" class="btn btn-outline btn-sm">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"></path></svg>
+                    Back
+                </a>
+            </div>
+        </div>
+        <!-- Summary -->
+        <div class="summary-grid">
+            <div class="summary-card">
+                <div class="summary-icon warning">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
+                <div>
+                    <div class="summary-value" style="color:#f59e0b;">{{ due_soon_count }}</div>
+                    <div class="summary-label">Due Within 3 Days</div>
+                    <div class="summary-sub">Reminder emails pending</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon danger">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                </div>
+                <div>
+                    <div class="summary-value" style="color:#ef4444;">{{ overdue_count }}</div>
+                    <div class="summary-label">Overdue Books</div>
+                    <div class="summary-sub">Overdue notifications pending</div>
+                </div>
+            </div>
+            <div class="summary-card">
+                <div class="summary-icon info">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                </div>
+                <div>
+                    <div class="summary-value" style="color:#0ea5e9;">{{ unpaid_count }}</div>
+                    <div class="summary-label">Unpaid Fines</div>
+                    <div class="summary-sub">Total: ETB {{ total_unpaid_amount|floatformat:2 }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- SECTION 1: Due-Date Reminders                                   -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-title warning">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    Due-Date Reminders
+                    <span class="count-badge badge-warning">{{ due_soon_count }}</span>
+                </div>
+                <div class="section-actions">
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="toggleSelectAll('due-soon')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                        Select All
+                    </button>
+                    <button type="button" class="btn btn-warning btn-sm" onclick="submitSection('due-soon', 'send_due_soon', 'Send due-date reminders to selected users?')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        Send Selected
+                    </button>
+                    <button type="button" class="btn btn-warning btn-sm" onclick="submitSection('due-soon', 'send_due_soon', 'Send due-date reminders to ALL {{ due_soon_count }} users?', true)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        Send All
+                    </button>
+                </div>
+            </div>
+
+            {% if due_soon_records %}
+            <div class="responsive-table-wrapper">
+                <table class="data-table" id="table-due-soon">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="select-all-cb" onchange="toggleTableSelectAll(this,'due-soon')"></th>
+                            <th>User</th>
+                            <th>Book</th>
+                            <th>Due Date</th>
+                            <th>Days Left</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rec in due_soon_records %}
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox due-soon-cb" value="{{ rec.id }}"></td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-sm">{{ rec.user.get_full_name|default:rec.user.username|slice:":1"|upper }}</div>
+                                    <div>
+                                        <div class="user-name">{{ rec.user.get_full_name|default:rec.user.username }}</div>
+                                        <div class="user-email">{{ rec.user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-weight:600;color:var(--text-primary);">{{ rec.book.title|truncatewords:5 }}</div>
+                                <div style="font-size:0.8125rem;color:var(--text-muted);">{{ rec.book.author|truncatewords:3 }}</div>
+                            </td>
+                            <td style="font-size:0.875rem;color:var(--text-secondary);">{{ rec.due_date|date:"M d, Y" }}</td>
+                            <td>
+                                {% with days=rec.due_date|timeuntil:today %}
+                                {% with dl=rec.due_date %}
+                                {% if dl == today %}
+                                <span class="status-badge status-overdue">Due Today</span>
+                                {% else %}
+                                <span class="status-badge status-due-soon">{{ rec.due_date|timeuntil }} left</span>
+                                {% endif %}
+                                {% endwith %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-warning btn-sm"
+                                    onclick="sendSingle('send_due_soon', {{ rec.id }}, 'Send reminder to {{ rec.user.username }}?')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                    Send
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                <p>No books due within the next 3 days.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- SECTION 2: Overdue Notifications                                -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-title danger">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                    Overdue Notifications
+                    <span class="count-badge badge-danger">{{ overdue_count }}</span>
+                </div>
+                <div class="section-actions">
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="toggleSelectAll('overdue')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                        Select All
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="submitSection('overdue', 'send_overdue', 'Send overdue notifications to selected users?')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        Send Selected
+                    </button>
+                    <button type="button" class="btn btn-danger btn-sm" onclick="submitSection('overdue', 'send_overdue', 'Send overdue notifications to ALL {{ overdue_count }} users?', true)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        Send All
+                    </button>
+                </div>
+            </div>
+
+            {% if overdue_records %}
+            <div class="responsive-table-wrapper">
+                <table class="data-table" id="table-overdue">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="select-all-cb" onchange="toggleTableSelectAll(this,'overdue')"></th>
+                            <th>User</th>
+                            <th>Book</th>
+                            <th>Due Date</th>
+                            <th>Days Overdue</th>
+                            <th>Fine (ETB)</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rec in overdue_records %}
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox overdue-cb" value="{{ rec.id }}"></td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-sm">{{ rec.user.get_full_name|default:rec.user.username|slice:":1"|upper }}</div>
+                                    <div>
+                                        <div class="user-name">{{ rec.user.get_full_name|default:rec.user.username }}</div>
+                                        <div class="user-email">{{ rec.user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-weight:600;color:var(--text-primary);">{{ rec.book.title|truncatewords:5 }}</div>
+                                <div style="font-size:0.8125rem;color:var(--text-muted);">{{ rec.book.author|truncatewords:3 }}</div>
+                            </td>
+                            <td style="font-size:0.875rem;color:var(--error);">{{ rec.due_date|date:"M d, Y" }}</td>
+                            <td><span class="status-badge status-overdue">{{ rec.get_days_overdue }} days</span></td>
+                            <td style="font-weight:700;color:var(--error);">{{ rec.fine_amount|floatformat:2 }}</td>
+                            <td>
+                                <button type="button" class="btn btn-danger btn-sm"
+                                    onclick="sendSingle('send_overdue', {{ rec.id }}, 'Send overdue notice to {{ rec.user.username }}?')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                    Send
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path></svg>
+                <p>No overdue books at the moment.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- SECTION 3: Unpaid Fine Notices                                  -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-title info">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                    Unpaid Fine Notices
+                    <span class="count-badge badge-info">{{ unpaid_count }}</span>
+                </div>
+                <div class="section-actions">
+                    <button type="button" class="btn btn-ghost btn-sm" onclick="toggleSelectAll('unpaid')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"></polyline><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path></svg>
+                        Select All
+                    </button>
+                    <button type="button" class="btn btn-info btn-sm" onclick="submitSection('unpaid', 'send_unpaid', 'Send unpaid fine notices to selected users?')">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        Send Selected
+                    </button>
+                    <button type="button" class="btn btn-info btn-sm" onclick="submitSection('unpaid', 'send_unpaid', 'Send unpaid fine notices to ALL {{ unpaid_count }} users?', true)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                        Send All
+                    </button>
+                </div>
+            </div>
+
+            {% if unpaid_records %}
+            <div class="responsive-table-wrapper">
+                <table class="data-table" id="table-unpaid">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" class="select-all-cb" onchange="toggleTableSelectAll(this,'unpaid')"></th>
+                            <th>User</th>
+                            <th>Book</th>
+                            <th>Fine (ETB)</th>
+                            <th>Status</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for rec in unpaid_records %}
+                        <tr>
+                            <td><input type="checkbox" class="row-checkbox unpaid-cb" value="{{ rec.id }}"></td>
+                            <td>
+                                <div class="user-cell">
+                                    <div class="user-avatar-sm">{{ rec.user.get_full_name|default:rec.user.username|slice:":1"|upper }}</div>
+                                    <div>
+                                        <div class="user-name">{{ rec.user.get_full_name|default:rec.user.username }}</div>
+                                        <div class="user-email">{{ rec.user.email }}</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <div style="font-weight:600;color:var(--text-primary);">{{ rec.book.title|truncatewords:5 }}</div>
+                                <div style="font-size:0.8125rem;color:var(--text-muted);">{{ rec.book.author|truncatewords:3 }}</div>
+                            </td>
+                            <td style="font-weight:700;color:var(--error);font-size:1rem;">{{ rec.fine_amount|floatformat:2 }}</td>
+                            <td><span class="status-badge status-unpaid">Unpaid</span></td>
+                            <td>
+                                <button type="button" class="btn btn-info btn-sm"
+                                    onclick="sendSingle('send_unpaid', {{ rec.id }}, 'Send fine notice to {{ rec.user.username }}?')">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                                    Send
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+            {% else %}
+            <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path><path d="M12 18V6"></path></svg>
+                <p>No unpaid fines at the moment.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <!-- SECTION 4: Custom Email                                         -->
+        <!-- ═══════════════════════════════════════════════════════════════ -->
+        <div class="section-card">
+            <div class="section-header">
+                <div class="section-title success">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path>
+                        <polyline points="22,6 12,13 2,6"></polyline>
+                    </svg>
+                    Custom Email
+                </div>
+            </div>
+            <div class="card-body">
+                <form method="POST" id="customEmailForm">
+                    {% csrf_token %}
+                    <input type="hidden" name="action" value="send_custom">
+
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label class="form-label">Recipients</label>
+                            <select class="form-select" name="recipient_type" id="recipientType" onchange="handleRecipientChange(this.value)">
+                                <option value="all">All Active Users</option>
+                                <option value="students">Students Only</option>
+                                <option value="librarians">Librarians Only</option>
+                                <option value="specific">Specific Users</option>
+                            </select>
+                            <p class="form-help">Use <code>{name}</code> and <code>{username}</code> in the message for personalisation.</p>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Subject</label>
+                            <input type="text" class="form-input" name="subject" placeholder="Email subject..." required>
+                        </div>
+                    </div>
+
+                    <!-- User picker (shown when "specific" is selected) -->
+                    <div class="form-group" id="userPickerGroup" style="display:none;">
+                        <label class="form-label">Select Users</label>
+                        <div class="user-picker show" id="userPicker">
+                            <div class="user-picker-search">
+                                <input type="text" placeholder="Search users..." oninput="filterUserPicker(this.value)" id="userPickerSearch">
+                            </div>
+                            {% for u in all_users %}
+                            <label class="user-picker-item" id="picker-{{ u.id }}">
+                                <input type="checkbox" name="selected_user_ids" value="{{ u.id }}">
+                                <div class="user-avatar-sm">{{ u.get_full_name|default:u.username|slice:":1"|upper }}</div>
+                                <div>
+                                    <div style="font-weight:600;font-size:0.875rem;color:var(--text-primary);">{{ u.get_full_name|default:u.username }}</div>
+                                    <div style="font-size:0.8125rem;color:var(--text-muted);">{{ u.email }}</div>
+                                </div>
+                            </label>
+                            {% endfor %}
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Message</label>
+                        <textarea class="form-textarea" name="body" rows="6"
+                            placeholder="Write your message here...&#10;&#10;Use {name} for the user's full name, {username} for their username." required></textarea>
+                    </div>
+
+                    <div style="display:flex;gap:0.75rem;flex-wrap:wrap;">
+                        <button type="submit" class="btn btn-primary">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                            Send Email
+                        </button>
+                        <button type="reset" class="btn btn-ghost">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 .49-3.5"></path></svg>
+                            Clear
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </div><!-- end main-container -->
+    <!-- Hidden form used by JS to submit section actions -->
+    <form method="POST" id="sectionForm" style="display:none;">
+        {% csrf_token %}
+        <input type="hidden" name="action" id="sectionAction">
+        <div id="sectionRecordIds"></div>
+    </form>
+
+    <!-- Confirm Modal is provided by toast_notifications.html (already included above) -->
+    {% include 'includes/enhanced_nav_scripts.html' %}
+    {% include 'includes/back_button.html' %}
+
+    <script>
+        // ── Pending confirm callback — uses the toast system's showConfirm ──
+        let _pendingConfirm = null;
+
+        function openConfirm(message, callback, color) {
+            _pendingConfirm = callback;
+            // Use the toast system's built-in confirm dialog
+            if (typeof showConfirm === 'function') {
+                const type = color === '#ef4444' ? 'danger'
+                           : color === '#f59e0b' ? 'warning'
+                           : color === '#0ea5e9' ? 'success'
+                           : 'warning';
+                showConfirm(message, type).then(confirmed => {
+                    if (confirmed && _pendingConfirm) {
+                        const cb = _pendingConfirm;
+                        _pendingConfirm = null;
+                        cb();
+                    } else {
+                        _pendingConfirm = null;
+                    }
+                });
+            } else {
+                // Fallback if toast system not loaded yet
+                if (window.confirm(message) && _pendingConfirm) {
+                    const cb = _pendingConfirm;
+                    _pendingConfirm = null;
+                    cb();
+                } else {
+                    _pendingConfirm = null;
+                }
+            }
+        }
+
+        // Keep these as no-ops for safety (called from onclick attributes)
+        function closeConfirm() {}
+        function doConfirm() {}
+
+        // ── Select all checkboxes in a section ──────────────────────────────
+        function toggleSelectAll(section) {
+            const cbs = document.querySelectorAll(`.${section}-cb`);
+            const allChecked = [...cbs].every(cb => cb.checked);
+            cbs.forEach(cb => cb.checked = !allChecked);
+        }
+
+        function toggleTableSelectAll(masterCb, section) {
+            document.querySelectorAll(`.${section}-cb`).forEach(cb => {
+                cb.checked = masterCb.checked;
+            });
+        }
+
+        // ── Get checked IDs for a section ──────────────────────────────────
+        function getCheckedIds(section) {
+            return [...document.querySelectorAll(`.${section}-cb:checked`)].map(cb => cb.value);
+        }
+
+        // ── Submit section form (bulk send) ─────────────────────────────────
+        function submitSection(section, action, message, sendAll = false) {
+            const ids = sendAll ? [] : getCheckedIds(section);
+
+            if (!sendAll && ids.length === 0) {
+                if (typeof showToast === 'function') {
+                    showToast('Please select at least one user first.', 'warning');
+                } else {
+                    alert('Please select at least one user first.');
+                }
+                return;
+            }
+
+            const colorMap = {
+                'send_due_soon': '#f59e0b',
+                'send_overdue':  '#ef4444',
+                'send_unpaid':   '#0ea5e9',
+            };
+            const color = colorMap[action] || '#10b981';
+
+            openConfirm(message, function() {
+                const form = document.getElementById('sectionForm');
+                document.getElementById('sectionAction').value = action;
+
+                // Clear previous record_ids inputs
+                const container = document.getElementById('sectionRecordIds');
+                container.innerHTML = '';
+
+                // If not sendAll, inject selected IDs as hidden inputs
+                // If sendAll, send no IDs — view will use the full queryset
+                if (!sendAll) {
+                    ids.forEach(id => {
+                        const inp = document.createElement('input');
+                        inp.type = 'hidden';
+                        inp.name = 'record_ids';
+                        inp.value = id;
+                        container.appendChild(inp);
+                    });
+                }
+
+                form.submit();
+            }, color);
+        }
+
+        // ── Send to a single record ─────────────────────────────────────────
+        function sendSingle(action, recordId, message) {
+            const colorMap = {
+                'send_due_soon': '#f59e0b',
+                'send_overdue':  '#ef4444',
+                'send_unpaid':   '#0ea5e9',
+            };
+            const color = colorMap[action] || '#10b981';
+
+            openConfirm(message, function() {
+                const form = document.getElementById('sectionForm');
+                document.getElementById('sectionAction').value = action;
+
+                const container = document.getElementById('sectionRecordIds');
+                container.innerHTML = '';
+
+                const inp = document.createElement('input');
+                inp.type = 'hidden';
+                inp.name = 'record_ids';
+                inp.value = recordId;
+                container.appendChild(inp);
+
+                form.submit();
+            }, color);
+        }
+
+        // ── Custom email: show/hide user picker ─────────────────────────────
+        function handleRecipientChange(value) {
+            const group = document.getElementById('userPickerGroup');
+            group.style.display = value === 'specific' ? 'block' : 'none';
+        }
+
+        // ── User picker search filter ───────────────────────────────────────
+        function filterUserPicker(query) {
+            const q = query.toLowerCase().trim();
+            document.querySelectorAll('#userPicker .user-picker-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                item.style.display = text.includes(q) ? 'flex' : 'none';
+            });
+        }
+
+        // ── Custom email form: confirm before submit ────────────────────────
+        document.getElementById('customEmailForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const subject = this.querySelector('[name=subject]').value.trim();
+            const recipientType = this.querySelector('[name=recipient_type]').value;
+
+            const labelMap = {
+                'all':        'all active users',
+                'students':   'all students',
+                'librarians': 'all librarians',
+                'specific':   'selected users',
+            };
+            const label = labelMap[recipientType] || 'selected users';
+
+            openConfirm(
+                `Send "${subject}" to ${label}?`,
+                () => this.submit(),
+                '#10b981'
+            );
+        });
+
+        // ── Show pending toast after page reload ────────────────────────────
+        document.addEventListener('DOMContentLoaded', function() {
+            const pending = sessionStorage.getItem('pendingToast');
+            if (pending) {
+                sessionStorage.removeItem('pendingToast');
+                try {
+                    const { message, type } = JSON.parse(pending);
+                    if (typeof showToast === 'function') showToast(message, type);
+                } catch(e) {}
+            }
+        });
+    </script>
+</body>
+</html>

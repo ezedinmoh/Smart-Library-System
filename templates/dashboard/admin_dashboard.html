@@ -952,6 +952,20 @@
                         <span>Bulk Email Users</span>
                     </a>
 
+                    <!-- Notification Center -->
+                    <a href="{% url 'dashboard:notification_center' %}" class="quick-action-card">
+                        <div class="quick-action-icon gradient-bg-2">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                            </svg>
+                        </div>
+                        <span>Notifications</span>
+                        {% if overdue_books %}
+                        <span class="quick-action-badge warning">{{ overdue_books }}</span>
+                        {% endif %}
+                    </a>
+
                 </div>
             </div>
             <!-- Stats Overview -->
@@ -1038,6 +1052,87 @@
                                 <polyline points="20 6 9 17 4 12"></polyline>
                             </svg>
                             All clear
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Due Soon Books -->
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-card-content">
+                        <span class="stat-card-label">Due Within 3 Days</span>
+                        <span class="stat-card-value">{{ books_due_soon|default:0 }}</span>
+                        <span class="stat-card-change neutral">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polyline points="12 6 12 12 16 14"></polyline>
+                            </svg>
+                            Reminder needed
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Unpaid Fines -->
+                <div class="stat-card">
+                    <div class="stat-card-icon red">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
+                            <path d="M12 18V6"></path>
+                        </svg>
+                    </div>
+                    <div class="stat-card-content">
+                        <span class="stat-card-label">Unpaid Fines</span>
+                        <span class="stat-card-value">ETB {{ unpaid_fines|floatformat:0 }}</span>
+                        {% if unpaid_fines > 0 %}
+                        <span class="stat-card-change negative">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
+                                <polyline points="17 18 23 18 23 12"></polyline>
+                            </svg>
+                            Collection needed
+                        </span>
+                        {% else %}
+                        <span class="stat-card-change positive">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            All paid
+                        </span>
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <!-- Pending Requests -->
+                <div class="stat-card">
+                    <div class="stat-card-icon" style="background: linear-gradient(135deg, #8b5cf6, #7c3aed);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polyline points="12 6 12 12 16 14"></polyline>
+                        </svg>
+                    </div>
+                    <div class="stat-card-content">
+                        <span class="stat-card-label">Pending Requests</span>
+                        <span class="stat-card-value">{{ pending_requests }}</span>
+                        {% if pending_requests > 0 %}
+                        <span class="stat-card-change neutral">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <line x1="5" y1="12" x2="19" y2="12"></line>
+                            </svg>
+                            Awaiting approval
+                        </span>
+                        {% else %}
+                        <span class="stat-card-change positive">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                            All processed
                         </span>
                         {% endif %}
                     </div>
