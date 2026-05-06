@@ -256,6 +256,40 @@
         display: flex;
         align-items: center;
         gap: 0.75rem;
+        padding-right: 0;
+    }
+
+    .nav-actions .profile-dropdown {
+        margin-left: 0.25rem;
+    }
+
+    /* Notification Center Button */
+    .nav-notif-center {
+        position: relative;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #10b981, #0ea5e9);
+        border: none;
+        cursor: pointer;
+        text-decoration: none;
+        flex-shrink: 0;
+        margin-right: 0.25rem;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .nav-notif-center:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .nav-notif-center svg {
+        width: 18px;
+        height: 18px;
+        stroke: white;
     }
 
     .icon-btn {
@@ -768,6 +802,11 @@
             display: none !important;
         }
 
+        /* Hide notification center button on very small screens */
+        .nav-notif-center {
+            display: none !important;
+        }
+
         .nav-actions {
             gap: 4px; /* Tighter spacing */
         }
@@ -794,6 +833,11 @@
         .nav-actions .btn-primary {
             display: none !important;
         }
+
+        /* Hide notification center button on small phones */
+        .nav-notif-center {
+            display: none !important;
+        }
     }
 
     /* Large phones (640px - 767px) */
@@ -805,6 +849,11 @@
         /* Hide auth buttons - they're in mobile menu */
         .nav-actions .btn-secondary,
         .nav-actions .btn-primary {
+            display: none !important;
+        }
+
+        /* Hide notification center button — no room */
+        .nav-notif-center {
             display: none !important;
         }
     }

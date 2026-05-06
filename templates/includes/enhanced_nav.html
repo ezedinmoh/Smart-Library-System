@@ -357,6 +357,16 @@
             {% get_user_notifications user as user_notifications %}
             {% get_pending_requests_count as pending_count %}
             
+            {% if user.is_admin or user.is_librarian %}
+            <a href="{% url 'dashboard:notification_center' %}" class="icon-btn nav-notif-center" title="Notification Center"
+               style="position:relative;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#10b981,#0ea5e9);border:none;cursor:pointer;text-decoration:none;flex-shrink:0;margin-right:0.25rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" style="width:18px;height:18px;">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </a>
+            {% endif %}
+            
             <div class="notification-wrapper">
                 <button class="icon-btn notification-btn" id="notificationBtn" onclick="window.location.href='{% url 'users:notifications' %}'">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -475,6 +485,13 @@
                         </svg>
                         Admin Dashboard
                     </a>
+                    <a href="{% url 'dashboard:notification_center' %}" class="dropdown-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        Notification Center
+                    </a>
                     {% elif user.is_librarian %}
                     <a href="{% url 'dashboard:librarian' %}" class="dropdown-item">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -484,6 +501,13 @@
                             <rect x="3" y="14" width="7" height="7"></rect>
                         </svg>
                         Librarian Dashboard
+                    </a>
+                    <a href="{% url 'dashboard:notification_center' %}" class="dropdown-item">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <line x1="22" y1="2" x2="11" y2="13"></line>
+                            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                        </svg>
+                        Notification Center
                     </a>
                     {% else %}
                     <a href="{% url 'dashboard:student' %}" class="dropdown-item">

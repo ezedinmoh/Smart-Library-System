@@ -8,10 +8,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     {% include 'includes/enhanced_nav_styles.html' %}
+    
     <style>
         /* Page-specific styles only — variables come from enhanced_nav_styles.html */
-        /* Extra vars not in nav styles */
         :root {
             --primary-green: #10b981;
             --primary-blue: #0ea5e9;
@@ -23,77 +24,284 @@
             --radius-lg: 0.75rem;
             --radius-xl: 1rem;
         }
+        
         [data-theme="dark"] {
             --bg-light: #374151;
             --text-muted: #9ca3af;
         }
 
-        body { font-family: 'Inter', sans-serif; background: var(--bg-gray); color: var(--text-primary); min-height: 100vh; }
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background: var(--bg-gray); 
+            color: var(--text-primary); 
+            min-height: 100vh; 
+        }
 
-        .main-container { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem; }
+        .main-container { 
+            max-width: 900px; 
+            margin: 0 auto; 
+            padding: 2rem 1.5rem; 
+        }
 
         /* Breadcrumb */
-        .breadcrumb { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; font-size: 0.875rem; color: var(--text-secondary); }
-        .breadcrumb a { color: var(--text-secondary); text-decoration: none; }
-        .breadcrumb a:hover { color: var(--primary-green); }
-        .breadcrumb svg { width: 16px; height: 16px; }
+        .breadcrumb { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.5rem; 
+            margin-bottom: 0.75rem; 
+            font-size: 0.875rem; 
+            color: var(--text-secondary); 
+        }
+        .breadcrumb a { 
+            color: var(--text-secondary); 
+            text-decoration: none; 
+        }
+        .breadcrumb a:hover { 
+            color: var(--primary-green); 
+        }
+        .breadcrumb svg { 
+            width: 16px; 
+            height: 16px; 
+        }
 
         /* Page header */
-        .page-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; gap: 1rem; flex-wrap: wrap; }
-        .page-title { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.375rem; }
-        .page-title svg { width: 28px; height: 28px; color: var(--primary-green); }
-        .page-title h1 { font-size: 1.875rem; font-weight: 800; background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
-        .page-subtitle { color: var(--text-secondary); font-size: 0.9375rem; }
+        .page-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start; 
+            margin-bottom: 2rem; 
+            gap: 1rem; 
+            flex-wrap: wrap; 
+        }
+        .page-title { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+            margin-bottom: 0.375rem; 
+        }
+        .page-title svg { 
+            width: 28px; 
+            height: 28px; 
+            color: var(--primary-green); 
+        }
+        .page-title h1 { 
+            font-size: 1.875rem; 
+            font-weight: 800; 
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); 
+            -webkit-background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            background-clip: text; 
+        }
+        .page-subtitle { 
+            color: var(--text-secondary); 
+            font-size: 0.9375rem; 
+        }
 
         /* Buttons */
-        .btn { display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem 1.5rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem; font-weight: 600; border-radius: var(--radius-md); border: none; cursor: pointer; transition: all 0.2s; text-decoration: none; white-space: nowrap; }
-        .btn svg { width: 18px; height: 18px; }
-        .btn-primary { background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
-        .btn-outline { background: transparent; color: var(--text-secondary); border: 2px solid var(--border-color); }
-        .btn-outline:hover { border-color: var(--primary-green); color: var(--primary-green); }
-        .btn-sm { padding: 0.5rem 0.875rem; font-size: 0.875rem; }
+        .btn { 
+            display: inline-flex; 
+            align-items: center; 
+            justify-content: center; 
+            gap: 0.5rem; 
+            padding: 0.75rem 1.5rem; 
+            font-family: 'Inter', sans-serif; 
+            font-size: 0.9375rem; 
+            font-weight: 600; 
+            border-radius: var(--radius-md); 
+            border: none; 
+            cursor: pointer; 
+            transition: all 0.2s; 
+            text-decoration: none; 
+            white-space: nowrap; 
+        }
+        .btn svg { 
+            width: 18px; 
+            height: 18px; 
+        }
+        .btn-primary { 
+            background: linear-gradient(135deg, var(--primary-green), var(--primary-blue)); 
+            color: white; 
+        }
+        .btn-primary:hover { 
+            transform: translateY(-2px); 
+            box-shadow: var(--shadow-md); 
+        }
+        .btn-outline { 
+            background: transparent; 
+            color: var(--text-secondary); 
+            border: 2px solid var(--border-color); 
+        }
+        .btn-outline:hover { 
+            border-color: var(--primary-green); 
+            color: var(--primary-green); 
+        }
+        .btn-sm { 
+            padding: 0.5rem 0.875rem; 
+            font-size: 0.875rem; 
+        }
 
         /* Info box */
-        .info-box { background: rgba(14,165,233,0.08); border: 1px solid rgba(14,165,233,0.2); border-radius: var(--radius-lg); padding: 1rem 1.25rem; margin-bottom: 1.5rem; display: flex; align-items: flex-start; gap: 0.75rem; }
-        .info-box svg { width: 20px; height: 20px; color: var(--primary-blue); flex-shrink: 0; margin-top: 2px; }
-        .info-box-title { font-weight: 600; color: var(--primary-blue); margin-bottom: 4px; font-size: 0.9375rem; }
-        .info-box-text { font-size: 0.875rem; color: var(--text-secondary); }
+        .info-box { 
+            background: rgba(14,165,233,0.08); 
+            border: 1px solid rgba(14,165,233,0.2); 
+            border-radius: var(--radius-lg); 
+            padding: 1rem 1.25rem; 
+            margin-bottom: 1.5rem; 
+            display: flex; 
+            align-items: flex-start; 
+            gap: 0.75rem; 
+        }
+        .info-box svg { 
+            width: 20px; 
+            height: 20px; 
+            color: var(--primary-blue); 
+            flex-shrink: 0; 
+            margin-top: 2px; 
+        }
+        .info-box-title { 
+            font-weight: 600; 
+            color: var(--primary-blue); 
+            margin-bottom: 4px; 
+            font-size: 0.9375rem; 
+        }
+        .info-box-text { 
+            font-size: 0.875rem; 
+            color: var(--text-secondary); 
+        }
 
         /* Settings card */
-        .settings-card { background: var(--bg-white); border: 1px solid var(--border-color); border-radius: var(--radius-xl); padding: 2rem; margin-bottom: 1.5rem; box-shadow: var(--shadow-sm); }
+        .settings-card { 
+            background: var(--bg-white); 
+            border: 1px solid var(--border-color); 
+            border-radius: var(--radius-xl); 
+            padding: 2rem; 
+            margin-bottom: 1.5rem; 
+            box-shadow: var(--shadow-sm); 
+        }
 
         /* Section */
-        .settings-section { margin-bottom: 2rem; padding-bottom: 2rem; border-bottom: 1px solid var(--border-color); }
-        .settings-section:last-child { margin-bottom: 0; padding-bottom: 0; border-bottom: none; }
-        .section-title { font-size: 1.0625rem; font-weight: 700; margin-bottom: 0.375rem; color: var(--text-primary); display: flex; align-items: center; gap: 0.625rem; }
-        .section-title svg { width: 20px; height: 20px; color: var(--primary-green); }
-        .section-description { font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 1.25rem; }
+        .settings-section { 
+            margin-bottom: 2rem; 
+            padding-bottom: 2rem; 
+            border-bottom: 1px solid var(--border-color); 
+        }
+        .settings-section:last-child { 
+            margin-bottom: 0; 
+            padding-bottom: 0; 
+            border-bottom: none; 
+        }
+        .section-title { 
+            font-size: 1.0625rem; 
+            font-weight: 700; 
+            margin-bottom: 0.375rem; 
+            color: var(--text-primary); 
+            display: flex; 
+            align-items: center; 
+            gap: 0.625rem; 
+        }
+        .section-title svg { 
+            width: 20px; 
+            height: 20px; 
+            color: var(--primary-green); 
+        }
+        .section-description { 
+            font-size: 0.875rem; 
+            color: var(--text-secondary); 
+            margin-bottom: 1.25rem; 
+        }
 
         /* Form */
-        .form-group { margin-bottom: 1.25rem; }
-        .form-label { display: block; font-weight: 600; font-size: 0.9375rem; margin-bottom: 0.5rem; color: var(--text-primary); }
-        .form-input { width: 100%; padding: 0.75rem 1rem; font-family: 'Inter', sans-serif; font-size: 0.9375rem; color: var(--text-primary); background: var(--bg-gray); border: 2px solid var(--border-color); border-radius: var(--radius-md); transition: all 0.2s; }
-        .form-input:focus { outline: none; border-color: var(--primary-green); background: var(--bg-white); box-shadow: 0 0 0 3px rgba(16,185,129,0.1); }
-        .form-help { font-size: 0.8125rem; color: var(--text-muted); margin-top: 0.375rem; }
-        .form-help a { color: var(--primary-green); }
-        .input-group { display: flex; align-items: center; gap: 0.75rem; }
-        .input-addon { font-weight: 600; color: var(--text-secondary); font-size: 0.9375rem; white-space: nowrap; }
+        .form-group { 
+            margin-bottom: 1.25rem; 
+        }
+        .form-label { 
+            display: block; 
+            font-weight: 600; 
+            font-size: 0.9375rem; 
+            margin-bottom: 0.5rem; 
+            color: var(--text-primary); 
+        }
+        .form-input { 
+            width: 100%; 
+            padding: 0.75rem 1rem; 
+            font-family: 'Inter', sans-serif; 
+            font-size: 0.9375rem; 
+            color: var(--text-primary); 
+            background: var(--bg-gray); 
+            border: 2px solid var(--border-color); 
+            border-radius: var(--radius-md); 
+            transition: all 0.2s; 
+        }
+        .form-input:focus { 
+            outline: none; 
+            border-color: var(--primary-green); 
+            background: var(--bg-white); 
+            box-shadow: 0 0 0 3px rgba(16,185,129,0.1); 
+        }
+        .form-help { 
+            font-size: 0.8125rem; 
+            color: var(--text-muted); 
+            margin-top: 0.375rem; 
+        }
+        .form-help a { 
+            color: var(--primary-green); 
+        }
+        .input-group { 
+            display: flex; 
+            align-items: center; 
+            gap: 0.75rem; 
+        }
+        .input-addon { 
+            font-weight: 600; 
+            color: var(--text-secondary); 
+            font-size: 0.9375rem; 
+            white-space: nowrap; 
+        }
 
         /* Actions */
-        .actions { display: flex; gap: 0.75rem; margin-top: 1.5rem; flex-wrap: wrap; }
+        .actions { 
+            display: flex; 
+            gap: 0.75rem; 
+            margin-top: 1.5rem; 
+            flex-wrap: wrap; 
+        }
 
         /* Summary grid */
-        .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 1rem; }
-        .summary-item { background: var(--bg-light); border-radius: var(--radius-md); padding: 1rem; }
-        .summary-label { font-size: 0.8125rem; color: var(--text-secondary); margin-bottom: 0.25rem; }
-        .summary-value { font-size: 1.5rem; font-weight: 700; color: var(--primary-green); }
+        .summary-grid { 
+            display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); 
+            gap: 1rem; 
+        }
+        .summary-item { 
+            background: var(--bg-light); 
+            border-radius: var(--radius-md); 
+            padding: 1rem; 
+        }
+        .summary-label { 
+            font-size: 0.8125rem; 
+            color: var(--text-secondary); 
+            margin-bottom: 0.25rem; 
+        }
+        .summary-value { 
+            font-size: 1.5rem; 
+            font-weight: 700; 
+            color: var(--primary-green); 
+        }
 
         @media (max-width: 640px) {
-            .main-container { padding: 1.5rem 1rem; }
-            .page-header { flex-direction: column; }
-            .actions { flex-direction: column; }
-            .btn { width: 100%; justify-content: center; }
+            .main-container { 
+                padding: 1.5rem 1rem; 
+            }
+            .page-header { 
+                flex-direction: column; 
+            }
+            .actions { 
+                flex-direction: column; 
+            }
+            .btn { 
+                width: 100%; 
+                justify-content: center; 
+            }
         }
     </style>
 </head>
@@ -277,422 +485,5 @@
 
     {% include 'includes/enhanced_nav_scripts.html' %}
     {% include 'includes/back_button.html' %}
-</body>
-</html>
-    <style>
-        :root {
-            --primary: #10b981;
-            --primary-dark: #059669;
-            --secondary: #0ea5e9;
-            --background: #ffffff;
-            --surface: #f8fafc;
-            --text-primary: #0f172a;
-            --text-secondary: #64748b;
-            --border: #e2e8f0;
-            --success: #22c55e;
-            --radius: 12px;
-            --radius-lg: 16px;
-            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
-        }
-
-        body {
-            font-family: 'Inter', sans-serif;
-            background: var(--background);
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 120px 40px 60px;
-        }
-
-        .page-header {
-            margin-bottom: 40px;
-        }
-
-        .page-title {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            margin-bottom: 12px;
-        }
-
-        .page-title svg {
-            width: 36px;
-            height: 36px;
-            color: var(--primary);
-        }
-
-        .page-title h1 {
-            font-size: 2.5rem;
-            font-weight: 700;
-        }
-
-        .page-description {
-            font-size: 1.125rem;
-            color: var(--text-secondary);
-        }
-
-        .settings-card {
-            background: var(--background);
-            border: 1px solid var(--border);
-            border-radius: var(--radius-lg);
-            padding: 32px;
-            margin-bottom: 24px;
-        }
-
-        .settings-section {
-            margin-bottom: 32px;
-        }
-
-        .settings-section:last-child {
-            margin-bottom: 0;
-        }
-
-        .section-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            margin-bottom: 16px;
-            color: var(--text-primary);
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .section-title svg {
-            width: 24px;
-            height: 24px;
-            color: var(--primary);
-        }
-
-        .section-description {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-bottom: 20px;
-        }
-
-        .form-group {
-            margin-bottom: 24px;
-        }
-
-        .form-label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: var(--text-primary);
-        }
-
-        .form-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 1px solid var(--border);
-            border-radius: var(--radius);
-            font-size: 1rem;
-            transition: all 0.2s ease;
-        }
-
-        .form-input:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.1);
-        }
-
-        .form-help {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-            margin-top: 6px;
-        }
-
-        .input-group {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .input-addon {
-            font-weight: 600;
-            color: var(--text-secondary);
-        }
-
-        .btn {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            gap: 8px;
-            padding: 14px 28px;
-            border-radius: var(--radius);
-            font-weight: 600;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: all 0.2s ease;
-            border: none;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
-            color: white;
-        }
-
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 16px rgba(16, 185, 129, 0.3);
-        }
-
-        .btn-secondary {
-            background: var(--surface);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
-        }
-
-        .btn-secondary:hover {
-            background: var(--border);
-        }
-
-        .btn svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .actions {
-            display: flex;
-            gap: 12px;
-            margin-top: 32px;
-            padding-top: 32px;
-            border-top: 2px solid var(--border);
-        }
-
-        .info-box {
-            background: rgba(14, 165, 233, 0.1);
-            border: 1px solid rgba(14, 165, 233, 0.2);
-            border-radius: var(--radius);
-            padding: 16px;
-            margin-bottom: 24px;
-        }
-
-        .info-box-title {
-            font-weight: 600;
-            color: var(--secondary);
-            margin-bottom: 8px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .info-box-title svg {
-            width: 20px;
-            height: 20px;
-        }
-
-        .info-box-text {
-            font-size: 0.875rem;
-            color: var(--text-secondary);
-        }
-
-        @media (max-width: 768px) {
-            .settings-card {
-                padding: 24px;
-            }
-
-            .actions {
-                flex-direction: column;
-            }
-
-            .btn {
-                width: 100%;
-            }
-        }
-    </style>
-</head>
-<body>
-    {% include 'includes/toast_notifications.html' %}
-    {% include 'includes/enhanced_nav.html' %}
-
-    <!-- Django Messages for Toast -->
-    {% if messages %}
-        {% for message in messages %}
-        <div class="django-message-data" data-message="{{ message }}" data-tags="{{ message.tags }}" style="display: none;"></div>
-        {% endfor %}
-    {% endif %}
-
-    <div class="container">
-        <!-- Page Header -->
-        <div class="page-header">
-            <div class="page-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M12 1v6m0 6v6m5.2-13.2l-4.2 4.2m0 6l4.2 4.2M23 12h-6m-6 0H1m18.2 5.2l-4.2-4.2m0-6l4.2-4.2"></path>
-                </svg>
-                <h1>System Settings</h1>
-            </div>
-            <p class="page-description">Configure library system settings and payment options</p>
-        </div>
-
-        <!-- Info Box -->
-        <div class="info-box">
-            <div class="info-box-title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                Important Information
-            </div>
-            <div class="info-box-text">
-                Changes to these settings take effect immediately. All new fine calculations and payments will use the updated values.
-            </div>
-        </div>
-
-        <!-- Settings Form -->
-        <form method="POST" class="settings-card">
-            {% csrf_token %}
-
-            <!-- Borrowing Settings -->
-            <div class="settings-section">
-                <h2 class="section-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
-                        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
-                    </svg>
-                    Borrowing Settings
-                </h2>
-                <p class="section-description">Configure default borrowing limits and duration</p>
-
-                <div class="form-group">
-                    <label class="form-label" for="default_borrow_limit">Default Borrow Limit</label>
-                    <input type="number" 
-                           class="form-input" 
-                           id="default_borrow_limit" 
-                           name="default_borrow_limit" 
-                           value="{{ settings.default_borrow_limit }}"
-                           min="1" 
-                           max="20" 
-                           required>
-                    <p class="form-help">Maximum number of books a user can borrow at once (1-20)</p>
-                </div>
-
-                <div class="form-group">
-                    <label class="form-label" for="max_borrow_days">Maximum Borrow Days</label>
-                    <input type="number" 
-                           class="form-input" 
-                           id="max_borrow_days" 
-                           name="max_borrow_days" 
-                           value="{{ settings.max_borrow_days }}"
-                           min="1" 
-                           max="90" 
-                           required>
-                    <p class="form-help">Maximum days a book can be borrowed (1-90)</p>
-                </div>
-            </div>
-
-            <!-- Fine Settings -->
-            <div class="settings-section">
-                <h2 class="section-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8"></path>
-                        <path d="M12 18V6"></path>
-                    </svg>
-                    Fine Settings
-                </h2>
-                <p class="section-description">Configure fine amount for overdue books</p>
-
-                <div class="form-group">
-                    <label class="form-label" for="fine_per_day">Fine Per Day (ETB)</label>
-                    <div class="input-group">
-                        <span class="input-addon">ETB</span>
-                        <input type="number" 
-                               class="form-input" 
-                               id="fine_per_day" 
-                               name="fine_per_day" 
-                               value="{{ settings.fine_per_day }}"
-                               min="0" 
-                               step="0.01" 
-                               required>
-                    </div>
-                    <p class="form-help">Fine amount charged per day for overdue books (Ethiopian Birr)</p>
-                </div>
-            </div>
-
-            <!-- Payment Settings -->
-            <div class="settings-section">
-                <h2 class="section-title">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
-                        <line x1="1" y1="10" x2="23" y2="10"></line>
-                    </svg>
-                    Payment Settings
-                </h2>
-                <p class="section-description">Configure currency exchange rate for international payments</p>
-
-                <div class="form-group">
-                    <label class="form-label" for="etb_to_usd_rate">Exchange Rate (ETB to USD)</label>
-                    <input type="number" 
-                           class="form-input" 
-                           id="etb_to_usd_rate" 
-                           name="etb_to_usd_rate" 
-                           value="{{ settings.etb_to_usd_rate }}"
-                           min="0" 
-                           step="0.0001" 
-                           required>
-                    <p class="form-help">
-                        Exchange rate: 1 ETB = X USD (e.g., 0.0180 means 1 ETB = $0.018 USD)<br>
-                        Check current rate at: <a href="https://www.xe.com/currencyconverter/convert/?Amount=1&From=ETB&To=USD" target="_blank" style="color: var(--primary);">XE Currency Converter</a>
-                    </p>
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="actions">
-                <button type="submit" class="btn btn-primary">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                    </svg>
-                    Save Settings
-                </button>
-                <a href="{% url 'dashboard:admin' %}" class="btn btn-secondary">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <line x1="19" y1="12" x2="5" y2="12"></line>
-                        <polyline points="12 19 5 12 12 5"></polyline>
-                    </svg>
-                    Cancel
-                </a>
-            </div>
-        </form>
-
-        <!-- Current Values Display -->
-        <div class="settings-card" style="background: var(--surface);">
-            <h3 style="margin-bottom: 16px; font-size: 1.125rem;">Current Settings Summary</h3>
-            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-                <div>
-                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Borrow Limit</div>
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">{{ settings.default_borrow_limit }} books</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Max Days</div>
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">{{ settings.max_borrow_days }} days</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Fine Per Day</div>
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">ETB {{ settings.fine_per_day }}</div>
-                </div>
-                <div>
-                    <div style="font-size: 0.875rem; color: var(--text-secondary);">Exchange Rate</div>
-                    <div style="font-size: 1.5rem; font-weight: 700; color: var(--primary);">{{ settings.etb_to_usd_rate }}</div>
-                </div>
-            </div>
-            {% if settings.updated_at %}
-            <div style="margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 0.875rem; color: var(--text-secondary);">
-                Last updated: {{ settings.updated_at|date:"F d, Y - g:i A" }}
-                {% if settings.updated_by %}by {{ settings.updated_by.get_full_name|default:settings.updated_by.username }}{% endif %}
-            </div>
-            {% endif %}
-        </div>
-    </div>
-
-    {% include 'includes/enhanced_nav_scripts.html' %}
 </body>
 </html>
