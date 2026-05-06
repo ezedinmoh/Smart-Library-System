@@ -25,7 +25,7 @@ Need More Time?
 If you need to keep the book longer, contact us at {{ site_url }} to request an extension (subject to availability).
 
 Important:
-- Late returns incur a fine of ETB 2 per day
+- Late returns incur a fine of ETB {{ fine_per_day }} per day
 - Overdue books affect your borrowing privileges
 
 Best regards,

@@ -30,8 +30,8 @@ GETTING STARTED:
 BORROWING LIMITS:
 -----------------
 - Maximum books you can borrow: {{ user.profile.max_books_allowed }}
-- Loan period: 14 days per book
-- Late return fine: ETB 2 per day
+- Loan period: {{ max_borrow_days }} days per book
+- Late return fine: ETB {{ fine_per_day }} per day
 
 IMPORTANT REMINDERS:
 --------------------

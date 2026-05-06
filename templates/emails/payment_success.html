@@ -1,125 +1,63 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Payment Successful</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            line-height: 1.6;
-            color: #333;
-            max-width: 600px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 30px;
-            text-align: center;
-            border-radius: 10px 10px 0 0;
-        }
-        .content {
-            background: #f8f9fa;
-            padding: 30px;
-            border-radius: 0 0 10px 10px;
-        }
-        .success-icon {
-            font-size: 48px;
-            margin-bottom: 20px;
-        }
-        .details-box {
-            background: white;
-            padding: 20px;
-            border-radius: 8px;
-            margin: 20px 0;
-            border-left: 4px solid #28a745;
-        }
-        .details-box h3 {
-            margin-top: 0;
-            color: #28a745;
-        }
-        .detail-row {
-            padding: 8px 0;
-            border-bottom: 1px solid #e9ecef;
-        }
-        .detail-row:last-child {
-            border-bottom: none;
-        }
-        .detail-label {
-            font-weight: bold;
-            color: #666;
-        }
-        .detail-value {
-            color: #333;
-        }
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #dee2e6;
-            color: #666;
-            font-size: 14px;
-        }
-        .button {
-            display: inline-block;
-            padding: 12px 30px;
-            background: #28a745;
-            color: white;
-            text-decoration: none;
-            border-radius: 5px;
-            margin-top: 20px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body>
-    <div class="header">
-        <div class="success-icon">✓</div>
-        <h1 style="margin: 0;">Payment Successful!</h1>
-    </div>
-    
-    <div class="content">
-        <p>Hello <strong>{{ user.get_full_name|default:user.username }}</strong>,</p>
-        
-        <p>Your payment has been processed successfully! Your fine has been cleared and your library account is now in good standing.</p>
-        
-        <div class="details-box">
-            <h3>Payment Details</h3>
-            <div class="detail-row">
-                <span class="detail-label">Amount:</span>
-                <span class="detail-value">{{ amount }} {{ currency }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Payment Method:</span>
-                <span class="detail-value">{{ payment_method }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Transaction ID:</span>
-                <span class="detail-value">{{ transaction_id }}</span>
-            </div>
-        </div>
-        
-        <div class="details-box">
-            <h3>Book Details</h3>
-            <div class="detail-row">
-                <span class="detail-label">Title:</span>
-                <span class="detail-value">{{ book.title }}</span>
-            </div>
-            <div class="detail-row">
-                <span class="detail-label">Author:</span>
-                <span class="detail-value">{{ book.author }}</span>
-            </div>
-        </div>
-        
-        <p style="text-align: center;">
-            <a href="{{ site_url }}/borrow/my-books/" class="button">View My Books</a>
-        </p>
-        
-        <div class="footer">
-            <p>Thank you for using {{ site_name }}!</p>
-            <p><a href="{{ site_url }}">{{ site_url }}</a></p>
-        </div>
-    </div>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:32px 16px;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;max-width:600px;width:100%;">
+
+  <!-- Header -->
+  <tr><td style="background:linear-gradient(135deg,#10b981,#0ea9d2);padding:28px 32px;">
+    <p style="margin:0;color:rgba(255,255,255,0.85);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ site_name }}</p>
+    <h1 style="margin:8px 0 0;color:#ffffff;font-size:24px;font-weight:700;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">✅ Payment Successful</h1>
+  </td></tr>
+
+  <!-- Body -->
+  <tr><td style="padding:32px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <p style="margin:0 0 16px;color:#0f172a;font-size:15px;">Hi <strong>{{ user.get_full_name|default:user.username }}</strong>,</p>
+    <p style="margin:0 0 24px;color:#0f172a;font-size:15px;line-height:1.6;">Your payment has been processed successfully. Your fine has been cleared.</p>
+
+    <!-- Payment Details -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:8px;border-left:3px solid #10b981;margin-bottom:24px;">
+      <tr><td style="padding:20px;">
+        <p style="margin:0 0 12px;color:#0f172a;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">💳 Payment Details</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding:5px 0;color:#64748b;font-size:14px;font-weight:600;width:40%;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Amount</td><td style="padding:5px 0;color:#10b981;font-size:18px;font-weight:700;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ amount }} {{ currency }}</td></tr>
+          <tr><td style="padding:5px 0;color:#64748b;font-size:14px;font-weight:600;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Method</td><td style="padding:5px 0;color:#0f172a;font-size:14px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ payment_method }}</td></tr>
+          <tr><td style="padding:5px 0;color:#64748b;font-size:14px;font-weight:600;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Transaction ID</td><td style="padding:5px 0;color:#0f172a;font-size:14px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ transaction_id }}</td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <!-- Book Details -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:8px;border-left:3px solid #0ea9d2;margin-bottom:24px;">
+      <tr><td style="padding:20px;">
+        <p style="margin:0 0 12px;color:#0f172a;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">📚 Book</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding:5px 0;color:#64748b;font-size:14px;font-weight:600;width:40%;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Title</td><td style="padding:5px 0;color:#0f172a;font-size:14px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ book.title }}</td></tr>
+          <tr><td style="padding:5px 0;color:#64748b;font-size:14px;font-weight:600;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Author</td><td style="padding:5px 0;color:#0f172a;font-size:14px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ book.author }}</td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <!-- CTA -->
+    <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 24px;">
+      <a href="{{ site_url }}/borrow/my-books/" style="background:linear-gradient(135deg,#10b981,#0ea9d2);color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;display:inline-block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">View My Books</a>
+    </td></tr></table>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:#f8fafc;padding:20px 32px;border-top:1px solid #e2e8f0;">
+    <p style="margin:0;color:#94a3b8;font-size:12px;text-align:center;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+      {{ site_name }}{% if site_url %} &bull; <a href="{{ site_url }}" style="color:#10b981;text-decoration:none;">{{ site_url }}</a>{% endif %}
+    </p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
 </body>
 </html>

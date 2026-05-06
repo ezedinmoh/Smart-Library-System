@@ -14,7 +14,7 @@ Days Overdue: {{ days_overdue }} day{{ days_overdue|pluralize }}
 FINE INFORMATION:
 -----------------
 Current Fine: ETB {{ fine_amount }}
-Fine Rate: ETB 2 per day
+Fine Rate: ETB {{ fine_per_day }} per day
 
 {% if days_overdue == 1 %}
 Your book became overdue yesterday. Please return it as soon as possible to minimize additional fines.
@@ -32,7 +32,7 @@ IMMEDIATE ACTION REQUIRED:
 
 CONSEQUENCES OF LATE RETURN:
 -----------------------------
-- Fines continue to accumulate (ETB 2 per day)
+- Fines continue to accumulate (ETB {{ fine_per_day }} per day)
 - Your borrowing privileges may be suspended
 - You cannot borrow new books until this is resolved
 - Outstanding fines must be paid before future borrowing

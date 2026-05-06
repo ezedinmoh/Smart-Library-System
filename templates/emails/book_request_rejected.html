@@ -1,67 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
-    <div style="background: linear-gradient(135deg, #ef4444, #dc2626); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
-        <h1 style="color: white; margin: 0; font-size: 24px;">❌ Request Rejected</h1>
-    </div>
-    
-    <div style="background: white; padding: 30px; border-radius: 0 0 10px 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
-        <h2 style="color: #1f2937; margin-top: 0;">Hello {{ user.get_full_name|default:user.username }},</h2>
-        
-        <p style="color: #4b5563; font-size: 16px;">We regret to inform you that your book request has been <strong style="color: #ef4444;">rejected</strong>.</p>
-        
-        <!-- Book Details Card -->
-        <div style="background: #f3f4f6; border-left: 4px solid #ef4444; padding: 20px; border-radius: 8px; margin: 24px 0;">
-            <h3 style="color: #1f2937; margin-top: 0; font-size: 18px;">📚 Book Details</h3>
-            <table style="width: 100%; border-collapse: collapse;">
-                <tr>
-                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Title:</td>
-                    <td style="padding: 8px 0; color: #1f2937;">{{ book.title }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Author:</td>
-                    <td style="padding: 8px 0; color: #1f2937;">{{ book.author }}</td>
-                </tr>
-                <tr>
-                    <td style="padding: 8px 0; color: #6b7280; font-weight: 600;">Category:</td>
-                    <td style="padding: 8px 0; color: #1f2937;">{{ book.category.name|default:'N/A' }}</td>
-                </tr>
-            </table>
-        </div>
-        
-        <!-- Rejection Reason -->
-        <div style="background: #fee2e2; border-left: 4px solid #ef4444; padding: 16px; border-radius: 8px; margin: 24px 0;">
-            <h4 style="color: #991b1b; margin-top: 0; font-size: 14px;">📝 Rejection Reason:</h4>
-            <p style="color: #991b1b; margin: 0; font-size: 14px;">{{ reason|default:'No specific reason provided.' }}</p>
-        </div>
-        
-        <!-- What You Can Do -->
-        <div style="margin: 24px 0;">
-            <h3 style="color: #1f2937; font-size: 16px;">💡 What You Can Do:</h3>
-            <ul style="color: #4b5563; padding-left: 20px;">
-                <li style="margin-bottom: 8px;">Browse other available books in our catalog</li>
-                <li style="margin-bottom: 8px;">Contact us at <a href="{{ site_url }}" style="color:#4b5563;">{{ site_url }}</a></li>
-                <li style="margin-bottom: 8px;">Submit a new request for a different book</li>
-            </ul>
-        </div>
-        
-        <!-- Action Button -->
-        <div style="text-align: center; margin: 32px 0;">
-            <a href="{{ site_url }}/books/" style="background: #6b7280; color: white; padding: 14px 32px; text-decoration: none; border-radius: 8px; display: inline-block; font-weight: 600; font-size: 16px;">Browse Books</a>
-        </div>
-        
-        <p style="color: #6b7280; font-size: 14px; text-align: center; margin-top: 24px;">If you have any questions, contact us at <a href="{{ site_url }}" style="color:#3b82f6;">{{ site_url }}</a></p>
-        
-        <hr style="margin: 30px 0; border: none; border-top: 1px solid #e5e7eb;">
-        
-        <p style="color: #9ca3af; font-size: 12px; text-align: center;">
-            Best regards,<br>
-            {{ site_name }} Team
-        </p>
-    </div>
+<body style="margin:0;padding:0;background:#f8fafc;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;padding:32px 16px;">
+<tr><td align="center">
+<table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 6px -1px rgba(0,0,0,0.1);border:1px solid #e2e8f0;max-width:600px;width:100%;">
+
+  <!-- Header -->
+  <tr><td style="background:linear-gradient(135deg,#10b981,#0ea9d2);padding:28px 32px;">
+    <p style="margin:0;color:rgba(255,255,255,0.85);font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ site_name }}</p>
+    <h1 style="margin:8px 0 0;color:#ffffff;font-size:24px;font-weight:700;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">❌ Request Rejected</h1>
+  </td></tr>
+
+  <!-- Body -->
+  <tr><td style="padding:32px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+    <p style="margin:0 0 16px;color:#0f172a;font-size:15px;">Hi <strong>{{ user.get_full_name|default:user.username }}</strong>,</p>
+    <p style="margin:0 0 24px;color:#0f172a;font-size:15px;line-height:1.6;">Your book request has been <strong style="color:#ef4444;">rejected</strong>.</p>
+
+    <!-- Book Details -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:8px;border-left:3px solid #ef4444;margin-bottom:24px;">
+      <tr><td style="padding:20px;">
+        <p style="margin:0 0 12px;color:#0f172a;font-size:13px;font-weight:700;text-transform:uppercase;letter-spacing:0.06em;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">📚 Book Details</p>
+        <table width="100%" cellpadding="0" cellspacing="0">
+          <tr><td style="padding:5px 0;color:#64748b;font-size:14px;font-weight:600;width:40%;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Title</td><td style="padding:5px 0;color:#0f172a;font-size:14px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ book.title }}</td></tr>
+          <tr><td style="padding:5px 0;color:#64748b;font-size:14px;font-weight:600;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Author</td><td style="padding:5px 0;color:#0f172a;font-size:14px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ book.author }}</td></tr>
+          <tr><td style="padding:5px 0;color:#64748b;font-size:14px;font-weight:600;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Category</td><td style="padding:5px 0;color:#0f172a;font-size:14px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ book.category.name|default:'N/A' }}</td></tr>
+        </table>
+      </td></tr>
+    </table>
+
+    <!-- Rejection Reason -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background:#f8fafc;border-radius:8px;border-left:3px solid #ef4444;margin-bottom:24px;">
+      <tr><td style="padding:16px;">
+        <p style="margin:0 0 6px;color:#ef4444;font-size:14px;font-weight:700;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">📝 Reason</p>
+        <p style="margin:0;color:#64748b;font-size:14px;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">{{ reason|default:'No specific reason provided.' }}</p>
+      </td></tr>
+    </table>
+
+    <!-- CTA -->
+    <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:8px 0 24px;">
+      <a href="{{ site_url }}/books/" style="background:linear-gradient(135deg,#10b981,#0ea9d2);color:#ffffff;padding:14px 32px;text-decoration:none;border-radius:8px;font-size:15px;font-weight:700;display:inline-block;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">Browse Other Books</a>
+    </td></tr></table>
+  </td></tr>
+
+  <!-- Footer -->
+  <tr><td style="background:#f8fafc;padding:20px 32px;border-top:1px solid #e2e8f0;">
+    <p style="margin:0;color:#94a3b8;font-size:12px;text-align:center;font-family:'Inter',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;">
+      {{ site_name }}{% if site_url %} &bull; <a href="{{ site_url }}" style="color:#10b981;text-decoration:none;">{{ site_url }}</a>{% endif %}
+    </p>
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
 </body>
 </html>

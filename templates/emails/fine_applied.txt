@@ -14,7 +14,7 @@ Days Overdue: {{ days_overdue }} day{{ days_overdue|pluralize }}
 FINE DETAILS:
 -------------
 Fine Amount: ETB {{ fine_amount }}
-Fine Rate: ETB 2 per day
+Fine Rate: ETB {{ fine_per_day }} per day
 Status: {% if fine_paid %}PAID{% else %}UNPAID{% endif %}
 
 {% if not fine_paid %}

@@ -125,10 +125,14 @@ def notify_request_approved(request, book_request):
         ).first()
 
         if borrow_record and book_request.user.email:
+            from apps.dashboard.models import SystemSettings
+            sys_settings = SystemSettings.get_settings()
             context = {
                 'user': book_request.user,
                 'book': book_request.book,
                 'due_date': borrow_record.due_date,
+                'fine_per_day': sys_settings.fine_per_day,
+                'max_borrow_days': sys_settings.max_borrow_days,
                 'site_name': settings.SITE_NAME,
                 'site_url': settings.SITE_URL,
             }
@@ -173,11 +177,14 @@ def notify_book_due_soon(borrow_record):
     try:
         from django.conf import settings
         from django.template.loader import render_to_string
+        from apps.dashboard.models import SystemSettings
         if not borrow_record.user.email:
             return
+        sys_settings = SystemSettings.get_settings()
         days_remaining = (borrow_record.due_date - timezone.now().date()).days
         ctx = {'user': borrow_record.user, 'book': borrow_record.book,
                'due_date': borrow_record.due_date, 'days_remaining': days_remaining,
+               'fine_per_day': sys_settings.fine_per_day,
                'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Book Due Soon - {borrow_record.book.title}'
         _send_email_async(subject,
@@ -193,12 +200,15 @@ def notify_book_overdue(borrow_record):
     try:
         from django.conf import settings
         from django.template.loader import render_to_string
+        from apps.dashboard.models import SystemSettings
         if not borrow_record.user.email:
             return
+        sys_settings = SystemSettings.get_settings()
         days_overdue = (timezone.now().date() - borrow_record.due_date).days
         ctx = {'user': borrow_record.user, 'book': borrow_record.book,
                'due_date': borrow_record.due_date, 'days_overdue': days_overdue,
                'fine_amount': borrow_record.fine_amount,
+               'fine_per_day': sys_settings.fine_per_day,
                'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Overdue Book - {borrow_record.book.title}'
         _send_email_async(subject,
@@ -214,12 +224,15 @@ def notify_fine_applied(borrow_record):
     try:
         from django.conf import settings
         from django.template.loader import render_to_string
+        from apps.dashboard.models import SystemSettings
         if not borrow_record.user.email:
             return
+        sys_settings = SystemSettings.get_settings()
         days_overdue = (timezone.now().date() - borrow_record.due_date).days
         ctx = {'user': borrow_record.user, 'book': borrow_record.book,
                'due_date': borrow_record.due_date, 'days_overdue': days_overdue,
                'fine_amount': borrow_record.fine_amount, 'fine_paid': borrow_record.fine_paid,
+               'fine_per_day': sys_settings.fine_per_day,
                'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Fine Applied - {borrow_record.book.title}'
         _send_email_async(subject,
@@ -254,9 +267,14 @@ def send_welcome_email(user):
     try:
         from django.conf import settings
         from django.template.loader import render_to_string
+        from apps.dashboard.models import SystemSettings
         if not user.email:
             return
-        ctx = {'user': user, 'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
+        sys_settings = SystemSettings.get_settings()
+        ctx = {'user': user,
+               'fine_per_day': sys_settings.fine_per_day,
+               'max_borrow_days': sys_settings.max_borrow_days,
+               'site_name': settings.SITE_NAME, 'site_url': settings.SITE_URL}
         subject = f'Welcome to {settings.SITE_NAME}!'
         _send_email_async(subject,
                           render_to_string('emails/welcome.txt', ctx),

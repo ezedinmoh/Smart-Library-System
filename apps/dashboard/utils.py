@@ -762,11 +762,14 @@ def _send_notification_email(action, rec, custom_to=None, custom_subject=None, c
 
         if action == 'send_due_soon':
             days_remaining = (rec.due_date - timezone.now().date()).days
+            from apps.dashboard.models import SystemSettings
+            sys_settings = SystemSettings.get_settings()
             ctx = {
                 'user': user,
                 'book': book,
                 'due_date': rec.due_date,
                 'days_remaining': days_remaining,
+                'fine_per_day': sys_settings.fine_per_day,
                 'site_name': site_name,
                 'site_url': site_url,
             }
@@ -776,12 +779,15 @@ def _send_notification_email(action, rec, custom_to=None, custom_subject=None, c
 
         elif action == 'send_overdue':
             days_overdue = (timezone.now().date() - rec.due_date).days
+            from apps.dashboard.models import SystemSettings
+            sys_settings = SystemSettings.get_settings()
             ctx = {
                 'user': user,
                 'book': book,
                 'due_date': rec.due_date,
                 'days_overdue': days_overdue,
                 'fine_amount': rec.fine_amount,
+                'fine_per_day': sys_settings.fine_per_day,
                 'site_name': site_name,
                 'site_url': site_url,
             }
@@ -791,6 +797,8 @@ def _send_notification_email(action, rec, custom_to=None, custom_subject=None, c
 
         elif action == 'send_unpaid':
             days_overdue = max((timezone.now().date() - rec.due_date).days, 0)
+            from apps.dashboard.models import SystemSettings
+            sys_settings = SystemSettings.get_settings()
             ctx = {
                 'user': user,
                 'book': book,
@@ -798,6 +806,7 @@ def _send_notification_email(action, rec, custom_to=None, custom_subject=None, c
                 'days_overdue': days_overdue,
                 'fine_amount': rec.fine_amount,
                 'fine_paid': rec.fine_paid,
+                'fine_per_day': sys_settings.fine_per_day,
                 'site_name': site_name,
                 'site_url': site_url,
             }
