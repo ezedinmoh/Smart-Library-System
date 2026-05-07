@@ -22,7 +22,8 @@ urlpatterns = [
     path('categories/<int:pk>/', views.category_detail, name='category_detail'),
     path('categories/create/', views.category_create, name='category_create'),
     path('categories/<int:pk>/edit/', views.category_edit, name='category_edit'),
-    
+    path('manage/', views.manage_books, name='manage_books'),
+
     # Bulk operations
     path('bulk-import/', views.bulk_import_books, name='bulk_import'),
     path('bulk-import/template/', views.download_import_template, name='import_template'),

@@ -50,6 +50,13 @@
                                     </svg>
                                     Manage Categories
                                 </a>
+                                <a href="{% url 'books:manage_books' %}" class="dropdown-item">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                    </svg>
+                                    Manage Books
+                                </a>
                             </div>
                             <div class="dropdown-divider"></div>
                             <div class="dropdown-section">
@@ -575,6 +582,7 @@
                 <div class="mobile-dropdown-content">
                     <a href="{% url 'books:create' %}" class="mobile-link nested">Add Book</a>
                     <a href="{% url 'books:categories' %}" class="mobile-link nested">Manage Categories</a>
+                    <a href="{% url 'books:manage_books' %}" class="mobile-link nested">Manage Books</a>
                     <a href="{% url 'users:list' %}" class="mobile-link nested">Manage Users</a>
                     <a href="{% url 'users:create' %}" class="mobile-link nested">Create User</a>
                     <a href="{% url 'borrow:pending_requests' %}" class="mobile-link nested">

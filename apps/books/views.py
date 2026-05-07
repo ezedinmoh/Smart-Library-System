@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.db.models import Q
+from django.db.models import Q, Count
 from django.http import JsonResponse, HttpResponse, FileResponse
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
@@ -963,6 +963,145 @@ def bulk_import_books(request):
         'errors': errors,
     }
     return render(request, 'books/bulk_import.html', context)
+
+@login_required
+@admin_required
+def manage_books(request):
+    """Manage Books page — Admin only. Edit, delete, bulk delete, bulk stock increase."""
+    from django.db.models import Sum, F, ExpressionWrapper, IntegerField
+
+    # ── Bulk actions (POST) ──────────────────────────────────────────────────
+    if request.method == 'POST':
+        action = request.POST.get('action')
+        selected_ids = request.POST.getlist('selected_books')
+
+        if action == 'bulk_delete':
+            if not selected_ids:
+                messages.warning(request, 'No books selected for deletion.')
+                return redirect('books:manage_books')
+            books_qs = Book.objects.filter(pk__in=selected_ids)
+            count = books_qs.count()
+            # Check for active borrows
+            from apps.borrow.models import BorrowRecord
+            active = BorrowRecord.objects.filter(
+                book__in=books_qs, status__in=['borrowed', 'overdue']
+            ).count()
+            if active > 0:
+                messages.warning(
+                    request,
+                    f'{active} active borrow(s) exist for selected books. '
+                    f'Deleting anyway — borrow records will be affected.'
+                )
+            from apps.dashboard.utils import log_activity
+            log_activity(request.user, 'book_deleted',
+                         f'Bulk deleted {count} book(s) from Manage Books', request)
+            books_qs.delete()
+            messages.success(request, f'Successfully deleted {count} book(s).')
+
+        elif action == 'bulk_add_copies':
+            if not selected_ids:
+                messages.warning(request, 'No books selected.')
+                return redirect('books:manage_books')
+            try:
+                amount = int(request.POST.get('copies_amount', 1))
+                if amount < 1:
+                    raise ValueError
+            except (ValueError, TypeError):
+                messages.error(request, 'Invalid copies amount.')
+                return redirect('books:manage_books')
+            books_qs = Book.objects.filter(pk__in=selected_ids)
+            count = books_qs.count()
+            # Use F() expressions with queryset update to bypass model save/full_clean
+            books_qs.update(
+                total_copies=F('total_copies') + amount,
+                available_copies=F('available_copies') + amount
+            )
+            from apps.dashboard.utils import log_activity
+            log_activity(request.user, 'book_updated',
+                         f'Bulk added {amount} cop(ies) to {count} book(s)', request)
+            messages.success(
+                request,
+                f'Added {amount} cop{"y" if amount == 1 else "ies"} to {count} book(s).'
+            )
+
+        return redirect('books:manage_books')
+
+    # ── GET — build queryset with filters ───────────────────────────────────
+    books = Book.objects.select_related('category').annotate(
+        borrowed_copies=ExpressionWrapper(
+            F('total_copies') - F('available_copies'),
+            output_field=IntegerField()
+        )
+    )
+
+    # Search
+    search = request.GET.get('search', '').strip()
+    if search:
+        books = books.filter(
+            Q(title__icontains=search) |
+            Q(author__icontains=search) |
+            Q(isbn__icontains=search)
+        )
+
+    # Category filter
+    category_id = request.GET.get('category', '')
+    if category_id:
+        books = books.filter(category_id=category_id)
+
+    # Availability filter
+    availability = request.GET.get('availability', '')
+    if availability == 'available':
+        books = books.filter(available_copies__gt=0)
+    elif availability == 'unavailable':
+        books = books.filter(available_copies=0)
+    elif availability == 'low_stock':
+        books = books.filter(available_copies__gt=0, available_copies__lte=2)
+
+    # Sort
+    sort = request.GET.get('sort', '-created_at')
+    allowed_sorts = ['title', '-title', 'author', '-author', '-created_at',
+                     'created_at', '-times_borrowed', 'available_copies', '-available_copies']
+    if sort not in allowed_sorts:
+        sort = '-created_at'
+    books = books.order_by(sort)
+
+    # Pagination
+    paginator = Paginator(books, 20)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # Summary stats
+    all_books = Book.objects.aggregate(
+        total=Count('id'),
+        total_copies=Sum('total_copies'),
+        available=Sum('available_copies'),
+    )
+    total_books   = all_books['total'] or 0
+    total_copies  = all_books['total_copies'] or 0
+    total_avail   = all_books['available'] or 0
+    total_borrowed = total_copies - total_avail
+    out_of_stock  = Book.objects.filter(available_copies=0).count()
+    low_stock     = Book.objects.filter(available_copies__gt=0, available_copies__lte=2).count()
+
+    categories = Category.objects.all()
+
+    context = {
+        'page_obj': page_obj,
+        'books': page_obj.object_list,
+        'categories': categories,
+        'search': search,
+        'selected_category': category_id,
+        'selected_availability': availability,
+        'selected_sort': sort,
+        # Stats
+        'total_books': total_books,
+        'total_copies': total_copies,
+        'total_available': total_avail,
+        'total_borrowed': total_borrowed,
+        'out_of_stock': out_of_stock,
+        'low_stock': low_stock,
+    }
+    return render(request, 'books/manage_books.html', context)
 
 
 @login_required

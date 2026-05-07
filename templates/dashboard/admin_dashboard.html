@@ -581,6 +581,10 @@
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                             Manage Categories
                         </a>
+                        <a href="{% url 'books:manage_books' %}" class="submenu-link">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                            Manage Books
+                        </a>
                     </div>
                     <div class="submenu-group">
                         <span class="submenu-label">User Management</span>
@@ -854,6 +858,15 @@
                         </div>
                         <span>Add Book</span>
                     </a>
+                    <a href="{% url 'books:manage_books' %}" class="quick-action-card">
+                        <div class="quick-action-icon gradient-bg-4">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                            </svg>
+                        </div>
+                        <span>Manage Books</span>
+                    </a>
                     <a href="{% url 'users:create' %}" class="quick-action-card">
                         <div class="quick-action-icon gradient-bg-2">
                             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -970,7 +983,7 @@
             </div>
             <!-- Stats Overview -->
             <div class="stats-overview">
-                <div class="stat-card">
+                <div class="stat-card" style="cursor:pointer;" onclick="window.location='{% url 'books:manage_books' %}'">
                     <div class="stat-card-icon blue">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
