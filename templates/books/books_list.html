@@ -764,15 +764,23 @@
         @media (max-width: 768px) {
             .books-catalog-grid {
                 grid-template-columns: repeat(2, 1fr);
-                gap: 16px;
+                gap: 12px;
             }
-            
+
+            .catalog-main {
+                padding: 80px 0 40px;
+            }
+
             .container {
-                padding: 0 24px;
+                padding: 0 16px;
             }
             
             .catalog-title h1 {
-                font-size: 2rem;
+                font-size: 1.75rem;
+            }
+
+            .catalog-title p {
+                font-size: 0.875rem;
             }
             
             .filters-container {
@@ -787,23 +795,90 @@
             .filter-group select {
                 width: 100%;
             }
+
+            .book-catalog-cover {
+                height: 150px;
+            }
+
+            .book-catalog-info {
+                padding: 10px 12px 12px;
+            }
+
+            .book-title {
+                font-size: 0.875rem;
+            }
+
+            .book-author,
+            .book-category,
+            .book-isbn {
+                font-size: 0.75rem;
+            }
+
+            .catalog-stats {
+                gap: 16px;
+            }
+
+            .stat-value {
+                font-size: 1.25rem;
+            }
+
+            .results-info {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .advanced-search-box input {
+                font-size: 0.875rem;
+            }
         }
         
         @media (max-width: 480px) {
             .books-catalog-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(2, 1fr);
+                gap: 10px;
             }
             
             .nav-container {
-                padding: 0 16px;
+                padding: 0 12px;
             }
             
             .container {
-                padding: 0 16px;
+                padding: 0 12px;
+            }
+
+            .catalog-main {
+                padding: 72px 0 32px;
             }
             
             .profile-name {
                 display: none;
+            }
+
+            .book-catalog-cover {
+                height: 130px;
+            }
+
+            .book-catalog-info {
+                padding: 8px 10px 10px;
+            }
+
+            .book-title {
+                font-size: 0.8125rem;
+            }
+
+            .catalog-title h1 {
+                font-size: 1.5rem;
+            }
+
+            .search-btn {
+                padding: 10px 14px;
+                font-size: 0.8125rem;
+            }
+
+            .back-to-home-catalog a {
+                font-size: 0.875rem;
+                padding: 8px 14px;
             }
         }
         
