@@ -54,7 +54,7 @@ def books_list(request):
             books = books.filter(available_copies=0)
     
     # Pagination
-    paginator = Paginator(books, 12)
+    paginator = Paginator(books, 30)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
