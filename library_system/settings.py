@@ -29,8 +29,20 @@ DEBUG = config('DEBUG', default=True, cast=bool)
 
 ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1').split(',')
 
+# ============================================================================
+# IFRAME EMBEDDING CONFIGURATION
+# ============================================================================
 # Allow iframes from same origin (needed for PDF reader)
 X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# Domains allowed to embed this site in iframes
+# Add your portfolio domain and any other trusted domains
+# Use '*' to allow embedding from any domain (less secure)
+# Example: ['https://yourportfolio.com', 'https://yourdomain.com']
+ALLOWED_IFRAME_DOMAINS = config(
+    'ALLOWED_IFRAME_DOMAINS',
+    default=''
+).split(',') if config('ALLOWED_IFRAME_DOMAINS', default='') else []
 
 
 # Application definition
@@ -76,6 +88,9 @@ MIDDLEWARE = [
     'allauth.account.middleware.AccountMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    # Custom middleware for iframe embedding
+    'library_system.middleware.IframeEmbeddingMiddleware',
+    'library_system.middleware.CORSIframeMiddleware',
 ]
 
 ROOT_URLCONF = 'library_system.urls'

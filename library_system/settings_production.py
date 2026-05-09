@@ -57,9 +57,17 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 # Enable browser XSS protection
 SECURE_BROWSER_XSS_FILTER = True
 
-# X-Frame-Options: Keep as SAMEORIGIN for PDF reader functionality
-# If you don't need PDF reader, change to 'DENY' for better security
+# X-Frame-Options: Controlled by IframeEmbeddingMiddleware
+# The middleware will handle this based on ALLOWED_IFRAME_DOMAINS setting
 X_FRAME_OPTIONS = 'SAMEORIGIN'
+
+# Iframe Embedding Configuration for Production
+# Add your portfolio domain and any other trusted domains
+# Example: 'https://yourportfolio.com,https://yourdomain.com,https://*.vercel.app'
+ALLOWED_IFRAME_DOMAINS = config(
+    'ALLOWED_IFRAME_DOMAINS',
+    default=''
+).split(',') if config('ALLOWED_IFRAME_DOMAINS', default='') else []
 
 # Secure proxy SSL header (if behind a proxy like Nginx)
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
