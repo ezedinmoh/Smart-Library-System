@@ -245,12 +245,68 @@
             display: none;
         }
 
+        .stripe-pay-section {
+            margin-bottom: 24px;
+        }
+
+        .stripe-pay-section-title {
+            font-size: 0.9375rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: var(--text-primary);
+        }
+
+        .stripe-pay-section-desc {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin: -6px 0 12px;
+        }
+
         #express-checkout-wrapper {
-            margin-bottom: 20px;
+            margin-bottom: 0;
         }
 
         #express-checkout-element {
-            min-height: 44px;
+            min-height: 48px;
+        }
+
+        .stripe-methods-badges {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 20px;
+        }
+
+        .stripe-method-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 0.75rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 999px;
+        }
+
+        .stripe-method-badge.available {
+            color: var(--primary);
+            border-color: rgba(16, 185, 129, 0.35);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .stripe-method-badge svg {
+            width: 14px;
+            height: 14px;
+            flex-shrink: 0;
+        }
+
+        #stripe-available-methods {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            margin-bottom: 16px;
+            min-height: 1.25rem;
         }
 
         .stripe-wallet-divider {
@@ -487,21 +543,50 @@
                 </div>
                 {% endif %}
                 
-                <h3 style="margin-bottom: 16px;">Choose payment option</h3>
+                <h3 style="margin-bottom: 8px;">Choose payment option</h3>
+                <p style="font-size: 0.875rem; color: var(--text-secondary); margin-bottom: 16px;">
+                    One-click wallets appear first when available. All other methods are in the menu below.
+                </p>
+
+                <div class="stripe-methods-badges" aria-hidden="true">
+                    <span class="stripe-method-badge">Card</span>
+                    <span class="stripe-method-badge">Apple Pay</span>
+                    <span class="stripe-method-badge">Google Pay</span>
+                    <span class="stripe-method-badge">Link</span>
+                    <span class="stripe-method-badge">PayPal</span>
+                    <span class="stripe-method-badge">Amazon Pay</span>
+                    <span class="stripe-method-badge">Klarna</span>
+                    <span class="stripe-method-badge">Affirm</span>
+                    <span class="stripe-method-badge">Cash App</span>
+                    <span class="stripe-method-badge">Bank</span>
+                </div>
+                <div id="stripe-available-methods"></div>
 
                 <div class="stripe-wallet-hint">
-                    Available methods depend on your device, browser, and Stripe account settings.
-                    <strong>Apple Pay</strong> requires HTTPS, Safari (or supported browser), a card in Apple Wallet, and
-                    <a href="https://dashboard.stripe.com/settings/payment_method_domains" target="_blank" rel="noopener noreferrer">domain registration</a> in Stripe.
+                    Which buttons you see depends on your device, browser, and
+                    <a href="https://dashboard.stripe.com/settings/payment_methods" target="_blank" rel="noopener noreferrer">enabled methods in Stripe</a>.
+                    <strong>Apple Pay</strong> needs HTTPS, a supported browser, a card in Apple Wallet, and
+                    <a href="https://dashboard.stripe.com/settings/payment_method_domains" target="_blank" rel="noopener noreferrer">domain registration</a>.
+                    Extra methods appear in the <strong>More</strong> menu when there are many options.
                 </div>
 
                 <form id="payment-form">
                     <div id="stripe-element-loading">Loading secure payment options…</div>
-                    <div id="express-checkout-wrapper" style="display: none;">
-                        <div id="express-checkout-element"></div>
-                        <div class="stripe-wallet-divider">Or pay with card / other methods</div>
+
+                    <div class="stripe-pay-section" id="express-checkout-section" style="display: none;">
+                        <div class="stripe-pay-section-title">Quick pay</div>
+                        <div class="stripe-pay-section-desc">Apple Pay, Google Pay, Link, PayPal, and more</div>
+                        <div id="express-checkout-wrapper">
+                            <div id="express-checkout-element"></div>
+                        </div>
                     </div>
-                    <div id="payment-element" style="display: none;"></div>
+
+                    <div class="stripe-pay-section" id="payment-element-section" style="display: none;">
+                        <div class="stripe-wallet-divider" id="stripe-methods-divider" style="display: none;">Or choose another method</div>
+                        <div class="stripe-pay-section-title">All payment methods</div>
+                        <div class="stripe-pay-section-desc">Cards, buy now pay later, bank transfer, and regional options</div>
+                        <div id="payment-element"></div>
+                    </div>
                     <div id="payment-errors" class="payment-errors"></div>
                     <button type="submit" class="btn btn-primary" id="stripe-submit-btn" disabled>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -670,20 +755,76 @@
             }
         }
 
+        const STRIPE_METHOD_LABELS = {
+            card: 'Card',
+            applePay: 'Apple Pay',
+            apple_pay: 'Apple Pay',
+            googlePay: 'Google Pay',
+            google_pay: 'Google Pay',
+            link: 'Link',
+            paypal: 'PayPal',
+            amazonPay: 'Amazon Pay',
+            amazon_pay: 'Amazon Pay',
+            klarna: 'Klarna',
+            affirm: 'Affirm',
+            cashapp: 'Cash App',
+            us_bank_account: 'Bank',
+            afterpay_clearpay: 'Afterpay',
+        };
+
         function setStripeLoadingState(isLoading) {
             const loadingEl = document.getElementById('stripe-element-loading');
-            const paymentEl = document.getElementById('payment-element');
-            const expressWrapper = document.getElementById('express-checkout-wrapper');
+            const expressSection = document.getElementById('express-checkout-section');
+            const paymentSection = document.getElementById('payment-element-section');
             if (loadingEl) {
                 loadingEl.style.display = isLoading ? 'block' : 'none';
             }
-            if (paymentEl) {
-                paymentEl.style.display = isLoading ? 'none' : 'block';
+            if (!isLoading) {
+                if (expressSection) {
+                    expressSection.style.display = expressSection.dataset.hasWallets === 'true' ? 'block' : 'none';
+                }
+                if (paymentSection) {
+                    paymentSection.style.display = 'block';
+                }
+            } else {
+                if (expressSection) {
+                    expressSection.style.display = 'none';
+                }
+                if (paymentSection) {
+                    paymentSection.style.display = 'none';
+                }
             }
-            if (expressWrapper && !isLoading) {
-                expressWrapper.style.display = expressWrapper.dataset.hasWallets === 'true' ? 'block' : 'none';
-            } else if (expressWrapper && isLoading) {
-                expressWrapper.style.display = 'none';
+        }
+
+        function updateAvailableMethodsDisplay(availableMethods) {
+            const statusEl = document.getElementById('stripe-available-methods');
+            const badges = document.querySelectorAll('.stripe-method-badge');
+            if (!statusEl) {
+                return;
+            }
+
+            const labels = [];
+
+            if (availableMethods && typeof availableMethods === 'object') {
+                Object.keys(availableMethods).forEach(function(key) {
+                    if (availableMethods[key] && STRIPE_METHOD_LABELS[key]) {
+                        labels.push(STRIPE_METHOD_LABELS[key]);
+                    }
+                });
+            }
+
+            badges.forEach(function(badge) {
+                const badgeLabel = badge.textContent.trim();
+                const isAvailable = labels.some(function(label) {
+                    return label === badgeLabel;
+                });
+                badge.classList.toggle('available', isAvailable);
+            });
+
+            if (labels.length) {
+                statusEl.textContent = 'Available on your device: ' + labels.join(', ') + '.';
+            } else {
+                statusEl.textContent = 'Select a payment method below. Wallets may appear after Stripe loads your options.';
             }
         }
 
@@ -705,9 +846,21 @@
                 layout: {
                     type: 'accordion',
                     defaultCollapsed: false,
-                    radios: true,
+                    radios: 'if_multiple',
                     spacedAccordionItems: true,
+                    visibleAccordionItemsCount: 6,
                 },
+                paymentMethodOrder: [
+                    'card',
+                    'link',
+                    'klarna',
+                    'affirm',
+                    'afterpay_clearpay',
+                    'cashapp',
+                    'amazon_pay',
+                    'paypal',
+                    'us_bank_account',
+                ],
                 wallets: {
                     applePay: 'auto',
                     googlePay: 'auto',
@@ -771,9 +924,34 @@
                 appearance: getStripeAppearance(),
             });
 
-            // One-click wallets: Apple Pay, Google Pay, Link, PayPal (when eligible)
             expressCheckoutElement = elements.create('expressCheckout', {
                 buttonHeight: 48,
+                buttonType: {
+                    applePay: 'buy',
+                    googlePay: 'buy',
+                    paypal: 'buynow',
+                },
+                layout: {
+                    maxColumns: 4,
+                    maxRows: 2,
+                    overflow: 'auto',
+                },
+                paymentMethodOrder: [
+                    'apple_pay',
+                    'google_pay',
+                    'link',
+                    'paypal',
+                    'klarna',
+                    'amazon_pay',
+                ],
+                paymentMethods: {
+                    applePay: 'auto',
+                    googlePay: 'auto',
+                    link: 'auto',
+                    paypal: 'auto',
+                    amazonPay: 'auto',
+                    klarna: 'auto',
+                },
                 lineItems: [
                     {
                         name: STRIPE_BOOK_TITLE,
@@ -783,25 +961,34 @@
             });
             expressCheckoutElement.mount('#express-checkout-element');
 
+            expressCheckoutElement.on('ready', function(event) {
+                const expressSection = document.getElementById('express-checkout-section');
+                const divider = document.getElementById('stripe-methods-divider');
+                const hasWallets = Boolean(event.availablePaymentMethods);
+
+                if (expressSection) {
+                    expressSection.dataset.hasWallets = hasWallets ? 'true' : 'false';
+                    expressSection.style.display = hasWallets ? 'block' : 'none';
+                }
+                if (divider) {
+                    divider.style.display = hasWallets ? 'flex' : 'none';
+                }
+                updateAvailableMethodsDisplay(event.availablePaymentMethods);
+            });
+
             expressCheckoutElement.on('availablepaymentmethodschange', function(event) {
-                const wrapper = document.getElementById('express-checkout-wrapper');
-                const divider = wrapper ? wrapper.querySelector('.stripe-wallet-divider') : null;
-                if (!wrapper) {
-                    return;
+                const expressSection = document.getElementById('express-checkout-section');
+                const divider = document.getElementById('stripe-methods-divider');
+                const hasWallets = Boolean(event.paymentMethods);
+
+                if (expressSection) {
+                    expressSection.dataset.hasWallets = hasWallets ? 'true' : 'false';
+                    expressSection.style.display = hasWallets ? 'block' : 'none';
                 }
-                if (event.paymentMethods) {
-                    wrapper.dataset.hasWallets = 'true';
-                    wrapper.style.display = 'block';
-                    if (divider) {
-                        divider.style.display = 'flex';
-                    }
-                } else {
-                    wrapper.dataset.hasWallets = 'false';
-                    wrapper.style.display = 'none';
-                    if (divider) {
-                        divider.style.display = 'none';
-                    }
+                if (divider) {
+                    divider.style.display = hasWallets ? 'flex' : 'none';
                 }
+                updateAvailableMethodsDisplay(event.paymentMethods);
             });
 
             expressCheckoutElement.on('confirm', async function() {

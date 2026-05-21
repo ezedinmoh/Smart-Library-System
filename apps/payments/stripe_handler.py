@@ -60,11 +60,14 @@ class StripePaymentHandler:
             # Stripe requires amount in cents
             amount_cents = int(amount_usd * 100)
             
-            # Payment Element + Express Checkout (Apple Pay, Google Pay, Link, etc.)
+            # Payment Element + Express Checkout (cards, wallets, BNPL, bank redirects, etc.)
             intent_params = {
                 'amount': amount_cents,
                 'currency': 'usd',
-                'automatic_payment_methods': {'enabled': True},
+                'automatic_payment_methods': {
+                    'enabled': True,
+                    'allow_redirects': 'always',
+                },
                 'metadata': {
                     'payment_id': str(payment.id),
                     'user_id': str(payment.user.id),
