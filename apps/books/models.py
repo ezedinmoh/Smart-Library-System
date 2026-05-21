@@ -3,10 +3,13 @@ from django.core.validators import MinValueValidator
 from django.utils import timezone
 from django.core.exceptions import ValidationError, ObjectDoesNotExist
 import re
+import logging
 import qrcode
 from io import BytesIO
 from django.core.files import File
 from PIL import Image
+
+logger = logging.getLogger(__name__)
 
 
 class Category(models.Model):
@@ -127,13 +130,23 @@ class Book(models.Model):
     def save(self, *args, **kwargs):
         """Override save to run validation and generate QR code"""
         self.full_clean()
-        
-        # Generate QR code if not exists
+
+        qr_generated = False
         if not self.qr_code:
-            self.generate_qr_code()
-        
+            try:
+                self.generate_qr_code()
+                qr_generated = True
+            except Exception:
+                logger.exception('Failed to generate QR code for book %s', self.pk)
+
+        # Persist qr_code when save() is called with update_fields (e.g. rating sync)
+        if qr_generated:
+            update_fields = kwargs.get('update_fields')
+            if update_fields is not None:
+                kwargs['update_fields'] = list(set(update_fields) | {'qr_code'})
+
         super().save(*args, **kwargs)
-    
+
     def generate_qr_code(self):
         """Generate QR code for the book"""
         qr = qrcode.QRCode(
@@ -142,21 +155,19 @@ class Book(models.Model):
             box_size=10,
             border=4,
         )
-        
-        # QR code data includes book details
+
         qr_data = f"ISBN: {self.isbn}\nTitle: {self.title}\nAuthor: {self.author}"
         qr.add_data(qr_data)
         qr.make(fit=True)
-        
+
         img = qr.make_image(fill_color="black", back_color="white")
-        
-        # Save to BytesIO
+
         buffer = BytesIO()
         img.save(buffer, format='PNG')
         buffer.seek(0)
-        
-        # Save to model field
-        filename = f'qr_{self.isbn}.png'
+
+        safe_isbn = re.sub(r'[^\w\-]', '_', self.isbn)
+        filename = f'qr_{safe_isbn}.png'
         self.qr_code.save(filename, File(buffer), save=False)
         buffer.close()
     

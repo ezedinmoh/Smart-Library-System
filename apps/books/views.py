@@ -89,7 +89,8 @@ def book_detail(request, pk):
     if book.rating != correct_rating:
         book.rating = correct_rating
         book.save(update_fields=['rating'])
-    
+        book.refresh_from_db()
+
     # Check if user can review (has borrowed and returned)
     can_review = False
     has_borrowed_and_returned = False
@@ -112,13 +113,13 @@ def book_detail(request, pk):
             status__in=['borrowed', 'overdue']
         ).first()
     
-    # Generate QR code if it doesn't exist
+    # Generate QR code if missing (e.g. legacy books or failed prior save)
     if not book.qr_code:
         try:
             book.generate_qr_code()
-            book.save()
-        except:
-            pass
+            book.save(update_fields=['qr_code'])
+        except Exception as e:
+            logger.warning('Could not generate QR code for book %s: %s', book.pk, e)
     
     context = {
         'book': book,

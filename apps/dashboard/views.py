@@ -645,9 +645,8 @@ def download_qr_code(request, book_id):
     book = get_object_or_404(Book, pk=book_id)
 
     if not book.qr_code:
-        # Generate QR code if it doesn't exist
         book.generate_qr_code()
-        book.save()
+        book.save(update_fields=['qr_code'])
 
     if book.qr_code:
         storage = book.qr_code.storage
