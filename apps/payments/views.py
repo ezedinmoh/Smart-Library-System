@@ -63,6 +63,9 @@ def select_payment_method(request, record_id):
         'total_usd': round(total_usd, 2),
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
         'stripe_return_url': request.build_absolute_uri(reverse('payments:stripe_success')),
+        'total_usd_cents': int(round(total_usd * 100)),
+        'user_full_name': request.user.get_full_name() or request.user.username,
+        'user_email': request.user.email or '',
         'debug': (
             settings.STRIPE_PUBLIC_KEY.startswith('pk_test_') or
             getattr(settings, 'CHAPA_SECRET_KEY', '').startswith('CHASECK_TEST-')

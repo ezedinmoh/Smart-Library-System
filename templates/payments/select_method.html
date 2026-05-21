@@ -245,12 +245,53 @@
             display: none;
         }
 
+        #express-checkout-wrapper {
+            margin-bottom: 20px;
+        }
+
+        #express-checkout-element {
+            min-height: 44px;
+        }
+
+        .stripe-wallet-divider {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0 16px;
+            color: var(--text-muted);
+            font-size: 0.8125rem;
+        }
+
+        .stripe-wallet-divider::before,
+        .stripe-wallet-divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: var(--border);
+        }
+
         #payment-element {
             padding: 16px;
             border: 1px solid var(--border);
             border-radius: var(--radius);
             margin-bottom: 16px;
             min-height: 120px;
+        }
+
+        .stripe-wallet-hint {
+            font-size: 0.8125rem;
+            color: var(--text-secondary);
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 12px 14px;
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .stripe-wallet-hint a {
+            color: var(--secondary);
+            font-weight: 600;
         }
 
         #stripe-element-loading {
@@ -447,8 +488,19 @@
                 {% endif %}
                 
                 <h3 style="margin-bottom: 16px;">Choose payment option</h3>
+
+                <div class="stripe-wallet-hint">
+                    Available methods depend on your device, browser, and Stripe account settings.
+                    <strong>Apple Pay</strong> requires HTTPS, Safari (or supported browser), a card in Apple Wallet, and
+                    <a href="https://dashboard.stripe.com/settings/payment_method_domains" target="_blank" rel="noopener noreferrer">domain registration</a> in Stripe.
+                </div>
+
                 <form id="payment-form">
                     <div id="stripe-element-loading">Loading secure payment options…</div>
+                    <div id="express-checkout-wrapper" style="display: none;">
+                        <div id="express-checkout-element"></div>
+                        <div class="stripe-wallet-divider">Or pay with card / other methods</div>
+                    </div>
                     <div id="payment-element" style="display: none;"></div>
                     <div id="payment-errors" class="payment-errors"></div>
                     <button type="submit" class="btn btn-primary" id="stripe-submit-btn" disabled>
@@ -546,11 +598,16 @@
         const STRIPE_RETURN_URL = '{{ stripe_return_url|escapejs }}';
         const STRIPE_INTENT_URL = '{% url "payments:stripe_create_intent" borrow_record.id %}';
         const CSRF_TOKEN = '{{ csrf_token }}';
+        const STRIPE_AMOUNT_CENTS = {{ total_usd_cents }};
+        const STRIPE_USER_NAME = '{{ user_full_name|escapejs }}';
+        const STRIPE_USER_EMAIL = '{{ user_email|escapejs }}';
+        const STRIPE_BOOK_TITLE = '{{ borrow_record.book.title|escapejs }}';
 
         let selectedMethod = null;
         let stripe = null;
         let elements = null;
         let paymentElement = null;
+        let expressCheckoutElement = null;
         let stripeClientSecret = null;
         let stripeReady = false;
         let stripeInitializing = false;
@@ -616,21 +673,74 @@
         function setStripeLoadingState(isLoading) {
             const loadingEl = document.getElementById('stripe-element-loading');
             const paymentEl = document.getElementById('payment-element');
+            const expressWrapper = document.getElementById('express-checkout-wrapper');
             if (loadingEl) {
                 loadingEl.style.display = isLoading ? 'block' : 'none';
             }
             if (paymentEl) {
                 paymentEl.style.display = isLoading ? 'none' : 'block';
             }
+            if (expressWrapper && !isLoading) {
+                expressWrapper.style.display = expressWrapper.dataset.hasWallets === 'true' ? 'block' : 'none';
+            } else if (expressWrapper && isLoading) {
+                expressWrapper.style.display = 'none';
+            }
         }
 
-        function destroyPaymentElement() {
+        function destroyStripeElements() {
             if (paymentElement) {
                 paymentElement.unmount();
                 paymentElement = null;
             }
+            if (expressCheckoutElement) {
+                expressCheckoutElement.unmount();
+                expressCheckoutElement = null;
+            }
             elements = null;
             stripeReady = false;
+        }
+
+        function getPaymentElementOptions() {
+            const options = {
+                layout: {
+                    type: 'accordion',
+                    defaultCollapsed: false,
+                    radios: true,
+                    spacedAccordionItems: true,
+                },
+                wallets: {
+                    applePay: 'auto',
+                    googlePay: 'auto',
+                    link: 'auto',
+                },
+            };
+            if (STRIPE_USER_NAME || STRIPE_USER_EMAIL) {
+                options.defaultValues = {
+                    billingDetails: {},
+                };
+                if (STRIPE_USER_NAME) {
+                    options.defaultValues.billingDetails.name = STRIPE_USER_NAME;
+                }
+                if (STRIPE_USER_EMAIL) {
+                    options.defaultValues.billingDetails.email = STRIPE_USER_EMAIL;
+                }
+            }
+            return options;
+        }
+
+        async function confirmStripePayment() {
+            const { error: submitError } = await elements.submit();
+            if (submitError) {
+                showPaymentError(submitError.message);
+                return { error: submitError };
+            }
+
+            return stripe.confirmPayment({
+                elements: elements,
+                confirmParams: {
+                    return_url: STRIPE_RETURN_URL,
+                },
+            });
         }
 
         async function fetchClientSecret() {
@@ -648,8 +758,8 @@
             return data.client_secret;
         }
 
-        function mountPaymentElement() {
-            destroyPaymentElement();
+        function mountStripeElements() {
+            destroyStripeElements();
 
             if (!stripeClientSecret) {
                 return;
@@ -661,9 +771,70 @@
                 appearance: getStripeAppearance(),
             });
 
-            paymentElement = elements.create('payment', {
-                layout: 'tabs',
+            // One-click wallets: Apple Pay, Google Pay, Link, PayPal (when eligible)
+            expressCheckoutElement = elements.create('expressCheckout', {
+                buttonHeight: 48,
+                lineItems: [
+                    {
+                        name: STRIPE_BOOK_TITLE,
+                        amount: STRIPE_AMOUNT_CENTS,
+                    },
+                ],
             });
+            expressCheckoutElement.mount('#express-checkout-element');
+
+            expressCheckoutElement.on('availablepaymentmethodschange', function(event) {
+                const wrapper = document.getElementById('express-checkout-wrapper');
+                const divider = wrapper ? wrapper.querySelector('.stripe-wallet-divider') : null;
+                if (!wrapper) {
+                    return;
+                }
+                if (event.paymentMethods) {
+                    wrapper.dataset.hasWallets = 'true';
+                    wrapper.style.display = 'block';
+                    if (divider) {
+                        divider.style.display = 'flex';
+                    }
+                } else {
+                    wrapper.dataset.hasWallets = 'false';
+                    wrapper.style.display = 'none';
+                    if (divider) {
+                        divider.style.display = 'none';
+                    }
+                }
+            });
+
+            expressCheckoutElement.on('confirm', async function() {
+                showPaymentError('');
+                const submitBtn = document.getElementById('stripe-submit-btn');
+                const btnText = document.getElementById('stripe-btn-text');
+                const spinner = document.getElementById('stripe-spinner');
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                }
+                if (btnText) {
+                    btnText.style.display = 'none';
+                }
+                if (spinner) {
+                    spinner.style.display = 'inline-block';
+                }
+
+                const { error } = await confirmStripePayment();
+                if (error) {
+                    showPaymentError(error.message);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                    }
+                    if (btnText) {
+                        btnText.style.display = 'inline';
+                    }
+                    if (spinner) {
+                        spinner.style.display = 'none';
+                    }
+                }
+            });
+
+            paymentElement = elements.create('payment', getPaymentElementOptions());
             paymentElement.mount('#payment-element');
 
             paymentElement.on('change', function(event) {
@@ -686,7 +857,7 @@
                 themeObserver = new MutationObserver(function(mutations) {
                     mutations.forEach(function(mutation) {
                         if (mutation.attributeName === 'data-theme' && stripeClientSecret) {
-                            mountPaymentElement();
+                            mountStripeElements();
                         }
                     });
                 });
@@ -718,7 +889,7 @@
                     stripeClientSecret = await fetchClientSecret();
                 }
 
-                mountPaymentElement();
+                mountStripeElements();
 
                 const form = document.getElementById('payment-form');
                 form.removeEventListener('submit', handleStripePayment);
@@ -752,12 +923,7 @@
             spinner.style.display = 'inline-block';
             showPaymentError('');
 
-            const { error } = await stripe.confirmPayment({
-                elements: elements,
-                confirmParams: {
-                    return_url: STRIPE_RETURN_URL,
-                },
-            });
+            const { error } = await confirmStripePayment();
 
             if (error) {
                 showPaymentError(error.message);

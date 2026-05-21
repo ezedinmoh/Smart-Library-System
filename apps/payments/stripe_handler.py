@@ -60,12 +60,12 @@ class StripePaymentHandler:
             # Stripe requires amount in cents
             amount_cents = int(amount_usd * 100)
             
-            # Create payment intent (Payment Element + wallets via automatic_payment_methods)
-            intent = stripe.PaymentIntent.create(
-                amount=amount_cents,
-                currency='usd',
-                automatic_payment_methods={'enabled': True},
-                metadata={
+            # Payment Element + Express Checkout (Apple Pay, Google Pay, Link, etc.)
+            intent_params = {
+                'amount': amount_cents,
+                'currency': 'usd',
+                'automatic_payment_methods': {'enabled': True},
+                'metadata': {
                     'payment_id': str(payment.id),
                     'user_id': str(payment.user.id),
                     'borrow_record_id': str(payment.borrow_record.id),
@@ -73,8 +73,12 @@ class StripePaymentHandler:
                     'original_currency': payment.currency,
                     'processing_fee_usd': str(processing_fee_usd),
                 },
-                description=f"Library Fine Payment - {payment.borrow_record.book.title}",
-            )
+                'description': f"Library Fine Payment - {payment.borrow_record.book.title}",
+            }
+            if payment.user.email:
+                intent_params['receipt_email'] = payment.user.email
+
+            intent = stripe.PaymentIntent.create(**intent_params)
             
             logger.info(f"Stripe Payment Intent created: {intent.id} for payment {payment.id}")
             
