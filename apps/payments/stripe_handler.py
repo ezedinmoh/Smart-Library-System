@@ -11,6 +11,13 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+# Payment intents in these states can be reused (e.g. user re-opens Stripe form)
+REUSABLE_PAYMENT_INTENT_STATUSES = frozenset({
+    'requires_payment_method',
+    'requires_confirmation',
+    'requires_action',
+})
+
 # Initialize Stripe
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
@@ -53,10 +60,11 @@ class StripePaymentHandler:
             # Stripe requires amount in cents
             amount_cents = int(amount_usd * 100)
             
-            # Create payment intent
+            # Create payment intent (Payment Element + wallets via automatic_payment_methods)
             intent = stripe.PaymentIntent.create(
                 amount=amount_cents,
                 currency='usd',
+                automatic_payment_methods={'enabled': True},
                 metadata={
                     'payment_id': str(payment.id),
                     'user_id': str(payment.user.id),
@@ -122,6 +130,8 @@ class StripePaymentHandler:
             bool: Success status
         """
         try:
+            from apps.payments.models import StripePayment
+
             # Retrieve payment intent to verify status
             intent = StripePaymentHandler.retrieve_payment_intent(payment_intent_id)
             
@@ -130,6 +140,10 @@ class StripePaymentHandler:
                 return False
             
             if intent.status == 'succeeded':
+                if payment.status == 'completed':
+                    logger.info(f"Payment {payment.id} already completed, skipping confirm")
+                    return True
+
                 # Update payment status
                 payment.status = 'completed'
                 payment.payment_gateway_response = {
@@ -139,6 +153,24 @@ class StripePaymentHandler:
                     'currency': intent.currency,
                 }
                 payment.save()
+
+                # Persist Stripe-specific IDs for support and receipts
+                charge_id = intent.latest_charge
+                if isinstance(charge_id, str):
+                    charge_id_str = charge_id
+                elif charge_id:
+                    charge_id_str = str(charge_id)
+                else:
+                    charge_id_str = ''
+
+                StripePayment.objects.update_or_create(
+                    payment=payment,
+                    defaults={
+                        'stripe_payment_intent_id': intent.id,
+                        'stripe_charge_id': charge_id_str,
+                        'stripe_payment_method_id': intent.payment_method or '',
+                    },
+                )
                 
                 # Mark fine as paid in borrow record (use update to bypass validation)
                 from apps.borrow.models import BorrowRecord
@@ -215,6 +247,10 @@ class StripePaymentHandler:
                 return
             
             payment = Payment.objects.get(id=payment_id)
+
+            if payment.status == 'completed':
+                logger.info(f"Payment {payment.id} already completed via webhook, skipping")
+                return
             
             # Update payment status
             payment.status = 'completed'
@@ -226,12 +262,18 @@ class StripePaymentHandler:
             }
             payment.save()
             
+            charge_id = payment_intent.get('latest_charge', '')
+            if not charge_id:
+                charges = payment_intent.get('charges', {}).get('data', [])
+                charge_id = charges[0].get('id', '') if charges else ''
+
             # Update or create Stripe payment details
             StripePayment.objects.update_or_create(
                 payment=payment,
                 defaults={
                     'stripe_payment_intent_id': payment_intent['id'],
-                    'stripe_charge_id': payment_intent.get('charges', {}).get('data', [{}])[0].get('id', ''),
+                    'stripe_charge_id': charge_id or '',
+                    'stripe_payment_method_id': payment_intent.get('payment_method', '') or '',
                 }
             )
             

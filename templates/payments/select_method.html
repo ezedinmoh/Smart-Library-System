@@ -245,17 +245,29 @@
             display: none;
         }
 
-        #card-element {
+        #payment-element {
             padding: 16px;
             border: 1px solid var(--border);
             border-radius: var(--radius);
             margin-bottom: 16px;
+            min-height: 120px;
         }
 
-        .card-errors {
+        #stripe-element-loading {
+            padding: 24px;
+            text-align: center;
+            color: var(--text-secondary);
+            font-size: 0.875rem;
+            border: 1px dashed var(--border);
+            border-radius: var(--radius);
+            margin-bottom: 16px;
+        }
+
+        .payment-errors {
             color: var(--error);
             font-size: 0.875rem;
             margin-top: 8px;
+            margin-bottom: 12px;
         }
 
         .loading-spinner {
@@ -342,7 +354,7 @@
                         </svg>
                     </div>
                     <div class="payment-name">Stripe</div>
-                    <div class="payment-desc">International Credit/Debit Card</div>
+                    <div class="payment-desc">Cards, Apple Pay, Google Pay &amp; more</div>
                     <div class="payment-amount">${{ total_usd }} USD</div>
                     {% if processing_fee_usd > 0 %}
                     <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px;">Includes ${{ processing_fee_usd }} processing fee</div>
@@ -434,11 +446,12 @@
                 </div>
                 {% endif %}
                 
-                <h3 style="margin-bottom: 16px;">Enter Card Details</h3>
+                <h3 style="margin-bottom: 16px;">Choose payment option</h3>
                 <form id="payment-form">
-                    <div id="card-element"></div>
-                    <div id="card-errors" class="card-errors"></div>
-                    <button type="submit" class="btn btn-primary" id="stripe-submit-btn">
+                    <div id="stripe-element-loading">Loading secure payment options…</div>
+                    <div id="payment-element" style="display: none;"></div>
+                    <div id="payment-errors" class="payment-errors"></div>
+                    <button type="submit" class="btn btn-primary" id="stripe-submit-btn" disabled>
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                             <circle cx="12" cy="12" r="10"></circle>
                             <path d="M12 6v6l4 2"></path>
@@ -529,21 +542,29 @@
     </div>
 
     <script>
+        const STRIPE_PUBLIC_KEY = '{{ stripe_public_key|escapejs }}';
+        const STRIPE_RETURN_URL = '{{ stripe_return_url|escapejs }}';
+        const STRIPE_INTENT_URL = '{% url "payments:stripe_create_intent" borrow_record.id %}';
+        const CSRF_TOKEN = '{{ csrf_token }}';
+
         let selectedMethod = null;
         let stripe = null;
         let elements = null;
-        let cardElement = null;
+        let paymentElement = null;
+        let stripeClientSecret = null;
+        let stripeReady = false;
+        let stripeInitializing = false;
+        let themeObserver = null;
+        let stripeScriptPromise = null;
 
         function selectPaymentMethod(method) {
             selectedMethod = method;
             
-            // Update UI
             document.querySelectorAll('.payment-method').forEach(el => {
                 el.classList.remove('selected');
             });
             document.getElementById(method + '-method').classList.add('selected');
             
-            // Show/hide payment forms
             if (method === 'stripe') {
                 document.getElementById('stripe-payment-form').style.display = 'block';
                 document.getElementById('chapa-payment-form').style.display = 'none';
@@ -554,124 +575,192 @@
             }
         }
 
-        function initializeStripe() {
-            if (stripe) return; // Already initialized
-            
-            // Load Stripe.js dynamically only when needed
-            if (!window.Stripe) {
+        function loadStripeJs() {
+            if (window.Stripe) {
+                return Promise.resolve();
+            }
+            if (stripeScriptPromise) {
+                return stripeScriptPromise;
+            }
+            stripeScriptPromise = new Promise((resolve, reject) => {
                 const script = document.createElement('script');
                 script.src = 'https://js.stripe.com/v3/';
-                script.onload = function() {
-                    setupStripe();
-                };
+                script.onload = resolve;
+                script.onerror = () => reject(new Error('Failed to load Stripe.js'));
                 document.head.appendChild(script);
-            } else {
-                setupStripe();
+            });
+            return stripeScriptPromise;
+        }
+
+        function getStripeAppearance() {
+            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
+            return {
+                theme: isDarkMode ? 'night' : 'stripe',
+                variables: {
+                    colorPrimary: '#10b981',
+                    colorBackground: isDarkMode ? '#1e293b' : '#ffffff',
+                    colorText: isDarkMode ? '#f8fafc' : '#0f172a',
+                    colorDanger: '#ef4444',
+                    borderRadius: '12px',
+                },
+            };
+        }
+
+        function showPaymentError(message) {
+            const errorEl = document.getElementById('payment-errors');
+            if (errorEl) {
+                errorEl.textContent = message || '';
             }
         }
-        
-        function setupStripe() {
-            // Detect current theme
-            const isDarkMode = document.documentElement.getAttribute('data-theme') === 'dark';
-            
-            stripe = Stripe('{{ stripe_public_key }}');
-            elements = stripe.elements();
-            cardElement = elements.create('card', {
-                style: {
-                    base: {
-                        fontSize: '16px',
-                        color: isDarkMode ? '#f8fafc' : '#0f172a',
-                        '::placeholder': {
-                            color: isDarkMode ? '#64748b' : '#94a3b8',
-                        },
-                    },
-                    invalid: {
-                        color: '#ef4444',
-                    },
+
+        function setStripeLoadingState(isLoading) {
+            const loadingEl = document.getElementById('stripe-element-loading');
+            const paymentEl = document.getElementById('payment-element');
+            if (loadingEl) {
+                loadingEl.style.display = isLoading ? 'block' : 'none';
+            }
+            if (paymentEl) {
+                paymentEl.style.display = isLoading ? 'none' : 'block';
+            }
+        }
+
+        function destroyPaymentElement() {
+            if (paymentElement) {
+                paymentElement.unmount();
+                paymentElement = null;
+            }
+            elements = null;
+            stripeReady = false;
+        }
+
+        async function fetchClientSecret() {
+            const response = await fetch(STRIPE_INTENT_URL, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': CSRF_TOKEN,
+                    'Content-Type': 'application/json',
                 },
             });
-            cardElement.mount('#card-element');
-            
-            cardElement.on('change', function(event) {
-                const displayError = document.getElementById('card-errors');
+            const data = await response.json();
+            if (!data.success) {
+                throw new Error(data.error || 'Failed to prepare payment');
+            }
+            return data.client_secret;
+        }
+
+        function mountPaymentElement() {
+            destroyPaymentElement();
+
+            if (!stripeClientSecret) {
+                return;
+            }
+
+            stripe = Stripe(STRIPE_PUBLIC_KEY);
+            elements = stripe.elements({
+                clientSecret: stripeClientSecret,
+                appearance: getStripeAppearance(),
+            });
+
+            paymentElement = elements.create('payment', {
+                layout: 'tabs',
+            });
+            paymentElement.mount('#payment-element');
+
+            paymentElement.on('change', function(event) {
                 if (event.error) {
-                    displayError.textContent = event.error.message;
+                    showPaymentError(event.error.message);
                 } else {
-                    displayError.textContent = '';
+                    showPaymentError('');
                 }
             });
-            
-            // Handle form submission
-            const form = document.getElementById('payment-form');
-            form.removeEventListener('submit', handleStripePayment); // Remove old listener if exists
-            form.addEventListener('submit', handleStripePayment);
-            
-            // Listen for theme changes and recreate the card element
-            const observer = new MutationObserver(function(mutations) {
-                mutations.forEach(function(mutation) {
-                    if (mutation.attributeName === 'data-theme') {
-                        // Unmount and recreate card element with new theme
-                        if (cardElement) {
-                            cardElement.unmount();
+
+            const submitBtn = document.getElementById('stripe-submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = false;
+            }
+
+            stripeReady = true;
+            setStripeLoadingState(false);
+
+            if (!themeObserver) {
+                themeObserver = new MutationObserver(function(mutations) {
+                    mutations.forEach(function(mutation) {
+                        if (mutation.attributeName === 'data-theme' && stripeClientSecret) {
+                            mountPaymentElement();
                         }
-                        setupStripe();
-                    }
+                    });
                 });
-            });
-            
-            observer.observe(document.documentElement, {
-                attributes: true,
-                attributeFilter: ['data-theme']
-            });
+                themeObserver.observe(document.documentElement, {
+                    attributes: true,
+                    attributeFilter: ['data-theme'],
+                });
+            }
+        }
+
+        async function initializeStripe() {
+            if (stripeReady || stripeInitializing) {
+                return;
+            }
+
+            stripeInitializing = true;
+            setStripeLoadingState(true);
+            showPaymentError('');
+
+            const submitBtn = document.getElementById('stripe-submit-btn');
+            if (submitBtn) {
+                submitBtn.disabled = true;
+            }
+
+            try {
+                await loadStripeJs();
+
+                if (!stripeClientSecret) {
+                    stripeClientSecret = await fetchClientSecret();
+                }
+
+                mountPaymentElement();
+
+                const form = document.getElementById('payment-form');
+                form.removeEventListener('submit', handleStripePayment);
+                form.addEventListener('submit', handleStripePayment);
+            } catch (error) {
+                showPaymentError(error.message || 'Could not load payment form. Please try again.');
+                setStripeLoadingState(true);
+                const loadingEl = document.getElementById('stripe-element-loading');
+                if (loadingEl) {
+                    loadingEl.textContent = 'Unable to load payment options. Select Stripe again to retry.';
+                }
+            } finally {
+                stripeInitializing = false;
+            }
         }
 
         async function handleStripePayment(event) {
             event.preventDefault();
-            
+
+            if (!stripeReady || !elements || !stripeClientSecret) {
+                showPaymentError('Payment form is still loading. Please wait a moment.');
+                return;
+            }
+
             const submitBtn = document.getElementById('stripe-submit-btn');
             const btnText = document.getElementById('stripe-btn-text');
             const spinner = document.getElementById('stripe-spinner');
-            
-            // Disable button and show loading
+
             submitBtn.disabled = true;
             btnText.style.display = 'none';
             spinner.style.display = 'inline-block';
-            
-            try {
-                // Create payment intent
-                const response = await fetch('{% url "payments:stripe_create_intent" borrow_record.id %}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': '{{ csrf_token }}',
-                        'Content-Type': 'application/json',
-                    },
-                });
-                
-                const data = await response.json();
-                
-                if (!data.success) {
-                    throw new Error(data.error || 'Failed to create payment');
-                }
-                
-                // Confirm payment with Stripe
-                const result = await stripe.confirmCardPayment(data.client_secret, {
-                    payment_method: {
-                        card: cardElement,
-                    }
-                });
-                
-                if (result.error) {
-                    // Show error
-                    document.getElementById('card-errors').textContent = result.error.message;
-                    submitBtn.disabled = false;
-                    btnText.style.display = 'inline';
-                    spinner.style.display = 'none';
-                } else {
-                    // Payment successful - redirect to success page
-                    window.location.href = '{% url "payments:stripe_success" %}?payment_intent=' + result.paymentIntent.id;
-                }
-            } catch (error) {
-                document.getElementById('card-errors').textContent = error.message;
+            showPaymentError('');
+
+            const { error } = await stripe.confirmPayment({
+                elements: elements,
+                confirmParams: {
+                    return_url: STRIPE_RETURN_URL,
+                },
+            });
+
+            if (error) {
+                showPaymentError(error.message);
                 submitBtn.disabled = false;
                 btnText.style.display = 'inline';
                 spinner.style.display = 'none';

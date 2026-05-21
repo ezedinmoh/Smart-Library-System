@@ -13,7 +13,7 @@ from django.urls import reverse
 from django.conf import settings
 from apps.borrow.models import BorrowRecord
 from apps.payments.models import Payment, StripePayment, ChapaPayment
-from apps.payments.stripe_handler import StripePaymentHandler
+from apps.payments.stripe_handler import StripePaymentHandler, REUSABLE_PAYMENT_INTENT_STATUSES
 from apps.payments.chapa_handler import ChapaPaymentHandler
 import json
 import logging
@@ -62,6 +62,7 @@ def select_payment_method(request, record_id):
         'processing_fee_usd': round(processing_fee, 2),
         'total_usd': round(total_usd, 2),
         'stripe_public_key': settings.STRIPE_PUBLIC_KEY,
+        'stripe_return_url': request.build_absolute_uri(reverse('payments:stripe_success')),
         'debug': (
             settings.STRIPE_PUBLIC_KEY.startswith('pk_test_') or
             getattr(settings, 'CHAPA_SECRET_KEY', '').startswith('CHASECK_TEST-')
@@ -86,6 +87,36 @@ def create_stripe_payment_intent(request, record_id):
                 'success': False,
                 'error': 'No fine to pay or already paid'
             }, status=400)
+
+        # Reuse an open pending Stripe intent to avoid duplicate Payment rows
+        existing_payment = Payment.objects.filter(
+            borrow_record=borrow_record,
+            user=request.user,
+            payment_method='stripe',
+            status='pending',
+        ).order_by('-created_at').first()
+
+        if existing_payment:
+            try:
+                stripe_payment = existing_payment.stripe_details
+                intent = StripePaymentHandler.retrieve_payment_intent(
+                    stripe_payment.stripe_payment_intent_id
+                )
+                if intent and intent.status in REUSABLE_PAYMENT_INTENT_STATUSES:
+                    amount_usd = intent.amount / 100
+                    processing_fee_usd = float(
+                        intent.metadata.get('processing_fee_usd', 0) or 0
+                    )
+                    return JsonResponse({
+                        'success': True,
+                        'client_secret': intent.client_secret,
+                        'payment_id': str(existing_payment.id),
+                        'amount_usd': amount_usd,
+                        'processing_fee_usd': processing_fee_usd,
+                        'reused': True,
+                    })
+            except StripePayment.DoesNotExist:
+                pass
         
         # Create payment record
         payment = Payment.objects.create(
@@ -146,6 +177,11 @@ def stripe_payment_success(request):
     Handle successful Stripe payment redirect
     """
     payment_intent_id = request.GET.get('payment_intent')
+    redirect_status = request.GET.get('redirect_status')
+
+    if redirect_status == 'failed':
+        messages.error(request, "Payment was not completed. Please try again.")
+        return redirect('borrow:my_books')
     
     if not payment_intent_id:
         messages.error(request, "Invalid payment session.")
@@ -157,6 +193,16 @@ def stripe_payment_success(request):
             stripe_payment_intent_id=payment_intent_id
         )
         payment = stripe_payment.payment
+
+        # Verify the returning user owns this payment
+        if payment.user_id != request.user.id:
+            messages.error(request, "Unauthorized access.")
+            return redirect('borrow:my_books')
+
+        # Already completed (e.g. webhook ran before redirect)
+        if payment.status == 'completed':
+            messages.success(request, f"Payment of ETB {payment.amount} completed successfully!")
+            return redirect('payments:payment_receipt', payment_id=payment.id)
         
         # Confirm payment
         if StripePaymentHandler.confirm_payment(payment, payment_intent_id):
