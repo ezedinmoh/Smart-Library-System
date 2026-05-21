@@ -2,7 +2,7 @@ services:
   - type: web
     name: smart-library-system
     env: python
-    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate"
+    buildCommand: "pip install -r requirements.txt && python manage.py collectstatic --noinput && python manage.py migrate && python manage.py generate_qr_codes"
     startCommand: "gunicorn library_system.wsgi:application"
     envVars:
       - key: DJANGO_SETTINGS_MODULE
